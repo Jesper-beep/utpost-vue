@@ -21,3 +21,25 @@ Appen ligger sen på http://localhost:3000 och API:et pa http://localhost:4000.
 ## Deploy
 
 Fråga Marcus.
+
+## Branchstrategi
+
+### Trunk-based
+
+Vi kommer "trunk-based" med följande motivering:
+
+- Färre mergeconflicts
+- Enklare i små teams
+- Bättre koll på kodbasen
+
+## Working Agreement
+
+- Pusha ofta, men inte så mycket kod
+- Minst en som godkänner varje PR
+- Bra kod (no slop/städad kod)
+- Kontakt sker på Discord
+- Alla behöver våga be om hjälp
+- Vi hjälps åt att motivera teamet och hör av oss till varandra
+
+
+
