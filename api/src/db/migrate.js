@@ -1,8 +1,8 @@
 // Vi kör inga migrations-verktyg. Den här filen skapar tabellerna.
-import { pool } from './client.js';
+import { pool } from "./client.js";
 
 export const createTables = async () => {
-  await pool.query(`
+	await pool.query(`
     create table if not exists users (
       id serial primary key,
       email text not null,
