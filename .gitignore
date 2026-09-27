@@ -1,7 +1,50 @@
-node_modules
-dist
-.env
+# Custom
 uploads
 TODO
-.DS_Store
 kunskapslogg.md
+
+# Dependencies
+node_modules/
+.npm
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+dist-ssr/
+build/
+*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Vite
+.vite/
+
+# Testing / coverage
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Editor
+.vscode/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
