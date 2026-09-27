@@ -26,6 +26,7 @@ Länka till en GitHub-issue eller en TODO-fil. Skriv `Inte relevant` om ändring
 - [ ] Webb
 - [ ] Databas
 - [ ] Dokumentation
+- [ ] CI/Pipeline
 
 ## Hur testas detta?
 
@@ -39,7 +40,7 @@ Om ändringen inte behöver köras, skriv till exempel `Dokumentation, inget tes
 
 ## Risker och annat att veta
 
-Beskriv sådant som granskaren bör vara extra uppmärksam på, till exempel ändringar i databasen eller sådant som inte kunde testas. Skriv `Inga kända risker` om det inte finns något särskilt att nämna.
+Beskriv sådant som granskaren bör vara extra uppmärksam på, till exempel brytande ändringar i API:et eller databasschemat, eller sådant som inte kunde testas. Skriv `Inga kända risker` om det inte finns något särskilt att nämna.
 
 ## Bilder
 
@@ -52,3 +53,4 @@ Om ändringen syns i webbappen, lägg till en bild eller skärmbild. Skriv `Inte
 - [ ] Jag har kontrollerat att inga lösenord eller andra hemliga uppgifter finns med
 - [ ] Jag har uppdaterat dokumentationen om ändringen behöver förklaras
 - [ ] Jag har hållit ändringen så liten och tydlig som möjligt
+- [ ] Jag har kört linter/CI-kontroller lokalt (t.ex. `npm run lint`)
