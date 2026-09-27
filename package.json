@@ -11,12 +11,20 @@
 		"dev:api": "npm run dev --workspace=api",
 		"dev:web": "npm run dev --workspace=web",
 		"seed": "npm run seed --workspace=api",
-		"lint": "biome check .",
+		"lint": "biome check --verbose --max-diagnostics=none .",
 		"lint:fix": "biome check --write .",
-		"lint:force-fix": "biome check --write --unsafe ."
+		"lint:force-fix": "biome check --write --unsafe .",
+		"lint:md": "markdownlint \"**/*.md\"",
+		"lint:md:fix": "markdownlint \"**/*.md\" --fix",
+		"lint:spelling": "cspell \"**/*.{js,jsx,md}\"",
+		"prepare": "husky"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.14",
-		"concurrently": "^9.1.2"
+		"@cspell/dict-sv": "^2.3.2",
+		"concurrently": "^9.1.2",
+		"cspell": "^10.3.4",
+		"husky": "^9.1.7",
+		"markdownlint-cli": "^0.49.1"
 	}
 }
