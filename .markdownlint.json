@@ -121,9 +121,7 @@
 		"shortcut_syntax": false
 	},
 	"link-image-reference-definitions": {
-		"ignored_definitions": [
-			"//"
-		]
+		"ignored_definitions": ["//"]
 	},
 	"link-image-style": {
 		"autolink": true,

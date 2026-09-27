@@ -3,11 +3,16 @@
 	"version": "0.2",
 	"language": "en,sv",
 	"import": ["@cspell/dict-sv/cspell-ext.json"],
-	"dictionaries": ["node", "npm", "typescript", "vue", "html", "css", "bash", "filetypes"],
-	"ignorePaths": [
-		"node_modules",
-		"dist",
-		"package-lock.json"
+	"dictionaries": [
+		"node",
+		"npm",
+		"typescript",
+		"vue",
+		"html",
+		"css",
+		"bash",
+		"filetypes"
 	],
+	"ignorePaths": ["node_modules", "dist", "package-lock.json"],
 	"words": []
 }
