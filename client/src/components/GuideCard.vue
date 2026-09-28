@@ -1,16 +1,25 @@
 <script setup>
+defineProps({
+	guide: {
+		type: Object,
+		required: true,
+	},
+});
 </script>
 <template>
-    <div className="card"
+    <div
+		class="card"
+		
 	>
 		<h3>
-			TEST TEST OK?
+			<!-- <Link to={`/guider/${guide.slug}`}>{guide.title}</Link> -->
+			 {{guide.title}}
 		</h3>
-		<p className="muted">
-			
+		<p class="muted">
+			{{guide.region}} · {{guide.difficulty}} · {{guide.length_km}} km
 		</p>
-		<div className="excerpt">
-			
+		<div class="excerpt">
+			{{guide.body_html.replace(/<[^>]*>/g, "").slice(0, 180)}}
 		</div>
 	</div>
 </template>
