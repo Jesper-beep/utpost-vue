@@ -14,33 +14,20 @@ Bromsar varje ändring.
 
 ### Låg
 
-Stör, men kostar lite att hantera.   
+Stör, men kostar lite att hantera.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-| # | Problem | Plats | Allvar |
-|---|---------|-------|--------|
-| 1 | En person kan lura sökningen att visa mer än den ska | `api/src/routes/guides.js:24` | Hög |
-| 2 | Lösenord sparas så att de går att läsa | `api/src/routes/auth.js:22` | Hög |
-| 3 | Databasens lösenord och inloggningsnyckel ligger i projektet | `api/src/config.js:2-7` | Hög |
-| 4 | Servern skickar med lösenordet | `api/src/routes/auth.js:20-23` | Hög |
-| 5 | Vem som helst kan ändra guider | `api/src/routes/guides.js:35-42` | Hög |
-| 6 | Vem som helst kan radera andras turer | `api/src/routes/tours.js:46-50` | Hög |
-| 7 | Vem som helst kan läsa användarnas turer och mätningar | `api/src/routes/tours.js:7-34` | Hög |
-| 8 | En guide kan innehålla kod som körs hos besökaren | `web/src/pages/GuideDetail.jsx:19-21` | Hög |
-| 9 | En person kan skicka in en bildstorlek som slår ut servern | `api/src/routes/photos.js:35-45` | Hög |
-| 10 | Sidan kan fastna utan att berätta att något gick fel | `api/src/index.js:25-29` | Hög |
+| #  | Problem                                                      | Plats                                 | Allvar |
+|----|--------------------------------------------------------------|---------------------------------------|--------|
+| 1  | En person kan lura sökningen att visa mer än den ska         | `api/src/routes/guides.js:24`         | Hög    |
+| 2  | Lösenord sparas så att de går att läsa                       | `api/src/routes/auth.js:22`           | Hög    |
+| 3  | Databasens lösenord och inloggningsnyckel ligger i projektet | `api/src/config.js:2-7`               | Hög    |
+| 4  | Servern skickar med lösenordet                               | `api/src/routes/auth.js:20-23`        | Hög    |
+| 5  | Vem som helst kan ändra guider                               | `api/src/routes/guides.js:35-42`      | Hög    |
+| 6  | Vem som helst kan radera andras turer                        | `api/src/routes/tours.js:46-50`       | Hög    |
+| 7  | Vem som helst kan läsa användarnas turer och mätningar       | `api/src/routes/tours.js:7-34`        | Hög    |
+| 8  | En guide kan innehålla kod som körs hos besökaren            | `web/src/pages/GuideDetail.jsx:19-21` | Hög    |
+| 9  | En person kan skicka in en bildstorlek som slår ut servern   | `api/src/routes/photos.js:35-45`      | Hög    |
+| 10 | Sidan kan fastna utan att berätta att något gick fel         | `api/src/index.js:25-29`              | Hög    |
 
 ## 1. En person kan lura sökningen att visa mer än den ska
 
