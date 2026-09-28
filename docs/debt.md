@@ -14,7 +14,20 @@ Bromsar varje ändring.
 
 ### Låg
 
-Stör, men kostar lite att hantera.
+Stör, men kostar lite att hantera.   
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 | # | Problem | Plats | Allvar |
 |---|---------|-------|--------|
