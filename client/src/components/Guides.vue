@@ -12,8 +12,10 @@ onMounted(async () => {
 	guides.value = result.data;
 });
 
-const _searchGuides = async () => {
-	result = await bigFetch("http://localhost:4000/api/guides", newGuide.value);
+const searchGuides = async () => {
+	result = await bigFetch("http://localhost:4000/api/guides", {
+		search: newGuide.value,
+	});
 	guides.value = result.data;
 };
 </script>

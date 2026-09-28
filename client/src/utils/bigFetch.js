@@ -1,13 +1,13 @@
-export const bigFetch = async (url, searchParam) => {
+export const bigFetch = async (url, { id, search } = {}) => {
 	let response;
 	let data = [];
 	let loading = false;
 
 	try {
-		if (searchParam !== "" && searchParam !== undefined) {
-			response = await fetch(
-				`${url}/search?q=${encodeURIComponent(searchParam)}`,
-			);
+		if (id !== undefined) {
+			response = await fetch(`${url}/${encodeURIComponent(id)}`);
+		} else if (search !== "" && search !== undefined) {
+			response = await fetch(`${url}/search?q=${encodeURIComponent(search)}`);
 		} else {
 			response = await fetch(url);
 		}
