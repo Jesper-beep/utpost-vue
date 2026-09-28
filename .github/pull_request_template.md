@@ -26,6 +26,7 @@ Länka till en GitHub-issue eller en TODO-fil. Skriv `Inte relevant` om ändring
 - [ ] Webb
 - [ ] Databas
 - [ ] Dokumentation
+- [ ] Repo/verktyg
 - [ ] CI/Pipeline
 
 ## Hur testas detta?
