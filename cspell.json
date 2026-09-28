@@ -14,5 +14,15 @@
 		"filetypes"
 	],
 	"ignorePaths": ["node_modules", "dist", "package-lock.json"],
-	"words": []
+	"words": [
+		"Björnleden",
+		"Branchstrategi",
+		"Hällstigen",
+		"ilike",
+		"mergeconflicts",
+		"Myrleden",
+		"Ohanterat",
+		"searchrow",
+		"topbar"
+	]
 }

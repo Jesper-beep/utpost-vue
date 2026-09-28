@@ -11,7 +11,7 @@ npm run seed
 npm start
 ```
 
-Appen ligger sen på http://localhost:3000 och API:et pa http://localhost:4000.
+Appen ligger sen på <http://localhost:3000> och API:et pa <http://localhost:4000>.
 
 ## Struktur
 
@@ -40,6 +40,3 @@ Vi kommer "trunk-based" med följande motivering:
 - Kontakt sker på Discord
 - Alla behöver våga be om hjälp
 - Vi hjälps åt att motivera teamet och hör av oss till varandra
-
-
-

@@ -14,8 +14,8 @@
 		"lint": "biome check --verbose --max-diagnostics=none .",
 		"lint:fix": "biome check --write .",
 		"lint:force-fix": "biome check --write --unsafe .",
-		"lint:md": "markdownlint \"**/*.md\"",
-		"lint:md:fix": "markdownlint \"**/*.md\" --fix",
+		"lint:md": "markdownlint \"**/*.md\" --ignore \"**/node_modules/**\"",
+		"lint:md:fix": "markdownlint \"**/*.md\" --ignore \"**/node_modules/**\" --fix",
 		"lint:spelling": "cspell \"**/*.{js,jsx,md}\"",
 		"prepare": "husky"
 	},
