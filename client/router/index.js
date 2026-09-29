@@ -9,17 +9,22 @@ const routes = [
 	{
 		component: () => import("../src/views/GuideView.vue"),
 		name: "Guider",
-		path: "/guides",
+		path: "/guider",
 	},
 	{
 		component: () => import("../src/views/TourView.vue"),
 		name: "Turer",
-		path: "/tours",
+		path: "/turer",
 	},
 	{
 		component: () => import("../src/views/TourDetailView.vue"),
 		name: "Turdetaljer",
-		path: "/tours/:id",
+		path: "/turer/:id",
+	},
+	{
+		component: () => import("../src/views/NotFoundView.vue"),
+		name: "NotFound",
+		path: "/:pathMatch(.*)*",
 	},
 ];
 

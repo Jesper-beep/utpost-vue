@@ -1,21 +1,24 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { bigFetch } from "../utils/bigFetch.js";
 
 const route = useRoute();
-const tourId = route.params.id;
 
 const tour = ref(null);
 
-onMounted(async () => {
-	if (tourId) {
-		const result = await bigFetch(`http://localhost:4000/api/tours/`, {
-			id: tourId,
-		});
-		tour.value = result.data;
-	}
-});
+watch(
+	() => route.params.id,
+	async (tourId) => {
+		if (tourId) {
+			const result = await bigFetch(`http://localhost:4000/api/tours/`, {
+				id: tourId,
+			});
+			tour.value = result.data;
+		}
+	},
+	{ immediate: true },
+);
 
 const distanceKm = computed(() => {
 	if (!tour.value) return 0;

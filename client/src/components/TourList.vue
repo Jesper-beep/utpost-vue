@@ -4,15 +4,18 @@ import { RouterLink } from "vue-router";
 import { bigFetch } from "../utils/bigFetch.js";
 
 const tours = ref([]);
+const loading = ref(true);
 let result = [];
 
 onMounted(async () => {
 	result = await bigFetch("http://localhost:4000/api/tours");
 	tours.value = result.data;
+	loading.value = false;
 });
 </script>
 <template>
-    		<div>
+    		<p v-if="loading">Laddar turer...</p>
+    		<div v-else>
 			<h1>Turer</h1>
 			<table class="tours">
 				<thead>
@@ -22,13 +25,12 @@ onMounted(async () => {
 						<th>Guide</th>
 						<th>Längd</th>
 						<th>Bilder</th>
-                        <th>OK?</th>
 					</tr>
 				</thead>
 				<tbody>
 						<tr v-for="tour in tours" :key="tour.id">
 							<td>
-								<RouterLink :to="`/tours/${tour.id}`">{{tour.title}}</RouterLink>
+								<RouterLink :to="`/turer/${tour.id}`">{{tour.title}}</RouterLink>
 							</td>
 							<td>{{tour.user?.display_name}}</td>
 							<td>{{tour.guide ? tour.guide.title : "-"}}</td>
@@ -40,5 +42,3 @@ onMounted(async () => {
 		</div>
 
 </template>
-<script>
-</script>
