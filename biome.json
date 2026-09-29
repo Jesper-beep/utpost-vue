@@ -40,7 +40,8 @@
 			"preset": "recommended",
 			"style": {
 				"noVueOptionsApi": "warn",
-				"useVueDefineMacrosOrder": "warn"
+				"useVueDefineMacrosOrder": "warn",
+				"useVueMultiWordComponentNames": "warn"
 			}
 		}
 	},

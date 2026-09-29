@@ -17,7 +17,7 @@
 		"dev:api": "npm run dev --workspace=api",
 		"dev:client": "npm run dev --workspace=client",
 		"dev:web": "npm run dev --workspace=web",
-		"lint": "biome check --verbose --max-diagnostics=none .",
+		"lint": "biome check --verbose --diagnostic-level=warn --max-diagnostics=none .",
 		"lint:fix": "biome check --write .",
 		"lint:force-fix": "biome check --write --unsafe .",
 		"lint:md": "markdownlint \"**/*.md\" --ignore \"**/node_modules/**\"",

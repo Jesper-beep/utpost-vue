@@ -1,9 +1,9 @@
 <script setup>
-import Guides from "../components/Guides.vue";
+import GuideList from "../components/GuideList.vue";
 </script>
 
 <template>
     <main>
-        <Guides/>
+        <GuideList/>
     </main>
 </template>

@@ -1,9 +1,9 @@
 <script setup>
-import Tours from "../components/Tours.vue";
+import TourList from "../components/TourList.vue";
 </script>
 
 <template>
     <main>
-        <Tours/>
+        <TourList/>
     </main>
 </template>
