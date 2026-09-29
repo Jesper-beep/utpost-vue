@@ -1,10 +1,20 @@
 <script setup>
-import Tours from "./ToursDetail.vue";
+import { onMounted, ref } from "vue";
+import { RouterLink } from "vue-router";
+import { bigFetch } from "../utils/bigFetch.js";
+
+const tours = ref([]);
+let result = [];
+
+onMounted(async () => {
+	result = await bigFetch("http://localhost:4000/api/tours");
+	tours.value = result.data;
+});
 </script>
 <template>
     		<div>
 			<h1>Turer</h1>
-			<table class-name="tours">
+			<table class="tours">
 				<thead>
 					<tr>
 						<th>Tur</th>
@@ -16,18 +26,15 @@ import Tours from "./ToursDetail.vue";
 					</tr>
 				</thead>
 				<tbody>
-                    <Tours />
-					<!-- {tours.map((t) => (
-						<tr key={t.id}>
+						<tr v-for="tour in tours" :key="tour.id">
 							<td>
-								<Link to={`/turer/${t.id}`}>{t.title}</Link>
+								<RouterLink :to="`/tours/${tour.id}`">{{tour.title}}</RouterLink>
 							</td>
-							<td>{t.user?.display_name}</td>
-							<td>{t.guide ? t.guide.title : "-"}</td>
-							<td>{Math.round(t.distance_m / 100) / 10} km</td>
-							<td>{t.photos.length}</td>
+							<td>{{tour.user?.display_name}}</td>
+							<td>{{tour.guide ? tour.guide.title : "-"}}</td>
+							<td>{{Math.round(tour.distance_m / 100) / 10}} km</td>
+							<td>{{tour.photos.length}}</td>
 						</tr>
-					))} -->
 				</tbody>
 			</table>
 		</div>
