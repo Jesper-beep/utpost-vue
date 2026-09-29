@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 const GuideCard = ({ guide }) => (
 	<div
 		className="card"
-		style={{ border: "1px solid #ddd", padding: 12, borderRadius: 4 }}
+		style={{ border: "1px solid #ddd", borderRadius: 4, padding: 12 }}
 	>
 		<h3>
 			<Link to={`/guider/${guide.slug}`}>{guide.title}</Link>

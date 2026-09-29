@@ -4,8 +4,8 @@ const Button = ({ children, onClick }) => (
 		onClick={onClick}
 		style={{
 			background: "#2f6fed",
-			color: "white",
 			border: 0,
+			color: "white",
 			padding: "8px 14px",
 		}}
 	>

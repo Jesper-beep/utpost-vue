@@ -23,7 +23,7 @@ const resize = (pixels, width, height, targetWidth) => {
 			out[dst + 3] = pixels[src + 3];
 		}
 	}
-	return { pixels: out, width: targetWidth, height: targetHeight };
+	return { height: targetHeight, pixels: out, width: targetWidth };
 };
 
 const signature = (pixels) => {
@@ -46,7 +46,7 @@ photosRouter.post("/", async (req, res) => {
 	const started = Date.now();
 	const variants = SIZES.map((size) => {
 		const scaled = resize(pixels, width, height, size);
-		return { size, signature: signature(scaled.pixels) };
+		return { signature: signature(scaled.pixels), size };
 	});
 	const ms = Date.now() - started;
 
@@ -55,7 +55,7 @@ photosRouter.post("/", async (req, res) => {
 		[tourId, filename, width, height],
 	);
 
-	res.json({ ...result.rows[0], variants, processingMs: ms });
+	res.json({ ...result.rows[0], processingMs: ms, variants });
 });
 
 photosRouter.get("/tour/:tourId", async (req, res) => {

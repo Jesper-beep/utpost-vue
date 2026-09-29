@@ -24,7 +24,7 @@ const searchGuides = async () => {
 			<h1>Guider</h1>
 			<div class="searchrow">
 				<input v-model="newGuide" placeholder="Sök på namn eller landskap"/>
-				<button @click="searchGuides">
+				<button type="button"  @click="searchGuides">
 					Search
 				</button>
 			</div>

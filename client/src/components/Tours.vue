@@ -4,7 +4,7 @@ import Tours from "./ToursDetail.vue";
 <template>
     		<div>
 			<h1>Turer</h1>
-			<table className="tours">
+			<table class-name="tours">
 				<thead>
 					<tr>
 						<th>Tur</th>
