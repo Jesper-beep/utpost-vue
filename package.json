@@ -13,6 +13,7 @@
 	"name": "utpost",
 	"private": true,
 	"scripts": {
+		"build": "npm run build --workspace=client",
 		"dev": "concurrently -n api,web,client -c blue,green,magenta \"npm run dev --workspace=api\" \"npm run dev --workspace=web\" \"npm run dev --workspace=client\"",
 		"dev:api": "npm run dev --workspace=api",
 		"dev:client": "npm run dev --workspace=client",
@@ -24,7 +25,8 @@
 		"lint:md:fix": "markdownlint \"**/*.md\" --ignore \"**/node_modules/**\" --fix",
 		"lint:spelling": "cspell \"**/*.{js,jsx,md}\"",
 		"prepare": "husky",
-		"seed": "npm run seed --workspace=api"
+		"seed": "npm run seed --workspace=api",
+		"test": "npm run test --workspace=client"
 	},
 	"version": "1.4.2",
 	"workspaces": [

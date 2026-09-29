@@ -1,4 +1,6 @@
 <script setup>
+import { RouterLink } from "vue-router";
+
 defineProps({
 	guide: {
 		required: true,
@@ -12,8 +14,7 @@ defineProps({
 		
 	>
 		<h3>
-			<!-- <Link to={`/guider/${guide.slug}`}>{guide.title}</Link> -->
-			 {{guide.title}}
+			<RouterLink :to="`/guider/${guide.slug}`">{{ guide.title }}</RouterLink>
 		</h3>
 		<p class="muted">
 			{{guide.region}} · {{guide.difficulty}} · {{guide.length_km}} km

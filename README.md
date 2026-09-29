@@ -8,15 +8,30 @@ Plattform för friluftsdestinationer. Redaktionella guider, användarnas egna tu
 npm install
 docker compose -f docker-compose.dev.yml up -d
 npm run seed
-npm start
+npm run dev
 ```
 
 Appen ligger sen på <http://localhost:3000> och API:et pa <http://localhost:4000>.
 
+Det finns inget npm start, använd npm run dev. Vue-klienten ligger på <http://localhost:3001>.
+
 ## Struktur
 
-- `api/` – Express + Postgres (Drizzle)
-- `web/` – React + Vite
+- `api/` - Express + Postgres (Drizzle)
+- `web/` - React + Vite
+- `client/` - Vue 3 + Vue Router + Vite. Allt flyttas hit från `web/`, en bit i taget
+
+## Kommandon
+
+```bash
+npm run lint
+npm run lint:md
+npm run lint:spelling
+npm test
+npm run build
+```
+
+Samma kommandon körs av CI på varje PR mot main. Se [pipeline](docs/pipeline.md).
 
 ## Deploy
 

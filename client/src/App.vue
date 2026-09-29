@@ -5,8 +5,8 @@ import "./style.css";
 
 <template>
   <nav>
-    <RouterLink to="/guides">Guides</RouterLink>
-    <RouterLink to="/tours">Tours</RouterLink>
+    <RouterLink to="/guider">Guider</RouterLink>
+    <RouterLink to="/turer">Turer</RouterLink>
   </nav>
   <main>
     <RouterView />

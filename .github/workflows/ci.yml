@@ -18,3 +18,7 @@ jobs:
         with: { node-version: 24, cache: npm }
       - run: npm ci
       - run: npm exec -- biome ci --error-on-warnings
+      - run: npm run lint:md
+      - run: npm run lint:spelling
+      - run: npm test
+      - run: npm run build
