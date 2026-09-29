@@ -26,10 +26,10 @@ toursRouter.get("/", async (_req, res) => {
 		);
 		out.push({
 			...tour,
-			user: user.rows[0],
 			guide: guide.rows[0] || null,
-			photos: photos.rows,
 			logs: logs.rows,
+			photos: photos.rows,
+			user: user.rows[0],
 		});
 	}
 

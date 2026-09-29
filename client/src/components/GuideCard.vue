@@ -1,8 +1,8 @@
 <script setup>
 defineProps({
 	guide: {
-		type: Object,
 		required: true,
+		type: Object,
 	},
 });
 </script>

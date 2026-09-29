@@ -2,24 +2,24 @@ import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
 	{
-		path: "/",
-		name: "Home",
 		component: () => import("../src/views/HomeView.vue"),
+		name: "Home",
+		path: "/",
 	},
 	{
-		path: "/guides",
-		name: "Guider",
 		component: () => import("../src/views/GuideView.vue"),
+		name: "Guider",
+		path: "/guides",
 	},
 	{
-		path: "/tours",
-		name: "Turer",
 		component: () => import("../src/views/TourView.vue"),
+		name: "Turer",
+		path: "/tours",
 	},
 	{
-		path: "/tours/:id",
-		name: "Turdetaljer",
 		component: () => import("../src/views/TourDetailView.vue"),
+		name: "Turdetaljer",
+		path: "/tours/:id",
 	},
 ];
 

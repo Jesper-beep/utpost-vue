@@ -9,56 +9,56 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
-	id: serial("id").primaryKey(),
-	email: text("email").notNull(),
-	passwordHash: text("password_hash").notNull(),
-	displayName: text("display_name").notNull(),
-	role: text("role").notNull().default("member"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
+	displayName: text("display_name").notNull(),
+	email: text("email").notNull(),
+	id: serial("id").primaryKey(),
+	passwordHash: text("password_hash").notNull(),
+	role: text("role").notNull().default("member"),
 });
 
 export const guides = pgTable("guides", {
-	id: serial("id").primaryKey(),
-	slug: text("slug").notNull(),
-	title: text("title").notNull(),
-	region: text("region").notNull(),
-	difficulty: text("difficulty").notNull(),
-	lengthKm: doublePrecision("length_km").notNull(),
+	authorId: integer("author_id"),
 	// Redaktionen skickar in HTML som vi klistrar in här. Fungerar.
 	bodyHtml: text("body_html").notNull(),
+	difficulty: text("difficulty").notNull(),
 	heroImage: text("hero_image"),
+	id: serial("id").primaryKey(),
+	lengthKm: doublePrecision("length_km").notNull(),
 	published: boolean("published").notNull().default(true),
-	authorId: integer("author_id"),
+	region: text("region").notNull(),
+	slug: text("slug").notNull(),
+	title: text("title").notNull(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const tours = pgTable("tours", {
-	id: serial("id").primaryKey(),
-	userId: integer("user_id").notNull(),
-	guideId: integer("guide_id"),
-	title: text("title").notNull(),
-	startedAt: timestamp("started_at").notNull(),
 	distanceM: integer("distance_m").notNull(),
+	guideId: integer("guide_id"),
+	id: serial("id").primaryKey(),
 	notes: text("notes"),
+	startedAt: timestamp("started_at").notNull(),
+	title: text("title").notNull(),
+	userId: integer("user_id").notNull(),
 });
 
 // En rad per mätpunkt. Växer med ca 300 rader per tur.
 export const tourLogs = pgTable("tour_logs", {
-	id: serial("id").primaryKey(),
-	tourId: integer("tour_id").notNull(),
-	recordedAt: timestamp("recorded_at").notNull(),
-	lat: doublePrecision("lat").notNull(),
-	lon: doublePrecision("lon").notNull(),
 	elevationM: integer("elevation_m"),
 	heartRate: integer("heart_rate"),
+	id: serial("id").primaryKey(),
+	lat: doublePrecision("lat").notNull(),
+	lon: doublePrecision("lon").notNull(),
 	note: text("note"),
+	recordedAt: timestamp("recorded_at").notNull(),
+	tourId: integer("tour_id").notNull(),
 });
 
 export const photos = pgTable("photos", {
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	filename: text("filename").notNull(),
+	height: integer("height").notNull(),
 	id: serial("id").primaryKey(),
 	tourId: integer("tour_id").notNull(),
-	filename: text("filename").notNull(),
 	width: integer("width").notNull(),
-	height: integer("height").notNull(),
-	createdAt: timestamp("created_at").notNull().defaultNow(),
 });

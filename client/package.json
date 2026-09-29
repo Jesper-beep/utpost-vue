@@ -1,13 +1,4 @@
 {
-	"name": "client",
-	"private": true,
-	"version": "0.0.0",
-	"type": "module",
-	"scripts": {
-		"dev": "vite --port 3001",
-		"build": "vite build",
-		"preview": "vite preview"
-	},
 	"dependencies": {
 		"vue": "^3.5.42",
 		"vue-router": "^5.3.1"
@@ -15,5 +6,14 @@
 	"devDependencies": {
 		"@vitejs/plugin-vue": "^6.0.8",
 		"vite": "^8.3.0"
-	}
+	},
+	"name": "client",
+	"private": true,
+	"scripts": {
+		"build": "vite build",
+		"dev": "vite --port 3001",
+		"preview": "vite preview"
+	},
+	"type": "module",
+	"version": "0.0.0"
 }

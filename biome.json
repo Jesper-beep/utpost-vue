@@ -1,9 +1,18 @@
 {
 	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-	"vcs": {
-		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on",
+				"useSortedKeys": {
+					"level": "on",
+					"options": {
+						"sortOrder": "natural"
+					}
+				}
+			}
+		},
+		"enabled": true
 	},
 	"files": {
 		"ignoreUnknown": true
@@ -14,36 +23,31 @@
 		"lineEnding": "lf",
 		"useEditorconfig": true
 	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"preset": "recommended"
-		}
+	"html": {
+		"experimentalFullSupportEnabled": true
 	},
-	"overrides": [
-		{
-			"includes": ["**/*.vue"],
-			"linter": {
-				"rules": {
-					"correctness": {
-						"noUnusedImports": "off",
-						"noUnusedVariables": "off"
-					}
-				}
-			}
-		}
-	],
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"
 		}
 	},
-	"assist": {
+	"linter": {
+		"domains": {
+			"vue": "recommended"
+		},
 		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
+		"rules": {
+			"preset": "recommended",
+			"style": {
+				"noVueOptionsApi": "warn",
+				"useVueDefineMacrosOrder": "warn",
+				"useVueMultiWordComponentNames": "warn"
 			}
 		}
+	},
+	"vcs": {
+		"clientKind": "git",
+		"enabled": true,
+		"useIgnoreFile": true
 	}
 }

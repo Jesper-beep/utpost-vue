@@ -26,7 +26,7 @@ onMounted(async () => {
 					</tr>
 				</thead>
 				<tbody>
-						<tr v-for="tour in tours" key={{tour.id}}>
+						<tr v-for="tour in tours" :key="tour.id">
 							<td>
 								<RouterLink :to="`/tours/${tour.id}`">{{tour.title}}</RouterLink>
 							</td>
