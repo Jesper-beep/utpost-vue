@@ -3,7 +3,5 @@ import TourList from "../components/TourList.vue";
 </script>
 
 <template>
-    <main>
-        <TourList/>
-    </main>
+	<TourList />
 </template>
