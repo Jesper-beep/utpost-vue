@@ -1,14 +1,16 @@
-<script setup>
+<script setup lang="ts">
+import type { TourDetail } from "@utpost/shared";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import { elevationGain } from "../lib/tours.js";
 import { bigFetch } from "../utils/bigFetch.js";
 
 const route = useRoute();
 
-const tour = ref(null);
+const tour = ref<TourDetail | null>(null);
 
 watch(
-	() => route.params.id,
+	() => route.params["id"],
 	async (tourId) => {
 		if (tourId) {
 			const result = await bigFetch(`http://localhost:4000/api/tours/`, {
@@ -29,14 +31,7 @@ const distanceKm = computed(() => {
 	return Math.round(tour.value.distance_m / 100) / 10;
 });
 
-const climb = computed(() => {
-	if (!tour.value?.logs) return 0;
-	return tour.value.logs.reduce((sum, log, i) => {
-		if (i === 0) return 0;
-		const diff = log.elevation_m - tour.value.logs[i - 1].elevation_m;
-		return diff > 0 ? sum + diff : sum;
-	}, 0);
-});
+const climb = computed(() => elevationGain(tour.value?.logs ?? []));
 </script>
 
 <template>
