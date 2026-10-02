@@ -6,6 +6,7 @@ Plattform för friluftsdestinationer. Redaktionella guider, användarnas egna tu
 
 ```bash
 npm install
+npm run prepare
 docker compose -f docker-compose.dev.yml up -d
 npm run seed
 npm run dev
@@ -14,6 +15,8 @@ npm run dev
 Appen ligger sen på <http://localhost:3000> och API:et pa <http://localhost:4000>.
 
 Det finns inget npm start, använd npm run dev. Vue-klienten ligger på <http://localhost:3001>.
+
+Man måste köra `npm run prepare` själv efter `npm install`, eftersom `ignore-scripts` är satt till `true` i `.npmrc-filen`.
 
 ## Struktur
 
