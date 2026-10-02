@@ -20,5 +20,6 @@ jobs:
       - run: npm exec -- biome ci --error-on-warnings
       - run: npm run lint:md
       - run: npm run lint:spelling
+      - run: npm run typecheck
       - run: npm test
       - run: npm run build
