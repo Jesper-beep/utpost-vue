@@ -20,7 +20,6 @@ describe("elevationGain", () => {
 	it("ger 0 för en tur utan mätpunkter", () => {
 		expect(elevationGain([])).toBe(0);
 	});
-	// Regressionstest – skuld ur docs/debt.md: en mätpunkt utan höjd räknas som havsnivå
 	it("hoppar över mätpunkter utan höjd i stället för att räkna dem som noll", () => {
 		expect(elevationGain([log(100), log(null), log(150)])).toBe(50);
 	});
