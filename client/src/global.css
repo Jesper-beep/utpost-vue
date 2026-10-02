@@ -1,0 +1,129 @@
+@layer reset, base, typography, layout, utilities, accessibility;
+
+@layer reset {
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	*:not(dialog) {
+		margin: 0;
+	}
+
+	* {
+		padding: 0;
+	}
+
+	img,
+	picture,
+	svg,
+	video {
+		display: block;
+		max-inline-size: 100%;
+		block-size: auto;
+	}
+
+	button,
+	address {
+		font: inherit;
+	}
+
+	time {
+		display: inline-block;
+	}
+
+	p,
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		overflow-wrap: break-word;
+	}
+
+	#app {
+		display: grid;
+		grid-template-rows: auto 1fr auto;
+		min-height: 100vh;
+		isolation: isolate;
+	}
+}
+
+@layer base {
+	:root {
+		interpolate-size: allow-keywords;
+	}
+
+	html {
+		color-scheme: light;
+		background-color: oklch(0.9578 0.0095 93.57);
+		-webkit-tap-highlight-color: transparent;
+		text-size-adjust: none;
+		scrollbar-gutter: stable;
+		overscroll-behavior: none;
+	}
+
+	body {
+		position: relative;
+		min-inline-size: 20rem;
+		min-block-size: 100dvb;
+		font-family: system-ui, sans-serif;
+		font-size: 1.125rem;
+		font-weight: 400;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		line-height: 1.5;
+		color: oklch(0.3008 0.0185 161.22);
+		text-rendering: optimizeLegibility;
+	}
+}
+
+@layer typography {
+	p {
+		text-wrap: pretty;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		line-height: 1.25;
+		text-wrap: balance;
+	}
+}
+
+@layer layout {
+	.container {
+		inline-size: 100%;
+		max-inline-size: calc(70rem + 3rem);
+		padding-inline: 1.25rem;
+		margin-inline: auto;
+		container-type: inline-size;
+	}
+}
+
+@layer utilities {
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		overflow: hidden;
+		border: 0;
+		clip: rect(1px, 1px, 1px, 1px);
+		-webkit-clip-path: inset(0px 0px 99.9% 99.9%);
+		clip-path: inset(0px 0px 99.9% 99.9%);
+	}
+}
+
+@layer accessibility {
+	@media (prefers-reduced-motion: no-preference) {
+		html {
+			scroll-behavior: smooth;
+		}
+	}
+}

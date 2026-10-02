@@ -20,6 +20,10 @@ watch(
 	{ immediate: true },
 );
 
+watch(tour, (value) => {
+	if (value?.title) document.title = `${value.title} - Utpost`;
+});
+
 const distanceKm = computed(() => {
 	if (!tour.value) return 0;
 	return Math.round(tour.value.distance_m / 100) / 10;
@@ -40,13 +44,14 @@ const climb = computed(() => {
 	<div v-else>
 		<h1>{{ tour.title }}</h1>
 		<p class="muted">
-			{{ distanceKm }} km · {{ tour.logs.length }} mätpunkter · {{ climb }} höjdmeter
+			{{ distanceKm }} km · {{ tour.logs.length }} mätpunkter ·
+			{{ climb }} höjdmeter
 		</p>
 		<p v-if="tour.notes">{{ tour.notes }}</p>
 		<h2>Mätpunkter</h2>
 		<ol class="logs">
 			<li v-for="log in tour.logs" :key="log.id">
-				{{ new Date(log.recorded_at).toLocaleTimeString("sv-SE") }} · 
+				{{ new Date(log.recorded_at).toLocaleTimeString("sv-SE") }} ·
 				{{ log.elevation_m }} m · {{ log.heart_rate }} slag/min
 			</li>
 		</ol>

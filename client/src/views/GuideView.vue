@@ -3,7 +3,5 @@ import GuideList from "../components/GuideList.vue";
 </script>
 
 <template>
-    <main>
-        <GuideList/>
-    </main>
+	<GuideList />
 </template>

@@ -24,7 +24,8 @@
 		"useEditorconfig": true
 	},
 	"html": {
-		"experimentalFullSupportEnabled": true
+		"experimentalFullSupportEnabled": true,
+		"formatter": { "enabled": true }
 	},
 	"javascript": {
 		"formatter": {

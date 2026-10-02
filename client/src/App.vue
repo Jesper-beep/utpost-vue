@@ -1,17 +1,20 @@
 <script setup>
-import { RouterLink, RouterView } from "vue-router";
-import "./style.css";
+import { RouterView } from "vue-router";
+import MainFooter from "./components/MainFooter.vue";
+import MainHeader from "./components/MainHeader.vue";
+import "./global.css";
 </script>
 
 <template>
-  <nav>
-    <RouterLink to="/guider">Guider</RouterLink>
-    <RouterLink to="/turer">Turer</RouterLink>
-  </nav>
-  <main>
-    <RouterView />
-  </main>
+	<MainHeader />
+	<main class="container">
+		<RouterView />
+	</main>
+	<MainFooter />
 </template>
 
 <style scoped>
+main {
+	padding-block: 28px 64px;
+}
 </style>
