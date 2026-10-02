@@ -1,6 +1,19 @@
-export const bigFetch = async (url, { id, search } = {}) => {
-	let response;
-	let data = [];
+interface BigFetchOptions {
+	id?: string | number;
+	search?: string;
+}
+
+interface BigFetchResult<T> {
+	data: T;
+	loading: boolean;
+}
+
+export const bigFetch = async <T = unknown>(
+	url: string,
+	{ id, search }: BigFetchOptions = {},
+): Promise<BigFetchResult<T>> => {
+	let response: Response;
+	let data = [] as unknown as T;
 	let loading = false;
 
 	try {
@@ -16,13 +29,12 @@ export const bigFetch = async (url, { id, search } = {}) => {
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 
-		data = await response.json();
-	} catch (err) {
-		console.error(err.message);
+		data = (await response.json()) as T;
+	} catch (error) {
+		console.error((error as Error).message);
 	} finally {
 		loading = false;
 	}
 
-	// console.log(data)
 	return { data, loading };
 };

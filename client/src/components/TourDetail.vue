@@ -11,11 +11,13 @@ const tour = ref<TourDetail | null>(null);
 
 watch(
 	() => route.params["id"],
-	async (tourId) => {
+	async (param) => {
+		const tourId = Array.isArray(param) ? param[0] : param;
 		if (tourId) {
-			const result = await bigFetch(`http://localhost:4000/api/tours/`, {
-				id: tourId,
-			});
+			const result = await bigFetch<TourDetail>(
+				`http://localhost:4000/api/tours`,
+				{ id: tourId },
+			);
 			tour.value = result.data;
 		}
 	},

@@ -1,15 +1,15 @@
-<script setup>
+<script setup lang="ts">
+import type { Guide } from "@utpost/shared";
 import { computed, onMounted, ref } from "vue";
 import { bigFetch } from "../utils/bigFetch.js";
 import GuideCard from "./GuideCard.vue";
 
-const guides = ref([]);
+const guides = ref<Guide[]>([]);
 const newGuide = ref("");
 const searchTerm = ref("");
-let result = [];
 
 onMounted(async () => {
-	result = await bigFetch("http://localhost:4000/api/guides");
+	const result = await bigFetch<Guide[]>("http://localhost:4000/api/guides");
 	guides.value = result.data;
 });
 

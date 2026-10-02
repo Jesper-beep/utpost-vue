@@ -1,12 +1,10 @@
-<script setup>
+<script setup lang="ts">
+import type { Guide } from "@utpost/shared";
 import { RouterLink } from "vue-router";
 
-defineProps({
-	guide: {
-		required: true,
-		type: Object,
-	},
-});
+defineProps<{
+	guide: Guide;
+}>();
 </script>
 <template>
 	<div class="card">
