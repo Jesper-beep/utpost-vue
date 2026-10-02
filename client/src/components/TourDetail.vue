@@ -1,14 +1,15 @@
-<script setup>
+<script setup lang="ts">
+import type { TourDetail } from "@utpost/shared";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { bigFetch } from "../utils/bigFetch.js";
 
 const route = useRoute();
 
-const tour = ref(null);
+const tour = ref<TourDetail | null>(null);
 
 watch(
-	() => route.params.id,
+	() => route.params["id"],
 	async (tourId) => {
 		if (tourId) {
 			const result = await bigFetch(`http://localhost:4000/api/tours/`, {
