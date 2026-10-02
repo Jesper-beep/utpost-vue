@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"lib": ["es2024", "dom", "dom.iterable"],
+		"module": "preserve",
+		"moduleResolution": "bundler",
+		"paths": { "@/*": ["./src/*"] },
+		"types": ["vite/client"]
+	},
+	"extends": "../tsconfig.base.json",
+	"include": ["src/**/*", "src/**/*.vue", "router/**/*", "vite.config.*"]
+}
