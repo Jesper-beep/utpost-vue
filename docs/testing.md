@@ -3,7 +3,7 @@ title: "Teststrategi"
 description: "Teststrategi för Team 6 i kursen Avancerad frontend-utveckling. Del av M2-momentet."
 created: "2026-10-06"
 published_date: "2026-10-06"
-last_modified_date: "-"
+last_modified_date: "2026-10-06"
 version: 1
 ---
 
@@ -13,7 +13,7 @@ I dagsläget skrapar vi endast på ytan, men kommer under projektets gång adder
 
 ## Så testar du
 
-Alla tester ligger i client/tests. Kör följande nervkittlande kommando från roten av projektet för att testa:
+Klientens tester ligger i `client/tests` och API:ets tester i `api/tests`. Kör följande nervkittlande kommando från roten av projektet för att testa båda:
 
 ```sh
 npm run test
@@ -21,7 +21,7 @@ npm run test
 
 ## Typ av tester eller "nivåer" samt beslut
 
-Vi testar klienten med Vitest på nivåerna enhet, struktur och regression. Vi har inga krav på täckning och mockar API:et när vi skriver de testerna. Kritiska delar prioriteras med sunt förnuft.
+Vi testar klienten och API:et med Vitest på nivåerna enhet, struktur och regression. Vi har inga krav på täckning och mockar API:et när vi skriver de testerna. Kritiska delar prioriteras med sunt förnuft.
 
 ### Enhetstester
 
@@ -29,7 +29,7 @@ Just nu testar vi hjälpfunktionerna för turer (`elevationGain` och `distanceKm
 
 ### Regressionstester
 
-Ett regressionstest skrivs när en bugg har hittats och rättats, för att den inte ska komma tillbaka. Det ska misslyckas utan rättningen och lyckas med den. Än så länge har vi inga, eftersom vi inte har rättat några buggar med test (än).
+Ett regressionstest skrivs när en bugg har hittats och rättats, för att den inte ska komma tillbaka. Det ska misslyckas utan rättningen och lyckas med den. Vårt första gäller skuld 10 i [skulddokumentet](debt.md) och testar att API:et loggar fel som inte hanteras.
 
 ### Struktur
 
@@ -40,6 +40,8 @@ Just nu testar vi att routerns länkar och sidtitlar hänger ihop: att varje lä
 Planerad, men än så länge har vi inga tester. Vi vill testa säkerheten kring inloggat läge.
 
 ## Nuvarande tester
+
+Sökvägarna utgår från `client/tests`, utom under API som utgår från `api/tests`.
 
 ### Komponenter
 
@@ -134,6 +136,27 @@ it.each(routes.map((route) => toUrl(route.path)))(
     expect(document.title).toMatch(/ - Utpost$/);
   },
 );
+```
+
+### API
+
+#### `lib/unhandledRejection.test.ts`
+
+Regressionstest för skuld 10 i [skulddokumentet](debt.md). Testar `handleUnhandledRejection` i `api/src/lib/unhandledRejection.js`.
+
+- Loggar ett ohanterat fel med `console.error`, tillsammans med felmeddelandet
+
+##### Utdrag från koden
+
+```typescript
+it("loggar ett ohanterat fel med console.error", () => {
+  const logger = { error: vi.fn() };
+  handleUnhandledRejection(new Error("databasen svarar inte"), logger);
+  expect(logger.error).toHaveBeenCalledWith(
+    "Ohanterat fel:",
+    "databasen svarar inte",
+  );
+});
 ```
 
 ## När får en PR mergas?
