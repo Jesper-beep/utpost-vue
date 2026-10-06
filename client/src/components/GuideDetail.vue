@@ -19,12 +19,12 @@ onMounted(async () => {
 });
 </script>
 <template>
-    <div v-if="loading">Laddar...</div>
-    <article v-else-if="guide" class="guide">
-			<h1>{{ guide.title }}</h1>
-			<p class="muted">
-				{{ guide.region }} · {{ guide.difficulty }} · {{ guide.length_km }} km
-			</p>
-			<div>{{ guide.body_html.replace(/<[^>]*>/g, "") }}</div>
-		</article>
+	<div v-if="loading">Laddar...</div>
+	<article v-else-if="guide" class="guide">
+		<h1>{{ guide.title }}</h1>
+		<p class="muted">
+			{{ guide.region }} · {{ guide.difficulty }} · {{ guide.length_km }} km
+		</p>
+		<div>{{ guide.body_html.replace(/<[^>]*>/g, "") }}</div>
+	</article>
 </template>
