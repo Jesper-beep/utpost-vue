@@ -2,8 +2,8 @@
 import type { TourDetail } from "@utpost/shared";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { distanceKm, elevationGain } from "../lib/tours.js";
 import { API_URL } from "../config.js";
+import { distanceKm, elevationGain } from "../lib/tours.js";
 import { bigFetch } from "../utils/bigFetch.js";
 
 const route = useRoute();
