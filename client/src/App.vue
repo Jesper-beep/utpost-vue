@@ -12,9 +12,3 @@ import "./global.css";
 	</main>
 	<MainFooter />
 </template>
-
-<style scoped>
-main {
-	padding-block: 28px 64px;
-}
-</style>

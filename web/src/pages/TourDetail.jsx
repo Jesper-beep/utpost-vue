@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { API_URL } from "../api.js";
 
 const TourDetail = () => {
 	const { id } = useParams();
 	const [tour, setTour] = useState(null);
 
 	useEffect(() => {
-		fetch(`http://localhost:4000/api/tours/${id}`)
+		fetch(`${API_URL}/tours/${id}`)
 			.then((r) => r.json())
 			.then(setTour);
 	}, [id]);

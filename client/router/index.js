@@ -8,10 +8,28 @@ const routes = [
 		path: "/",
 	},
 	{
+		component: () => import("../src/views/LoginView.vue"),
+		meta: { title: "Logga in" },
+		name: "Logga in",
+		path: "/logga-in",
+	},
+	{
+		component: () => import("../src/views/RegisterView.vue"),
+		meta: { title: "Skapa konto" },
+		name: "Skapa konto",
+		path: "/skapa-konto",
+	},
+	{
 		component: () => import("../src/views/GuideView.vue"),
 		meta: { title: "Guider" },
 		name: "Guider",
 		path: "/guider",
+	},
+	{
+		component: () => import("../src/views/GuideDetailView.vue"),
+		meta: { title: "Guidedetaljer" },
+		name: "Guidedetaljer",
+		path: "/guider/:slug",
 	},
 	{
 		component: () => import("../src/views/TourView.vue"),

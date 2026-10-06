@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { API_URL } from "../api.js";
 
 const GuideDetail = () => {
 	const { slug } = useParams();
 	const [guide, setGuide] = useState(null);
 
 	useEffect(() => {
-		fetch(`http://localhost:4000/api/guides/${slug}`)
+		fetch(`${API_URL}/guides/${slug}`)
 			.then((r) => r.json())
 			.then(setGuide);
 	}, [slug]);

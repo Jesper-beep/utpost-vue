@@ -54,6 +54,10 @@ Fångar stavfel i .js, .jsx och .md.
 - Tid på macos: 2 sekunder
 - Tid på windows: 4 sekunder
 
+### `npm run typecheck`
+
+Fångar typfel i api och klient.
+
 ### `npm test`
 
 Fångar att testerna körs (ett röktest än så länge).
@@ -82,6 +86,7 @@ Fångar fel som bara syns när klienten byggs.
 npm run lint
 npm run lint:md
 npm run lint:spelling
+npm run typecheck
 npm test
 npm run build
 ```
