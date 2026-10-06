@@ -104,6 +104,28 @@
 		margin-inline: auto;
 		container-type: inline-size;
 	}
+
+	.section {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: min-content;
+		row-gap: 2rem;
+		margin-block: 2rem;
+
+		& .section__grid {
+			display: grid;
+			grid-template-rows: subgrid;
+			grid-template-columns: repeat(12, minmax(0, 1fr));
+
+			@media (width >= 48rem) {
+				gap: 2rem;
+			}
+
+			@media (width < 48rem) {
+				row-gap: 2rem;
+			}
+		}
+	}
 }
 
 @layer utilities {
