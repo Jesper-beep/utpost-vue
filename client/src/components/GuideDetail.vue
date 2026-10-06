@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Guide } from "@utpost/shared";
 import { onMounted, ref } from "vue";
+import { bigFetch } from "@/utils/bigFetch";
 
 const props = defineProps<{
 	slug: string;
@@ -10,12 +11,11 @@ const guide = ref<Guide | null>(null);
 const loading = ref(true);
 
 onMounted(async () => {
-	const response = await fetch(
-		`http://localhost:4000/api/guides/${encodeURIComponent(props.slug)}`,
-	);
-	const data = await response.json();
-	guide.value = data;
-	loading.value = false;
+	const response = await bigFetch<Guide>(`http://localhost:4000/api/guides`, {
+		id: props.slug,
+	});
+	guide.value = response.data;
+	loading.value = response.loading;
 });
 </script>
 <template>
