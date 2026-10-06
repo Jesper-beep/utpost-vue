@@ -27,7 +27,7 @@
 		"lint:spelling": "cspell \"**/*.{js,jsx,md}\"",
 		"prepare": "husky",
 		"seed": "npm run seed --workspace=api",
-		"test": "npm run test --workspace=client",
+		"test": "npm run test --workspace=client && npm run test --workspace=api",
 		"typecheck": "npm run typecheck --workspace=client && npm run typecheck --workspace=api"
 	},
 	"version": "1.4.2",
