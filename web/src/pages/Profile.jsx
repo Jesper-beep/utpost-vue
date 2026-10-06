@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_URL } from "../api.js";
 import Button from "../components/Button.jsx";
 
 const Profile = () => {
@@ -6,7 +7,7 @@ const Profile = () => {
 	const user = JSON.parse(localStorage.getItem("user") || "null");
 
 	useEffect(() => {
-		fetch("http://localhost:4000/api/tours")
+		fetch(`${API_URL}/tours`)
 			.then((r) => r.json())
 			.then((all) => setTours(all.filter((t) => t.user_id === user?.id)));
 	}, [user?.id]);

@@ -1,6 +1,16 @@
 <script setup>
-import LoginButton from "./LoginButton.vue";
+import { useRouter } from "vue-router";
+import { useSessionStore } from "../stores/session.js";
+import BaseButton from "./BaseButton.vue";
 import MainNav from "./MainNav.vue";
+
+const session = useSessionStore();
+const router = useRouter();
+
+const logout = () => {
+	session.logout();
+	router.push("/");
+};
 </script>
 
 <template>
@@ -30,15 +40,25 @@ import MainNav from "./MainNav.vue";
 			</a>
 			<MainNav />
 
-			<LoginButton>Logga in</LoginButton>
+			<div class="topbar__actions">
+				<template v-if="session.isLoggedIn">
+					<span class="topbar__user">{{ session.user?.display_name }}</span>
+					<BaseButton @click="logout">Logga ut</BaseButton>
+				</template>
+				<template v-else>
+					<BaseButton to="/skapa-konto" variant="text">Skapa konto</BaseButton>
+					<BaseButton to="/logga-in">Logga in</BaseButton>
+				</template>
+			</div>
 		</div>
 	</header>
 </template>
 
 <style scoped>
 .topbar {
+	--button-accent-color: oklch(1 0 0);
 	inline-size: 100%;
-	background-color: #2f4f3f;
+	background-color: oklch(0.3975 0.0469 161.51);
 	border-block-end: 4px solid #d9a441;
 	overflow-anchor: none;
 }
@@ -58,6 +78,20 @@ import MainNav from "./MainNav.vue";
 		grid-template-areas: "logo" "nav" "login";
 	}
 }
+.topbar__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	grid-area: login;
+	gap: 0.75rem;
+}
+
+.topbar__user {
+	padding-inline: 0.75rem;
+	font-weight: 700;
+	color: #fff;
+}
+
 .topbar__logo {
 	display: grid;
 	grid-auto-flow: column;
