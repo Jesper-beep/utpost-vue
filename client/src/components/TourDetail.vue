@@ -3,7 +3,7 @@ import type { TourDetail } from "@utpost/shared";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { API_URL } from "../config.js";
-import { elevationGain } from "../lib/tours.js";
+import { distanceKm, elevationGain } from "../lib/tours.js";
 import { bigFetch } from "../utils/bigFetch.js";
 
 const route = useRoute();
@@ -28,10 +28,7 @@ watch(tour, (value) => {
 	if (value?.title) document.title = `${value.title} - Utpost`;
 });
 
-const distanceKm = computed(() => {
-	if (!tour.value) return 0;
-	return Math.round(tour.value.distance_m / 100) / 10;
-});
+const distance = computed(() => distanceKm(tour.value));
 
 const climb = computed(() => elevationGain(tour.value?.logs ?? []));
 </script>
@@ -41,7 +38,7 @@ const climb = computed(() => elevationGain(tour.value?.logs ?? []));
 	<div v-else>
 		<h1>{{ tour.title }}</h1>
 		<p class="muted">
-			{{ distanceKm }} km · {{ tour.logs.length }} mätpunkter ·
+			{{ distance }} km · {{ tour.logs.length }} mätpunkter ·
 			{{ climb }} höjdmeter
 		</p>
 		<p v-if="tour.notes">{{ tour.notes }}</p>

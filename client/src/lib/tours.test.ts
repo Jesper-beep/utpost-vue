@@ -1,6 +1,6 @@
-import type { TourLog } from "@utpost/shared";
+import type { TourDetail, TourLog } from "@utpost/shared";
 import { describe, expect, it } from "vitest";
-import { elevationGain } from "./tours";
+import { distanceKm, elevationGain } from "./tours";
 
 const log = (elevation_m: number | null, id = 0): TourLog => ({
 	elevation_m,
@@ -12,6 +12,17 @@ const log = (elevation_m: number | null, id = 0): TourLog => ({
 	recorded_at: "2026-09-01T08:00:00.000Z",
 	tour_id: 1,
 });
+const tour: TourDetail = {
+	distance_m: 1234,
+	guide_id: null,
+	id: 1,
+	logs: [],
+	notes: null,
+	photos: [],
+	started_at: "2026-09-01T08:00:00.000Z",
+	title: "Testtur",
+	user_id: 1,
+};
 
 describe("elevationGain", () => {
 	it("summerar bara stigningar, inte nedförsbackar", () => {
@@ -22,5 +33,23 @@ describe("elevationGain", () => {
 	});
 	it("hoppar över mätpunkter utan höjd i stället för att räkna dem som noll", () => {
 		expect(elevationGain([log(100), log(null), log(150)])).toBe(50);
+	});
+});
+
+describe("distanceKm", () => {
+	it("avrundar distance_m till km korrekt", () => {
+		expect(distanceKm(tour)).toBe(1.2);
+	});
+	it("ger 0 för tom tour", () => {
+		const emptyTour: TourDetail = {
+			...tour,
+			distance_m: 0,
+			title: "Tom tur",
+		};
+		expect(distanceKm(emptyTour)).toBe(0);
+	});
+	it("ger 0 för undefined/null tour", () => {
+		expect(distanceKm(undefined)).toBe(0);
+		expect(distanceKm(null)).toBe(0);
 	});
 });
