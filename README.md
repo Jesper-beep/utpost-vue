@@ -76,6 +76,13 @@ npm run build
 
 Samma kommandon körs av CI på varje PR mot main. Se [pipeline](docs/pipeline.md).
 
+## Tester
+
+- Testerna ligger i `client/tests` och körs med `npm test`
+- Alla tester ska vara gröna innan en PR mergas
+- Buggfixar ska ha ett test, om det går
+- Läs mer i [teststrategin](docs/testing.md)
+
 ## Deploy
 
 Fråga Marcus.
