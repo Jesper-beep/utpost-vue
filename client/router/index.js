@@ -14,6 +14,12 @@ const routes = [
 		path: "/guider",
 	},
 	{
+		component: () => import("../src/views/GuideDetailView.vue"),
+		meta: { title: "Guidedetaljer" },
+		name: "Guidedetaljer",
+		path: "/guider/:slug",
+	},
+	{
 		component: () => import("../src/views/TourView.vue"),
 		meta: { title: "Turer" },
 		name: "Turer",
