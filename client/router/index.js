@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-const routes = [
+export const routes = [
 	{
 		component: () => import("../src/views/HomeView.vue"),
-		meta: { title: "" },
+		meta: { title: "Hem" },
 		name: "Home",
 		path: "/",
 	},

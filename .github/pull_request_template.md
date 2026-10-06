@@ -19,6 +19,7 @@ Länka till en GitHub-issue eller en TODO-fil. Skriv `Inte relevant` om ändring
 - [ ] Refaktorering
 - [ ] Dokumentation
 - [ ] Säkerhet
+- [ ] Tester
 
 ## Berörda delar
 
@@ -51,7 +52,9 @@ Om ändringen syns i webbappen, lägg till en bild eller skärmbild. Skriv `Inte
 
 - [ ] Jag har läst igenom min egen ändring
 - [ ] Jag har testat ändringen lokalt eller beskrivit varför den inte kunde testas
+- [ ] Jag har lagt till eller uppdaterat tester, eller beskrivit varför det inte behövs
 - [ ] Jag har kontrollerat att inga lösenord eller andra hemliga uppgifter finns med
 - [ ] Jag har uppdaterat dokumentationen om ändringen behöver förklaras
 - [ ] Jag har hållit ändringen så liten och tydlig som möjligt
 - [ ] Jag har kört linter/CI-kontroller lokalt (t.ex. `npm run lint`)
+- [ ] Jag har kört testerna lokalt (t.ex. `npm test`) och de passerar

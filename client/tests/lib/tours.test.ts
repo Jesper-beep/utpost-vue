@@ -1,6 +1,6 @@
 import type { TourDetail, TourLog } from "@utpost/shared";
 import { describe, expect, it } from "vitest";
-import { distanceKm, elevationGain } from "./tours";
+import { distanceKm, elevationGain } from "../../src/lib/tours";
 
 const log = (elevation_m: number | null, id = 0): TourLog => ({
 	elevation_m,

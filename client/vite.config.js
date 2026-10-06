@@ -21,5 +21,6 @@ export default defineConfig(({ mode }) => {
 			},
 			strictPort: true,
 		},
+		test: { environment: "jsdom" },
 	};
 });

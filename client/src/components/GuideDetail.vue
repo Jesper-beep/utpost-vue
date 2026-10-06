@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Guide } from "@utpost/shared";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { bigFetch } from "@/utils/bigFetch";
 
 const props = defineProps<{
@@ -16,6 +16,10 @@ onMounted(async () => {
 	});
 	guide.value = response.data;
 	loading.value = response.loading;
+});
+
+watch(guide, (value) => {
+	if (value?.title) document.title = `${value.title} - Utpost`;
 });
 </script>
 <template>
