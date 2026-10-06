@@ -1,7 +1,14 @@
-// TODO: flytta ut det här nån gång. /marcus 2021-03-11
+const required = (name) => {
+	const value = process.env[name];
+	if (!value) {
+		throw new Error(`Miljövariabeln (env) ${name} saknas`);
+	}
+	return value;
+};
+
 export const config = {
-	databaseUrl: "postgres://utpost:utpost@localhost:5433/utpost",
-	jwtSecret: "utpost-super-secret-2021",
-	port: 4000,
-	uploadDir: "./uploads",
+	databaseUrl: required("DATABASE_URL"),
+	jwtSecret: required("JWT_SECRET"),
+	port: Number(process.env["PORT"] ?? 4000),
+	uploadDir: process.env["UPLOAD_DIR"] ?? "./uploads",
 };

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_URL } from "../api.js";
 import GuideCard from "../components/GuideCard.jsx";
 
 const Guides = () => {
@@ -6,13 +7,13 @@ const Guides = () => {
 	const [query, setQuery] = useState("");
 
 	useEffect(() => {
-		fetch("http://localhost:4000/api/guides")
+		fetch(`${API_URL}/guides`)
 			.then((r) => r.json())
 			.then(setGuides);
 	}, []);
 
 	const search = () => {
-		fetch(`http://localhost:4000/api/guides/search?q=${query}`)
+		fetch(`${API_URL}/guides/search?q=${query}`)
 			.then((r) => r.json())
 			.then(setGuides);
 	};

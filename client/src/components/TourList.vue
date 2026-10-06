@@ -2,15 +2,14 @@
 import type { TourWithRelations } from "@utpost/shared";
 import { onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
+import { API_URL } from "../config.js";
 import { bigFetch } from "../utils/bigFetch.js";
 
 const tours = ref<TourWithRelations[]>([]);
 const loading = ref(true);
 
 onMounted(async () => {
-	const result = await bigFetch<TourWithRelations[]>(
-		"http://localhost:4000/api/tours",
-	);
+	const result = await bigFetch<TourWithRelations[]>(`${API_URL}/tours`);
 	tours.value = result.data;
 	loading.value = false;
 });

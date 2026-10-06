@@ -2,6 +2,7 @@
 import type { TourDetail } from "@utpost/shared";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import { API_URL } from "../config.js";
 import { elevationGain } from "../lib/tours.js";
 import { bigFetch } from "../utils/bigFetch.js";
 
@@ -14,10 +15,9 @@ watch(
 	async (param) => {
 		const tourId = Array.isArray(param) ? param[0] : param;
 		if (tourId) {
-			const result = await bigFetch<TourDetail>(
-				`http://localhost:4000/api/tours`,
-				{ id: tourId },
-			);
+			const result = await bigFetch<TourDetail>(`${API_URL}/tours`, {
+				id: tourId,
+			});
 			tour.value = result.data;
 		}
 	},
