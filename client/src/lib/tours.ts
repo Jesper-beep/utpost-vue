@@ -1,4 +1,9 @@
-import type { TourLog } from "@utpost/shared";
+import type { TourDetail, TourLog } from "@utpost/shared";
+
+export const distanceKm = (tour?: TourDetail | null): number => {
+	if (!tour) return 0;
+	return Math.round(tour.distance_m / 100) / 10;
+};
 
 export const elevationGain = (logs: TourLog[]): number => {
 	const logsWithElevation = logs.filter((log) => log.elevation_m != null);
