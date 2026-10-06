@@ -67,6 +67,11 @@ export interface TourDetail extends Tour {
 	photos: Photo[];
 }
 
+export interface GuideDetail {
+	guide: Guide;
+	photos: Photo[];
+}
+
 export interface LoginRequest {
 	email: string;
 	password: string;
