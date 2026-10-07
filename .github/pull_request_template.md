@@ -25,6 +25,7 @@ Länka till en GitHub-issue eller en TODO-fil. Skriv `Inte relevant` om ändring
 
 - [ ] API
 - [ ] Webb
+- [ ] Styling/CSS
 - [ ] Databas
 - [ ] Dokumentation
 - [ ] Repo/verktyg
@@ -52,6 +53,7 @@ Om ändringen syns i webbappen, lägg till en bild eller skärmbild. Skriv `Inte
 
 - [ ] Jag har läst igenom min egen ändring
 - [ ] Jag har testat ändringen lokalt eller beskrivit varför den inte kunde testas
+- [ ] Om ändringen syns i webbappen: jag har kontrollerat att det ser bra ut på både små och stora skärmar
 - [ ] Jag har lagt till eller uppdaterat tester, eller beskrivit varför det inte behövs
 - [ ] Jag har kontrollerat att inga lösenord eller andra hemliga uppgifter finns med
 - [ ] Jag har uppdaterat dokumentationen om ändringen behöver förklaras
