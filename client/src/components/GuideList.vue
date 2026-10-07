@@ -5,9 +5,11 @@ import { API_URL } from "../config.js";
 import { bigFetch } from "../utils/bigFetch.js";
 import GuideCard from "./GuideCard.vue";
 
+const props = defineProps<{
+	search: string;
+}>();
+
 const guides = ref<Guide[]>([]);
-const newGuide = ref("");
-const searchTerm = ref("");
 
 onMounted(async () => {
 	const result = await bigFetch<Guide[]>(`${API_URL}/guides`);
@@ -15,34 +17,44 @@ onMounted(async () => {
 });
 
 const filteredGuides = computed(() => {
-	const term = searchTerm.value.toLowerCase();
+	const term = props.search.toLowerCase();
 	return guides.value.filter(
 		(guide) =>
 			guide.title.toLowerCase().includes(term) ||
 			guide.region.toLowerCase().includes(term),
 	);
 });
-
-const searchGuides = () => {
-	searchTerm.value = newGuide.value;
-};
 </script>
+
 <template>
-	<div>
-		<h1>Guider</h1>
-		<div class="searchrow">
-			<input v-model="newGuide" placeholder="Sök på namn eller landskap">
-			<button type="button" class="btn-primary" @click="searchGuides">
-				Sök
-			</button>
-		</div>
-		<div class="grid">
-			<!-- <pre>{{ guides }}</pre> -->
-			<GuideCard
-				v-for="guide in filteredGuides"
-				:key="guide.id"
-				:guide="guide"
-			/>
-		</div>
-	</div>
+	<ul class="guide-list">
+		<li
+			v-for="guide in filteredGuides"
+			:key="guide.id"
+			class="guide-list__item"
+		>
+			<GuideCard :guide="guide" />
+		</li>
+	</ul>
 </template>
+
+<style scoped>
+.guide-list {
+	display: grid;
+	grid-template-columns: subgrid;
+	row-gap: 2rem;
+	list-style: none;
+}
+
+.guide-list__item {
+	grid-column: span 12;
+
+	@media (width >= 48rem) {
+		grid-column: span 6;
+	}
+
+	@media (width >= 64rem) {
+		grid-column: span 4;
+	}
+}
+</style>

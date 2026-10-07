@@ -20,7 +20,7 @@ export const routes = [
 		path: "/skapa-konto",
 	},
 	{
-		component: () => import("../src/views/GuideView.vue"),
+		component: () => import("../src/views/GuideListView.vue"),
 		meta: { title: "Guider" },
 		name: "Guider",
 		path: "/guider",
@@ -32,7 +32,7 @@ export const routes = [
 		path: "/guider/:slug",
 	},
 	{
-		component: () => import("../src/views/TourView.vue"),
+		component: () => import("../src/views/TourListView.vue"),
 		meta: { title: "Turer" },
 		name: "Turer",
 		path: "/turer",

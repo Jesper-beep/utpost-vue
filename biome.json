@@ -49,6 +49,21 @@
 			}
 		}
 	},
+	"overrides": [
+		{
+			"includes": [
+				"client/src/components/TourList.vue",
+				"client/src/components/TourArticle.vue"
+			],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"noNoninteractiveTabindex": "off"
+					}
+				}
+			}
+		}
+	],
 	"vcs": {
 		"clientKind": "git",
 		"enabled": true,
