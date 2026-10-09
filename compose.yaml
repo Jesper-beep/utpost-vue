@@ -45,6 +45,11 @@ services:
       - "127.0.0.1:3001:3001"
     depends_on:
       - api
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3001/health" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   web:
     container_name: utpost-web

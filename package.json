@@ -25,6 +25,8 @@
 		"dev:api": "npm run dev --workspace=api",
 		"dev:client": "npm run dev --workspace=client",
 		"dev:web": "npm run dev --workspace=web",
+		"docker:client:start": "docker compose start client",
+		"docker:client:stop": "docker compose stop client",
 		"docker:db": "docker compose up -d postgres",
 		"docker:down": "docker compose down",
 		"docker:reset": "docker compose down -v",

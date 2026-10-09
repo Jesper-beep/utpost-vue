@@ -24,11 +24,32 @@ npm run docker:seed
 
 - Containrarna kör koden som fanns när de byggdes. Kör därför `npm run docker:up` igen för att bygga om och se dina ändringar.
 
+#### Vue-klienten (client/) med Vite istället för nginx
+
+Docker servar Vue-klienten (client/) med nginx. I utvecklarläge rekommenderas att köra:
+
+```sh
+npm install
+npm run docker:client:stop
+npm run dev:client
+```
+
+Då ligger API:et, databasen och React-appen kvar i Docker och bara Vue-klienten körs via Vite.
+
+- `npm run docker:client:stop` slutar serva via nginx
+- `npm run dev:client` börjar serva via Vite
+
+Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan den andra kan startas.
+
+- När du kör via Vite så använder du `Ctrl+C` i terminalen för att avbryta
+- Därefter kan du använda `npm run docker:client:start` för att serva via nginx igen
+
 #### Felsökning och övrigt
 
 - Kontrollera API:et med `curl localhost:4000/api/health`
 - Stoppa med `npm run docker:down`
 - Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:seed` igen
+- Får du `504` från API:et behöver du seeda, genom att köra  `npm run docker:seed`
 
 ### Bara databasen i Docker
 
@@ -54,13 +75,13 @@ npm run dev
 - Du måste köra `npm run prepare` själv efter `npm install`, eftersom `ignore-scripts` är satt till `true` i `.npmrc`-filen
 - Stoppa databasen med `npm run docker:down`
 
-Stoppa containrarna innan du byter sätt. Annars är portarna 3000, 3001 och 4000 upptagna.
+Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är portarna 3000, 3001 och 4000 upptagna.
 
 ## Struktur
 
 - `api/` - Express + Postgres (Drizzle)
 - `web/` - React + Vite
-- `client/` - Vue 3 + Vue Router + Vite. Allt flyttas hit från `web/`, en bit i taget
+- `client/` - Vue 3 + Vue Router + Vite. Allt flyttas hit från `web/`, en bit i taget. I Docker serveras bygget av nginx, se `client/nginx`
 - `shared/` - Kod som delas mellan delarna
 
 ## Miljövariabler
