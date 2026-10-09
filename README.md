@@ -4,37 +4,121 @@ Plattform för friluftsdestinationer. Redaktionella guider, användarnas egna tu
 
 ## Kom igång
 
-Du behöver ställa in flera .env-filer innan du börjar. Läs mer under [Miljövariabler](#miljövariabler).
+Det finns två sätt att köra Utpost lokalt. Båda behöver OrbStack, Podman eller Docker och en `.env`-fil. Läs mer under [Miljövariabler](#miljövariabler).
+
+### Allt i Docker
+
+Databasen, API:et och båda frontendarna körs i containrar.
+
+```sh
+cp .env.example .env
+npm run docker:up
+npm run docker:seed
+```
+
+- Vue-klienten ligger på <http://localhost:3001>
+- React-appen ligger på <http://localhost:3000>
+- API:et ligger på <http://localhost:4000>
+
+#### Efter kodändringar
+
+- Containrarna kör koden som fanns när de byggdes. Kör därför `npm run docker:up` igen för att bygga om och se dina ändringar.
+
+#### Vue-klienten (client/) med Vite istället för nginx
+
+Docker servar Vue-klienten (client/) med nginx. I utvecklarläge rekommenderas att köra:
+
+```sh
+npm install
+npm run docker:client:stop
+npm run dev:client
+```
+
+Då ligger API:et, databasen och React-appen kvar i Docker och bara Vue-klienten körs via Vite.
+
+- `npm run docker:client:stop` slutar serva via nginx
+- `npm run dev:client` börjar serva via Vite
+
+Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan den andra kan startas.
+
+- När du kör via Vite så använder du `Ctrl+C` i terminalen för att avbryta
+- Därefter kan du använda `npm run docker:client:start` för att serva via nginx igen
+
+#### Felsökning och övrigt
+
+- Kontrollera API:et med `curl localhost:4000/api/health`
+- Stoppa med `npm run docker:down`
+- Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:seed` igen
+- Får du `504` från API:et behöver du seeda, genom att köra  `npm run docker:seed`
+
+### Bara databasen i Docker
+
+Databasen körs i Docker, resten körs på din dator med `npm run dev`. Det ger snabbare omladdning när du utvecklar.
 
 ```sh
 npm install
 npm run prepare
-docker compose -f docker-compose.dev.yml up -d
+cp .env.example .env
+cp api/.env.example api/.env
+cp client/.env.example client/.env
+cp web/.env.example web/.env
+npm run docker:db
 npm run seed
 npm run dev
 ```
 
-Appen ligger sen på <http://localhost:3000> och API:et på <http://localhost:4000>.
+- Vue-klienten ligger på <http://localhost:3001>
+- React-appen ligger på <http://localhost:3000>
+- API:et ligger på <http://localhost:4000>
+- Det finns inget `npm start` i roten, använd `npm run dev`
+- Databasen nås på port `5433` från din dator
+- Du måste köra `npm run prepare` själv efter `npm install`, eftersom `ignore-scripts` är satt till `true` i `.npmrc`-filen
+- Stoppa databasen med `npm run docker:down`
 
-Det finns inget npm start, använd npm run dev. Vue-klienten ligger på <http://localhost:3001>.
-
-Man måste köra `npm run prepare` själv efter `npm install`, eftersom `ignore-scripts` är satt till `true` i `.npmrc-filen`.
+Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är portarna 3000, 3001 och 4000 upptagna.
 
 ## Struktur
 
 - `api/` - Express + Postgres (Drizzle)
 - `web/` - React + Vite
-- `client/` - Vue 3 + Vue Router + Vite. Allt flyttas hit från `web/`, en bit i taget
+- `client/` - Vue 3 + Vue Router + Vite. Allt flyttas hit från `web/`, en bit i taget. I Docker serveras bygget av nginx, se `client/nginx`
+- `shared/` - Kod som delas mellan delarna
 
 ## Miljövariabler
 
-Varje del har en egen `.env`-fil som inte checkas in. Kopiera `.env.example` och fyll i värdena:
+Projektets rot och varje "del" har en egen `.env`-fil som inte ska checkas in.
+
+Kopiera `.env.example` enligt nedan:
 
 ```sh
+cp .env.example .env
 cp api/.env.example api/.env
 cp client/.env.example client/.env
 cp web/.env.example web/.env
 ```
+
+Vilka filer du behöver beror på hur du kör Utpost:
+
+- Allt i Docker: bara `.env` i roten
+- Bara databasen i Docker: alla fyra, eftersom `npm run dev` läser `api/.env`, `client/.env` och `web/.env`
+
+### `.env` i roten
+
+Läses av Docker Compose. Värdena används av både databasen och API-containern.
+
+#### `POSTGRES_USER`, `POSTGRES_PASSWORD` och `POSTGRES_DB`
+
+- Användare, lösenord och databasnamn för Postgres
+- Lokalt: `utpost` för alla tre
+
+#### `JWT_SECRET`
+
+- Samma sak som i `api/.env`, men för API-containern
+- Lokalt: `dev-only-secret`
+
+Värdena för Postgres måste matcha `DATABASE_URL` i `api/.env` när du kör API:et utanför Docker. I Docker bygger Compose `DATABASE_URL` själv, med tjänstnamnet `postgres` och porten `5432`.
+
+Ändrar du Postgres-värdena efter första start behåller den gamla databasvolymen de gamla. Kör `npm run docker:reset` för att börja om.
 
 ### `api/.env`
 
@@ -51,6 +135,11 @@ cp web/.env.example web/.env
 #### `PORT`
 
 - Valfri, standard `4000`
+
+#### `UPLOAD_DIR`
+
+- Valfri, standard `./uploads`
+- Mappen där uppladdade filer ska sparas
 
 API:et startar inte om `DATABASE_URL` eller `JWT_SECRET` saknas.
 
@@ -78,7 +167,7 @@ Samma kommandon körs av CI på varje PR mot main. Se [pipeline](docs/pipeline.m
 
 ## Tester
 
-- Testerna ligger i `client/tests` och körs med `npm test`
+- Klientens tester ligger i `client/tests` och API:ets i `api/tests`. Båda körs med `npm test`
 - Alla tester ska vara gröna innan en PR mergas
 - Buggfixar ska ha ett test, om det går
 - Läs mer i [teststrategin](docs/testing.md)
