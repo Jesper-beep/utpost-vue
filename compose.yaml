@@ -1,7 +1,7 @@
 name: utpost
 services:
   postgres:
-    container_name: utpost-db
+    container_name: utpost-postgres
     image: postgres:18
     restart: unless-stopped
     environment:
@@ -18,6 +18,24 @@ services:
       timeout: 3s
       retries: 10
 
+  mongo:
+    container_name: utpost-mongo
+    image: mongo:8.2
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:?MONGO_USER is not set in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?MONGO_PASSWORD is not set in .env}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:?MONGO_DB is not set in .env}
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     container_name: utpost-api
     build:
@@ -25,12 +43,15 @@ services:
       dockerfile: api/Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      POSTGRES_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      MONGODB_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/${MONGO_DB}?authSource=admin
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is not set in .env}
     ports:
       - "127.0.0.1:4000:4000"
     depends_on:
       postgres:
+        condition: service_healthy
+      mongo:
         condition: service_healthy
 
   client:
@@ -66,3 +87,4 @@ services:
 
 volumes:
   pgdata:
+  mongodata:

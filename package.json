@@ -27,7 +27,7 @@
 		"dev:web": "npm run dev --workspace=web",
 		"docker:client:start": "docker compose start client",
 		"docker:client:stop": "docker compose stop client",
-		"docker:db": "docker compose up -d postgres",
+		"docker:db": "docker compose up -d postgres mongo",
 		"docker:down": "docker compose down",
 		"docker:reset": "docker compose down -v",
 		"docker:seed": "docker compose exec api npm run seed",

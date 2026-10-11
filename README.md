@@ -46,7 +46,7 @@ Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan
 
 #### Felsökning och övrigt
 
-- Kontrollera API:et med `curl localhost:4000/api/health`
+- Kontrollera API:et med `curl localhost:4000/api/health`. Båda databaserna ska visa `ok`: `{"mongodb":"ok","ok":true,"postgres":"ok"}`
 - Stoppa med `npm run docker:down`
 - Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:seed` igen
 - Får du `504` från API:et behöver du seeda, genom att köra  `npm run docker:seed`
@@ -71,7 +71,7 @@ npm run dev
 - React-appen ligger på <http://localhost:3000>
 - API:et ligger på <http://localhost:4000>
 - Det finns inget `npm start` i roten, använd `npm run dev`
-- Databasen nås på port `5433` från din dator
+- Postgres nås på port `5433` och MongoDB på port `27017` från din dator
 - Du måste köra `npm run prepare` själv efter `npm install`, eftersom `ignore-scripts` är satt till `true` i `.npmrc`-filen
 - Stoppa databasen med `npm run docker:down`
 
@@ -79,7 +79,7 @@ Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är p
 
 ## Struktur
 
-- `api/` - Express + Postgres (Drizzle)
+- `api/` - Express + Postgres (Drizzle) + MongoDB
 - `web/` - React + Vite
 - `client/` - Vue 3 + Vue Router + Vite. Allt flyttas hit från `web/`, en bit i taget. I Docker serveras bygget av nginx, se `client/nginx`
 - `shared/` - Kod som delas mellan delarna
@@ -104,28 +104,39 @@ Vilka filer du behöver beror på hur du kör Utpost:
 
 ### `.env` i roten
 
-Läses av Docker Compose. Värdena används av både databasen och API-containern.
+Läses av Docker Compose. Miljövariablerna  används av både databaserna och API-containern.
 
 #### `POSTGRES_USER`, `POSTGRES_PASSWORD` och `POSTGRES_DB`
 
-- Användare, lösenord och databasnamn för Postgres
-- Lokalt: `utpost` för alla tre
+Användare, lösenord och databasnamn för Postgres
+
+#### `MONGO_USER`, `MONGO_PASSWORD` och `MONGO_DB`
+
+Användare, lösenord och databasnamn för MongoDB
 
 #### `JWT_SECRET`
 
 - Samma sak som i `api/.env`, men för API-containern
 - Lokalt: `dev-only-secret`
 
-Värdena för Postgres måste matcha `DATABASE_URL` i `api/.env` när du kör API:et utanför Docker. I Docker bygger Compose `DATABASE_URL` själv, med tjänstnamnet `postgres` och porten `5432`.
+Kör du API:et utanför Docker måste miljövariablerna för Postgres och MongoDB stämma med `POSTGRES_URL` och `MONGODB_URL` i `api/.env`.
 
-Ändrar du Postgres-värdena efter första start behåller den gamla databasvolymen de gamla. Kör `npm run docker:reset` för att börja om.
+Kör du allt i Docker behöver du inte tänka på det. Då bygger Compose båda adresserna åt dig, med `postgres` och `mongo` som värdnamn.
+
+Databaserna läser användare och lösenord första gången de startar. Ändrar du värdena i `.env` behöver du:
+
+- Köra `npm run docker:reset`
+- Köra `npm run docker:seed`
 
 ### `api/.env`
 
-#### `DATABASE_URL` (krävs)
+#### `POSTGRES_URL` (krävs)
 
-- Anslutning till Postgres
-- Lokalt: `postgres://utpost:utpost@localhost:5433/utpost`
+Anslutning till Postgres
+
+#### `MONGODB_URL` (krävs)
+
+Anslutning till MongoDB
 
 #### `JWT_SECRET` (krävs)
 
@@ -141,7 +152,7 @@ Värdena för Postgres måste matcha `DATABASE_URL` i `api/.env` när du kör AP
 - Valfri, standard `./uploads`
 - Mappen där uppladdade filer ska sparas
 
-API:et startar inte om `DATABASE_URL` eller `JWT_SECRET` saknas.
+API:et startar inte om `POSTGRES_URL`, `MONGODB_URL` eller `JWT_SECRET` saknas.
 
 ### `client/.env` och `web/.env`
 
