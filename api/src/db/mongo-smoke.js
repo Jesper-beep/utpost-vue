@@ -59,7 +59,7 @@ const run = async () => {
 	console.log(
 		`MongoDB:  1 dokument, ${(BSON.calculateObjectSize(doc) / 1024).toFixed(1)} kB`,
 	);
-	console.log(`Dokument i collectionen tours: ${await tours.countDocuments()}`);
+	console.log(`Dokument i "collection" tours: ${await tours.countDocuments()}`);
 	console.log(JSON.stringify(back, null, 2));
 	await mongo.close();
 	await pool.end();
