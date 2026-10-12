@@ -7,8 +7,9 @@ const required = (name) => {
 };
 
 export const config = {
-	databaseUrl: required("DATABASE_URL"),
 	jwtSecret: required("JWT_SECRET"),
+	mongodbUrl: required("MONGODB_URL"),
 	port: Number(process.env["PORT"] ?? 4000),
+	postgresUrl: required("POSTGRES_URL"),
 	uploadDir: process.env["UPLOAD_DIR"] ?? "./uploads",
 };
