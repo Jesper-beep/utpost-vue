@@ -21,6 +21,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "node --watch --env-file-if-exists=.env src/index.js",
+		"mongo:smoke": "node --env-file-if-exists=.env src/db/mongo-smoke.js",
 		"seed": "node --env-file-if-exists=.env src/db/seed.js",
 		"start": "node --env-file-if-exists=.env src/index.js",
 		"test": "vitest run",

@@ -4,7 +4,7 @@ Plattform för friluftsdestinationer. Redaktionella guider, användarnas egna tu
 
 ## Kom igång
 
-Det finns två sätt att köra Utpost lokalt. Båda behöver OrbStack, Podman eller Docker och en `.env`-fil. Läs mer under [Miljövariabler](#miljövariabler).
+Det finns två sätt att köra Utpost lokalt. Båda behöver OrbStack, Podman eller Docker och `.env`-filer. Läs mer under [Miljövariabler](#miljövariabler).
 
 ### Allt i Docker
 
@@ -48,8 +48,8 @@ Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan
 
 - Kontrollera API:et med `curl localhost:4000/api/health`. Båda databaserna ska visa `ok`: `{"mongodb":"ok","ok":true,"postgres":"ok"}`
 - Stoppa med `npm run docker:down`
-- Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:seed` igen
-- Får du `504` från API:et behöver du seeda, genom att köra  `npm run docker:seed`
+- Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:up` och `npm run docker:seed` igen
+- Får du `504` från API:et behöver du seeda, genom att köra `npm run docker:seed`
 
 ### Bara databasen i Docker
 
@@ -86,7 +86,7 @@ Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är p
 
 ## Miljövariabler
 
-Projektets rot och varje "del" har en egen `.env`-fil som inte ska checkas in.
+Projektets rot, `api/`, `client/` och `web/` har var sin `.env`-fil som inte ska checkas in.
 
 Kopiera `.env.example` enligt nedan:
 
@@ -104,7 +104,7 @@ Vilka filer du behöver beror på hur du kör Utpost:
 
 ### `.env` i roten
 
-Läses av Docker Compose. Miljövariablerna  används av både databaserna och API-containern.
+Läses av Docker Compose. Miljövariablerna används av både databaserna och API-containern.
 
 #### `POSTGRES_USER`, `POSTGRES_PASSWORD` och `POSTGRES_DB`
 
@@ -126,6 +126,7 @@ Kör du allt i Docker behöver du inte tänka på det. Då bygger Compose båda 
 Databaserna läser användare och lösenord första gången de startar. Ändrar du värdena i `.env` behöver du:
 
 - Köra `npm run docker:reset`
+- Köra `npm run docker:up`
 - Köra `npm run docker:seed`
 
 ### `api/.env`
@@ -165,7 +166,7 @@ Båda "frontendarna" anropar alltid `/api`. Vite skickar vidare anropen till `AP
 
 ## Kommandon
 
-```bash
+```sh
 npm run lint
 npm run lint:md
 npm run lint:spelling
@@ -174,7 +175,7 @@ npm test
 npm run build
 ```
 
-Samma kommandon körs av CI på varje PR mot main. Se [pipeline](docs/pipeline.md).
+Samma kontroller körs av CI på varje PR och vid push till main. Se [pipeline](docs/pipeline.md).
 
 ## Tester
 
@@ -191,13 +192,13 @@ Fråga Marcus.
 
 ### Trunk-based
 
-Vi kommer "trunk-based" med följande motivering:
+Vi kör "trunk-based" med följande motivering:
 
-- Färre mergeconflicts
-- Enklare i små teams
+- Färre mergekonflikter
+- Enklare i små team
 - Bättre koll på kodbasen
 
-## Working Agreement
+## Arbetsöverenskommelse
 
 - Pusha ofta, men inte så mycket kod
 - Minst en som godkänner varje PR
