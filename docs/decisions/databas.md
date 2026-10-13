@@ -1,23 +1,27 @@
 ---
 title: "Databas"
-description: "Beslut om dokumentmodell för turer, med uppmätta siffror (storlek på /api/tours-svaret, antal rader i tour_logs och största turen). Del av M3-momentet."
+description: "Beslut om databas för turer, med uppmätta siffror (storlek på /api/tours-svaret, antal rader i tour_logs och största turen). Del av M3-momentet."
 created: "2026-10-12"
 published_date: "2026-10-12"
-last_modified_date: "2026-10-12"
-version: 1
+last_modified_date: "2026-10-13"
+version: 2
 ---
 
 ## Beslut
 
-Vi sparar varje tur som ett eget dokument i MongoDB. Punkterna från `tour_logs` och bilderna ligger inbäddade i dokumentet.
+Turer stannar i Postgres. Vi lägger till index på `tour_id` i `tour_logs` och `photos`, och hämtar listan på `/turer` med en fråga per tabell i stället för fyra per tur.
 
-Användare och guider stannar i Postgres. Turen pekar på dem med `user_id` och `guide_id`.
+Kräver uppgiften att vi flyttar till MongoDB, gör vi det enligt [dokumentmodellen](#dokumentmodell) nedan. Varje tur blir ett eget dokument, med punkterna från `tour_logs` och bilderna inbäddade. Användare och guider stannar i Postgres, och turen pekar på dem med `user_id` och `guide_id`. Migreringen görs i så fall i M5 (se [Migrering i M5](#migrering-i-m5)).
 
-Migreringen görs (kanske) i M5, inte nu (se [utläggning nedan](#problemet-är-kanske-inte-postgres)).
+### Varför
+
+- Problemet idag är 201 frågor och saknade index, inte Postgres. Båda går att lösa i Postgres (se [utläggning nedan](#problemet-är-kanske-inte-postgres))
+- MongoDB sparade c:a 16 % utrymme, men på väldigt lite data
+- En flytt kräver en migrering, och att två databaser hålls lika under tiden
 
 ## Nuläge och bakgrund
 
-Idag är det som räknas som en "Tur" i Utpost (`/turer`, `/turer/:id`) förekommande i flertalet Postgres-tabeller.
+Idag är det som räknas som en "Tur" i Utpost (`/turer`, `/turer/:id`) förekommande i flera Postgres-tabeller.
 
 Till exempel `tours` och `tour_logs`. `tour_id` förekommer även i `photos`-tabellen.
 
@@ -38,7 +42,7 @@ Siffrorna kommer från seedad data. En riktig tur har ungefär 300 punkter, enli
 
 ### Postgres saknar index på `tour_id`
 
-`tour_logs` saknar index på `tour_id`. Det är den kolumn som alla uppslag görs på, till exempel `where tour_id = $1` i `api/src/routes/tours.js`.
+`tour_logs` och `photos` saknar index på `tour_id`. Det är den kolumn som alla uppslag görs på, till exempel `where tour_id = $1` i `api/src/routes/tours.js`.
 
 Utan index kan Postgres behöva läsa hela tabellen för varje tur. Listan på `/turer` hämtar 50 turer och gör fyra frågor per tur, alltså upp till 201 frågor för en sida.
 
@@ -46,7 +50,7 @@ Ett index på `tour_logs(tour_id)` skulle göra varje uppslag billigare och hör
 
 Det löser dock inte att en tur ligger utspridd över flera tabeller och kräver flera frågor.
 
-Jämförelsen av storlek (se nedan) är därför något till Postgres fördel: MongoDB-samlingen har ett eget index på `tour_id` (och `_id`), medan Postgres bara har primärnycklarna ("primary key").
+Jämförelsen av storlek (se nedan) är något till Postgres fördel: MongoDB-samlingen har ett eget index på `tour_id` (och `_id`), medan Postgres bara har primärnycklarna ("primary key").
 
 Trots det blev MongoDB mindre.
 
@@ -96,7 +100,7 @@ Listan på `/turer` behöver ändå namn och guidetitel. Dem får vi hämta frå
 Sånt som annars räknas ut varje gång en tur visas. Det ligger i `stats`:
 
 - `points`: antal punkter
-- `elevation_gain_m`: total stigning (idag räknar klienten ut den, för varje tur)
+- `elevation_gain_m`: total stigning (idag räknar klienten ut den, varje gång en tur visas)
 - `avg_heart_rate`: medelpuls
 
 Då slipper klienten gå igenom alla punkter varje gång.
@@ -111,13 +115,15 @@ Då slipper klienten gå igenom alla punkter varje gång.
 
 Vi låter en tur ha upp till 5 000 punkter inbäddade. Det blir ungefär 0,45 MB (c:a 90 byte per punkt).
 
-Vad är en realistisk tur? Idag har en tur ungefär 300 punkter. Sparar vi en punkt var 10:e sekund blir en heldag på 10 timmar ungefär 3 600 punkter, alltså c:a 0,3 MB. Det är en lång tur, och 5 000 punkter ger lite marginal över den. Hur ofta en punkt sparas vet vi inte än, så det är en uppskattning.
+Vad är en realistisk tur? En riktig tur har ungefär 300 punkter, enligt kommentaren i `schema.js`. Sparar vi en punkt var 10:e sekund blir en heldag på 10 timmar ungefär 3 600 punkter, alltså c:a 0,3 MB. Det är en lång tur, och 5 000 punkter ger lite marginal över den. Hur ofta en punkt sparas vet vi inte än, så det är en uppskattning.
 
 MongoDB har en egen gräns på 16 MB per dokument, vilket är ungefär 180 000 punkter. Den behöver vi inte tänka på.
 
 Blir en tur ändå större än 5 000 punkter, till exempel om en punkt sparas varje sekund, lägger vi punkterna i en egen samling (`tour_points`), med högst 1 000 punkter per dokument och `tour_id` som koppling. Tur-dokumentet behåller sina `stats`.
 
 ## Vad som stannar i Postgres
+
+Gäller om vi flyttar till MongoDB.
 
 ### users
 
@@ -133,7 +139,7 @@ Flyttas till MongoDB. Raden blir fälten högst upp i dokumentet. Tabellen finns
 
 ### tour_logs
 
-Flyttas till MongoDB som `logs` i dokumentet. Tabellen finns kvar, men ingen kod skriver till den, tills migreringen är verifierad.
+Flyttas till MongoDB som `logs` i dokumentet. Tabellen finns kvar, men ingen kod skriver till den, tills verifieringen är grön och läsningarna har bytts.
 
 ### photos
 
@@ -141,22 +147,24 @@ Flyttas till MongoDB som `photos` i dokumentet. Tabellen finns kvar tills migrer
 
 ## Migrering i M5
 
+Gäller om vi flyttar till MongoDB.
+
 ### Steg
 
 1. Ta en `pg_dump` av `tours`, `tour_logs` och `photos`
 2. Skapa indexen i MongoDB
-3. Gör ett skript utifrån `mongo-smoke.js` som går igenom alla rader i `tours` och skriver ett dokument per tur med `replaceOne` och `upsert` på `tour_id`. Det går att köra om
+3. Gör ett skript utifrån `mongo-smoke.js` som går igenom alla rader i `tours` och skriver ett dokument per tur, med `photos`, med `replaceOne` och `upsert` på `tour_id`. Skriptet tar också bort dokument vars `tour_id` inte längre finns i `tours`. Det går att köra om
 4. Verifiera, se nedan
 5. Kör skriptet i steg 3 igen, så att nya turer kommer med, och byt läsningarna (`GET /api/tours`, `/api/tours/latest` och `/api/tours/:id`) till MongoDB
 6. Byt skrivningarna (`POST` och `DELETE` på `/api/tours`, samt bilderna) till MongoDB
-7. Låt `tour_logs` ligga kvar, men ingen kod skriver till den, tills inget längre läser från den. Ta sedan bort tabellerna `tour_logs`, `photos` och `tours`
+7. Låt `tour_logs` ligga kvar, men ingen kod skriver till den, tills verifieringen är grön och läsningarna har bytts. Ta sedan bort tabellerna `tour_logs`, `photos` och `tours`
 
 Mellan steg 5 och 6 hamnar nya turer bara i Postgres. Håll det fönstret kort, och kör skriptet en sista gång efter steg 6 så att inget missas.
 
 ### Verifiering
 
 - Antal dokument är lika med antal rader i `tours`
-- Summan av `stats.points` är lika med antal rader i `tour_logs` (5857 med dagens seed)
+- Summan av `stats.points` är lika med antal rader i `tour_logs` (5857 i vår seedade data)
 - Tio turer jämförs fält för fält mellan Postgres och MongoDB
 - `/turer/:id` ger samma svar före och efter bytet
 
@@ -168,7 +176,7 @@ Tabellen tas inte bort förrän verifieringen är grön och läsningarna har byt
 
 ### Stanna i Postgres med index
 
-Lägg till ett index på `tour_logs(tour_id)` och hämta alla turer med en fråga per tabell i stället för fyra per tur.
+Det vi valde. Lägg till ett index på `tour_logs(tour_id)` och `photos(tour_id)` och hämta alla turer med en fråga per tabell i stället för fyra per tur.
 
 Det borde lösa de 201 frågorna och kräver ingen ny databas. Men en tur ligger fortfarande utspridd på tre tabeller, och `tour_logs` växer med ungefär 300 rader per tur.
 
@@ -184,14 +192,16 @@ Att dessutom köra två databaser istället för en, skapar mycket extrajobb.
 
 Att MongoDB kan "samla" allt som har med turer att göra är ett plus. Men är det tillräckligt med plus för att lägga tid och energi på en migrering?
 
-Om uppgiften hade tillåtit det, skulle vi nog ha gjort det. Vi kommer ändå att gå igenom all backend-kod. Två snabba vi hade kunnat fixa relativt enkelt:
+Därför stannar vi i Postgres, se [Beslut](#beslut). Vi kommer ändå att gå igenom all backend-kod. Två snabba förbättringar vi hade kunnat fixa relativt enkelt:
 
 - Lägga på ett index på `tour_logs(tour_id)` (gör förfrågningar c:a 4 till 8 gånger snabbare)
 - Samla värden med `json_agg` (ej mätt)
 
-Värt att nämna är dock att vi pratar om mycket, mycket små vinningar.
+Värt att nämna är dock att vi pratar om mycket, mycket små vinster.
 
 #### Fultest med index
+
+Kommandona utgår från att användare, lösenord och databas i `.env` är `admin`, `password` och `utpost`.
 
 0. Droppa index om det redan finns
 
@@ -227,7 +237,7 @@ Värt att nämna är dock att vi pratar om mycket, mycket små vinningar.
 
     "ANALYZE"
 
-3. Skapa en baseline med index:
+3. Mät igen med index:
 
     ```sh
     docker exec utpost-postgres psql -U admin -d utpost -c "explain analyze select * from tour_logs where tour_id = 70"
@@ -258,9 +268,17 @@ Det ger oss ett uppslag per tur, men punkterna är krångligare att indexera och
 
 ### Ett dokument per tur i MongoDB
 
-Det vi valde. En tur läses oftast som en helhet, och dokumentet blir något mindre än raderna (544 kB mot 648 kB för 200 turer).
+Det vi väljer om uppgiften kräver MongoDB. En tur läses oftast som en helhet, och dokumentet blir något mindre än raderna (544 kB mot 648 kB för 200 turer).
 
 ## Konsekvenser
+
+Om vi stannar i Postgres:
+
+- Listan på `/turer` kan göras med en fråga per tabell i stället för upp till 201.
+- En tur ligger fortfarande utspridd på tre tabeller, och `tour_logs` växer med ungefär 300 rader per tur.
+- Varje ny rad i `tour_logs` och `photos` måste också in i indexet, så skrivningar blir något dyrare.
+
+Om vi flyttar till MongoDB:
 
 - Listan på `/turer` kan göras med två frågor (en till MongoDB och en till Postgres för namn och guidetitlar) i stället för upp till 201.
 - Vi kör två databaser, och användare och guider måste hämtas från Postgres.
@@ -270,9 +288,13 @@ Det vi valde. En tur läses oftast som en helhet, och dokumentet blir något min
 
 ## Test
 
-Observera att testet idag är missvisande, då `mongo-smoke.js` endast mäter en tur, medan de seedade Postgres-turerna innehåller all data, vilket väger mycket tyngre.
+Observera att `mongo-smoke.js` endast mäter en tur, medan de seedade Postgres-turerna innehåller all data, vilket väger mycket tyngre.
 
-Vi kan iterera över turerna med `mongo-smoke.js` för att simulera och likställa MongoDB med Postgres:
+Vi kan iterera över turerna med `mongo-smoke.js` för att simulera och likställa MongoDB med Postgres.
+
+Kommandona utgår från samma värden i `.env` som i [fultestet](#fultest-med-index).
+
+Observera att eftersom loggpunkter varierar i seedingen, skiljer sig utdatan något mellan seeding-omgångar.
 
 ### Alla turer i MongoDB
 
@@ -294,7 +316,7 @@ docker exec utpost-mongo mongosh -u admin -p password --authenticationDatabase a
 544 kB
 ```
 
-*Närmast Postgres, då detta räknar med alla relationer.*
+*Jämförbart med Postgres-måttet, eftersom alla 200 turer är med.*
 
 ### Postgres
 
@@ -310,7 +332,7 @@ docker exec utpost-postgres psql -U admin -d utpost -t -A -c "select pg_size_pre
 648 kB
 ```
 
-`tour_logs` använder 576 kB för 5857 rader (antalet kommer från `seed.js`).
+`tour_logs` använder 576 kB för 5857 rader (antalet skrivs ut av `seed.js` och varierar mellan seeding-omgångar).
 
 Det blir ungefär 100 byte per rad.
 
@@ -343,7 +365,9 @@ curl -s -o /dev/null -w "%{size_download}\n" localhost:4000/api/tours | awk '{pr
 
 #### Ut
 
+```text
 278 kB
+```
 
 *Svaret gäller de 50 senaste turerna (`limit 50`), med punkter, bilder, användare och guide.*
 
@@ -365,4 +389,5 @@ För samma 200 turer sparar MongoDB ungefär 16 % utrymme.
 - Bilder (`photos`) ingår inte, varken i Postgres eller i MongoDB
 - `/api/tours` hämtar bara de 50 senaste turerna (`limit 50`)
 - Skillnaden på 16 % är liten. Den största vinsten är färre uppslag, inte mindre utrymme
+- MongoDB komprimerar data på disk som standard, det gör inte Postgres. En del av skillnaden kan bero på det
 - Att välja MongoDB kan anses ceremoniellt i sammanhanget
