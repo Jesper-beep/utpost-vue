@@ -36,6 +36,15 @@ export interface TourLog {
 	note: string | null;
 }
 
+export const PHOTO_WIDTHS = [256, 384, 640, 750, 828, 1080, 1200, 1920];
+export const PHOTO_MIN_WIDTH = 1920;
+export const PHOTO_MIN_HEIGHT = 1080;
+export const PHOTO_MAX_UPLOAD_MB = 10;
+
+export const getPhotoFilename = (photoKey: string, width: number): string => {
+	return `${photoKey}-${width}.avif`;
+};
+
 export interface Photo {
 	id: number;
 	tour_id: number;

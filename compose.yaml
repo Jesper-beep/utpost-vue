@@ -46,8 +46,11 @@ services:
       POSTGRES_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       MONGODB_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/${MONGO_DB}?authSource=admin
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is not set in .env}
+      UPLOAD_DIR: /data/uploads
     ports:
       - "127.0.0.1:4000:4000"
+    volumes:
+      - uploads:/data/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -88,3 +91,4 @@ services:
 volumes:
   pgdata:
   mongodata:
+  uploads:

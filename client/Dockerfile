@@ -19,6 +19,7 @@ ENV API_PROXY_TARGET=http://api:4000
 
 COPY client/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY client/nginx/headers.conf /etc/nginx/headers.conf
+COPY client/nginx/proxy.conf /etc/nginx/proxy.conf
 COPY --from=build /app/client/dist /usr/share/nginx/html
 
 EXPOSE 3001

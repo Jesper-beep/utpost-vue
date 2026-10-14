@@ -40,6 +40,7 @@ const LAST = [
 	"Ryd",
 	"Kvist",
 ];
+const TEST_PASSWORD = "hemligt123";
 
 const rnd = (n) => Math.floor(Math.random() * n);
 const pick = (arr) => arr[rnd(arr.length)];
@@ -64,11 +65,17 @@ const run = async () => {
 	for (let i = 0; i < 12; i++) {
 		const name = `${pick(FIRST)} ${pick(LAST)}`;
 		const email = `${name.toLowerCase().replace(" ", ".")}${i}@example.com`;
-		const res = await pool.query(
+		let role;
+		if (i === 0) {
+			role = "editor";
+		} else {
+			role = "member";
+		}
+		const userResult = await pool.query(
 			`insert into users (email, password_hash, display_name, role) values ($1,$2,$3,$4) returning id`,
-			[email, "plaintext:hemligt123", name, i === 0 ? "editor" : "member"],
+			[email, `plaintext:${TEST_PASSWORD}`, name, role],
 		);
-		userIds.push(res.rows[0].id);
+		userIds.push(userResult.rows[0].id);
 	}
 
 	const guideIds = [];
@@ -138,17 +145,20 @@ const run = async () => {
 			params,
 		);
 		logCount += points;
-
-		for (let f = 0; f < rnd(4); f++) {
-			await pool.query(
-				`insert into photos (tour_id, filename, width, height) values ($1,$2,$3,$4)`,
-				[tourId, `tour-${tourId}-${f + 1}.jpg`, 4032, 3024],
-			);
-		}
 	}
 
 	console.log(
 		`Seed klar: 12 användare, 40 guider, 200 turer, ${logCount} loggpunkter.`,
+	);
+	const newestTour = await pool.query(
+		`select tours.id, users.email from tours join users on users.id = tours.user_id order by tours.started_at desc limit 1`,
+	);
+	const newestTourRow = newestTour.rows[0];
+	if (newestTourRow === undefined) {
+		throw new Error("Hittade ingen tur att visa testinloggning för");
+	}
+	console.log(
+		`Testinloggning: ${newestTourRow.email} / ${TEST_PASSWORD}, tur ${newestTourRow.id}`,
 	);
 	await pool.end();
 };

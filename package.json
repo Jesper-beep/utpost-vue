@@ -38,7 +38,7 @@
 		"lint:force-fix": "biome check --write --unsafe .",
 		"lint:md": "markdownlint \"**/*.md\" --ignore \"**/node_modules/**\"",
 		"lint:md:fix": "markdownlint \"**/*.md\" --ignore \"**/node_modules/**\" --fix",
-		"lint:spelling": "cspell \"**/*.{js,jsx,md}\"",
+		"lint:spelling": "cspell \"**/*.{js,jsx,md,ts,vue}\"",
 		"mongo:smoke": "npm run mongo:smoke --workspace=api",
 		"prepare": "husky",
 		"seed": "npm run seed --workspace=api",
