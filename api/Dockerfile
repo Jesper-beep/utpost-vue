@@ -12,6 +12,8 @@ RUN npm ci --workspace=api --omit=dev
 COPY shared/ shared/
 COPY api/ api/
 
+RUN mkdir -p /data/uploads && chown node:node /data/uploads
+
 WORKDIR /app/api
 USER node
 EXPOSE 4000

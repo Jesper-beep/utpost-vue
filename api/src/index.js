@@ -6,13 +6,13 @@ import { mongo } from "./db/mongo.js";
 import { handleUnhandledRejection } from "./lib/unhandledRejection.js";
 import { authRouter } from "./routes/auth.js";
 import { guidesRouter } from "./routes/guides.js";
-import { photosRouter } from "./routes/photos.js";
+import { photosRouter } from "./routes/photos.ts";
 import { toursRouter } from "./routes/tours.js";
 
 const app = express();
 
 app.use(cors());
-app.use(express.json({ limit: "50mb" }));
+app.use(express.json({ limit: "1mb" }));
 
 app.get("/api/health", async (_req, res) => {
 	const check = async (fn) => {
@@ -36,6 +36,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/guides", guidesRouter);
 app.use("/api/tours", toursRouter);
 app.use("/api/photos", photosRouter);
+app.use("/uploads", express.static(config.uploadDir));
 
 app.listen(config.port, () => {
 	console.log(`API lyssnar på http://localhost:${config.port}`);

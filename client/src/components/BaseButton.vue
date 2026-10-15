@@ -41,6 +41,11 @@ withDefaults(
 	font-weight: 700;
 	border-radius: 2.5rem;
 	border: 0.125em solid transparent;
+
+	&:disabled {
+		cursor: not-allowed;
+		opacity: 0.5;
+	}
 }
 
 .button--primary {
@@ -50,7 +55,7 @@ withDefaults(
 	color: var(--button-text-color);
 	border-color: var(--button-background-color);
 
-	&:is(:hover, :active) {
+	&:is(:hover, :active):not(:disabled) {
 		--button-background-color-hover: oklch(
 			from var(--button-background-color) calc(l * 1.08) c h
 		);
@@ -70,7 +75,7 @@ withDefaults(
 	color: var(--accent);
 	border-color: var(--accent);
 
-	&:is(:hover, :active) {
+	&:is(:hover, :active):not(:disabled) {
 		background-color: color-mix(in oklch, var(--accent) 12%, transparent);
 
 		&:active {
@@ -84,7 +89,7 @@ withDefaults(
 	background-color: transparent;
 	color: var(--accent);
 
-	&:hover {
+	&:hover:not(:disabled) {
 		text-decoration: underline;
 		text-underline-offset: 0.25em;
 	}

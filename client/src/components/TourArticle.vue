@@ -96,10 +96,6 @@ const climb = computed(() => elevationGain(tour.value?.logs ?? []));
 	color: oklch(0.5521 0.0151 159.59);
 }
 
-.tour-article__subheading {
-	margin-block-start: 1.5rem;
-}
-
 .tour-article__logs {
 	overflow-x: auto;
 	border-radius: 0.5rem;
