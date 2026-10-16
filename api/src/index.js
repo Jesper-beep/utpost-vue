@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import { yoga } from "../graphql/server.js";
 import { config } from "./config.js";
 import { pool } from "./db/client.js";
 import { mongo } from "./db/mongo.js";
@@ -12,6 +13,9 @@ import { toursRouter } from "./routes/tours.js";
 const app = express();
 
 app.use(cors());
+
+app.use(yoga.graphqlEndpoint, yoga);
+
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/api/health", async (_req, res) => {
