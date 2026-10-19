@@ -3,7 +3,7 @@ import type { Guide } from "@utpost/shared";
 import { computed, onMounted, ref } from "vue";
 import { API_URL } from "../config.js";
 import { bigFetch } from "../utils/bigFetch.js";
-import GuideCard from "./GuideCard.vue";
+import GuideGrid from "./GuideGrid.vue";
 
 const props = defineProps<{
 	search: string;
@@ -27,34 +27,5 @@ const filteredGuides = computed(() => {
 </script>
 
 <template>
-	<ul class="guide-list">
-		<li
-			v-for="guide in filteredGuides"
-			:key="guide.id"
-			class="guide-list__item"
-		>
-			<GuideCard :guide="guide" />
-		</li>
-	</ul>
+	<GuideGrid :guides="filteredGuides" />
 </template>
-
-<style scoped>
-.guide-list {
-	display: grid;
-	grid-template-columns: subgrid;
-	row-gap: 2rem;
-	list-style: none;
-}
-
-.guide-list__item {
-	grid-column: span 12;
-
-	@media (width >= 48rem) {
-		grid-column: span 6;
-	}
-
-	@media (width >= 64rem) {
-		grid-column: span 4;
-	}
-}
-</style>

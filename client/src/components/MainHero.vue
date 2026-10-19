@@ -1,21 +1,10 @@
 <script setup lang="ts">
-import type { Guide } from "@utpost/shared";
-import { onMounted, ref } from "vue";
-import { API_URL } from "../config.js";
-import { bigFetch } from "../utils/bigFetch.js";
 import BaseButton from "./BaseButton.vue";
 
-const guides = ref<Guide[]>([]);
-const regions = ref<string[]>([]);
-
-onMounted(async () => {
-	const [guidesResult, regionsResult] = await Promise.all([
-		bigFetch<Guide[]>(`${API_URL}/guides`),
-		bigFetch<string[]>(`${API_URL}/guides/regions`),
-	]);
-	guides.value = guidesResult.data;
-	regions.value = regionsResult.data;
-});
+defineProps<{
+	guideCount: number;
+	regionCount: number;
+}>();
 </script>
 
 <template>
@@ -23,7 +12,7 @@ onMounted(async () => {
 		<div class="main-hero__content">
 			<h1 class="main-hero__content-heading">Hitta din nästa tur</h1>
 			<p class="main-hero__content-intro">
-				{{ guides.length }} guider i {{ regions.length }} landskap.
+				{{ guideCount }} guider i {{ regionCount }} landskap.
 			</p>
 			<BaseButton to="/guider">Utforska guider</BaseButton>
 		</div>
