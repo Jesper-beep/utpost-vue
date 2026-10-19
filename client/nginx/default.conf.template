@@ -25,7 +25,7 @@ server {
 		include /etc/nginx/proxy.conf;
 	}
 
-	location ~ ^/(api|uploads)/ {
+	location ~ ^/(api|uploads|graphql)(/|$) {
 		client_max_body_size 1m;
 		set $api ${API_PROXY_TARGET};
 		include /etc/nginx/proxy.conf;
