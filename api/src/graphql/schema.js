@@ -1,6 +1,5 @@
-// GraphQL-schemat för Utpost, v1 (M4). Det här ÄR kontraktet: allt en klient kan fråga efter
-// står här, med typer. Fälten heter som klienten vill ha dem (camelCase) – inte som kolumnerna
-// i Postgres. Översättningen görs i resolvers.js.
+// https://github.com/jonatanhallenberg/utpost-graphql-labb/blob/main/api/src/graphql/schema.js
+
 export const typeDefs = /* GraphQL */ `
   type Guide {
     id: ID!

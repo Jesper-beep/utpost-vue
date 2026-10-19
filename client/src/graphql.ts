@@ -1,4 +1,6 @@
-export const GRAPHQL_URL = "http://localhost:4000/graphql";
+// https://github.com/jonatanhallenberg/utpost-graphql-labb/blob/main/client/src/graphql.ts
+
+export const GRAPHQL_URL = "/graphql";
 
 export const gql = async <T>(
 	query: string,

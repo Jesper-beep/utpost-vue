@@ -1,9 +1,9 @@
 import cors from "cors";
 import express from "express";
-import { yoga } from "../graphql/server.js";
 import { config } from "./config.js";
 import { pool } from "./db/client.js";
 import { mongo } from "./db/mongo.js";
+import { yoga } from "./graphql/server.js";
 import { handleUnhandledRejection } from "./lib/unhandledRejection.js";
 import { authRouter } from "./routes/auth.js";
 import { guidesRouter } from "./routes/guides.js";

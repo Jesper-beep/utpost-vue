@@ -1,8 +1,10 @@
+// https://github.com/jonatanhallenberg/utpost-graphql-labb/blob/main/api/src/graphql/server.js
+
 import { getOperationAST } from "graphql";
 import { createSchema, createYoga } from "graphql-yoga";
 import jwt from "jsonwebtoken";
-import { config } from "../src/config.js";
-import { pool } from "../src/db/client.js";
+import { config } from "../config.js";
+import { pool } from "../db/client.js";
 import { resolvers } from "./resolvers.js";
 import { typeDefs } from "./schema.js";
 

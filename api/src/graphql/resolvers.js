@@ -1,3 +1,5 @@
+// https://github.com/jonatanhallenberg/utpost-graphql-labb/blob/main/api/src/graphql/resolvers.js
+
 import { GraphQLError } from "graphql";
 
 const iso = (d) => new Date(d).toISOString();

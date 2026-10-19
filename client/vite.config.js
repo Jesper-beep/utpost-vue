@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
 		},
 		server: {
 			proxy: {
-				"^/(api|uploads)/": {
+				"^/(api|uploads|graphql)(/|$)": {
 					changeOrigin: true,
 					secure: false,
 					target: env.API_PROXY_TARGET || "http://localhost:4000",
