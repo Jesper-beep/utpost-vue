@@ -17,7 +17,7 @@ const GUIDE_FIELDS = `
 `;
 
 const HOME_QUERY = `
-	query Home {
+	query Startsidan {
 		guides { ${GUIDE_FIELDS} }
 		popularGuides(limit: 6) { ${GUIDE_FIELDS} }
 		regions
