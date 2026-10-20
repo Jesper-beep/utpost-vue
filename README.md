@@ -221,6 +221,15 @@ npm run build
 
 Samma kontroller körs av CI på varje PR och vid push till main. Se [pipeline](docs/pipeline.md).
 
+## Containeravbildningar i CI
+
+CI bygger en image för `api`, `client` och `web` när kontrollerna är gröna.
+
+- Vd  en PR byggs containeravbildningarna bara (de publiceras inte)
+- Vid push till main publiceras de i GitHub Container Registry som `ghcr.io/<ägare>/<repo>-api`, `-client` och `-web`
+- Varje containeravbildning får taggarna `latest` och `sha-` följt av commit-hash
+- Databaserna ingår inte (de körs separat)
+
 ## Tester
 
 - Klientens tester ligger i `client/tests` och API:ets i `api/tests`. Båda körs med `npm test`
