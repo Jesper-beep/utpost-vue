@@ -16,9 +16,9 @@ npm run docker:up
 npm run docker:seed
 ```
 
-- Vue-klienten ligger på <http://localhost:3001>
+- Vue-klienten ligger på <http://localhost:3001>, tillsammans med `/api/health` och `/graphql`
 - React-appen ligger på <http://localhost:3000>
-- API:et ligger på <http://localhost:4000>
+- API:et har ingen egen port. Klienten och React-appen skickar vidare `/api` och `/graphql` till det inne i Docker
 
 #### Efter kodändringar
 
@@ -26,15 +26,19 @@ npm run docker:seed
 
 #### Vue-klienten (client/) med Vite istället för nginx
 
-Docker servar Vue-klienten (client/) med nginx. I utvecklarläge rekommenderas att köra:
+Docker servar Vue-klienten (client/) med nginx. I utvecklarläge rekommenderas att köra den via Vite istället. Då ligger API:et, databasen och React-appen kvar i Docker och bara Vue-klienten körs via Vite.
+
+Vite skickar `/api`, `/uploads` och `/graphql` vidare till `http://localhost:4000`, men API:et i Docker har ingen publicerad port.
+
+Lägg därför tillbaka `ports: "127.0.0.1:4000:4000"` under `api` i `compose.yaml` och kör `npm run docker:up` igen. Checka inte in det.
+
+Kör sedan:
 
 ```sh
 npm install
 npm run docker:client:stop
 npm run dev:client
 ```
-
-Då ligger API:et, databasen och React-appen kvar i Docker och bara Vue-klienten körs via Vite.
 
 - `npm run docker:client:stop` slutar serva via nginx
 - `npm run dev:client` börjar serva via Vite
@@ -46,7 +50,10 @@ Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan
 
 #### Felsökning och övrigt
 
-- Kontrollera API:et med `curl localhost:4000/api/health`. Båda databaserna ska visa `ok`: `{"mongodb":"ok","ok":true,"postgres":"ok"}`
+- Kontrollera API:et med `curl localhost:3001/api/health`. Båda databaserna ska visa `ok`: `{"mongodb":"ok","ok":true,"postgres":"ok"}`
+- Felsöker du API:et direkt kan du lägga tillbaka `ports: "127.0.0.1:4000:4000"` under `api` i `compose.yaml`. Checka inte in det
+- Öppna <http://localhost:3001/graphql> i webbläsaren för GraphiQL
+- Databasfrågorna för varje GraphQL-fråga loggas av API:et: `docker logs utpost-api | grep graphql`
 - Stoppa med `npm run docker:down`
 - Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:up` och `npm run docker:seed` igen
 - Får du `504` från API:et behöver du seeda, genom att köra `npm run docker:seed`
@@ -75,14 +82,51 @@ npm run dev
 - Du måste köra `npm run prepare` själv efter `npm install`, eftersom `ignore-scripts` är satt till `true` i `.npmrc`-filen
 - Stoppa databasen med `npm run docker:down`
 
-Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är portarna 3000, 3001 och 4000 upptagna.
+Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är portarna 3000 och 3001 upptagna.
 
 ## Struktur
 
-- `api/` - Express + Postgres (Drizzle) + MongoDB
-- `web/` - React + Vite
-- `client/` - Vue 3 + Vue Router + Vite. Allt flyttas hit från `web/`, en bit i taget. I Docker serveras bygget av nginx, se `client/nginx`
-- `shared/` - Kod som delas mellan delarna
+### API (`api/`)
+
+Express + Postgres (Drizzle) + MongoDB + GraphQL (graphql-yoga).
+
+### Web (`web/`)
+
+React + Vite.
+
+### Client (`client/`)
+
+Vue 3 + Vue Router + Vite. Allt flyttas hit från `web/`, en bit i taget. I Docker serveras bygget av nginx, se `client/nginx`.
+
+### Shared (`shared/`)
+
+Kod som delas mellan delarna.
+
+## Avbildningar
+
+### Client-avbildningen
+
+Klienten byggs i två steg. Det första (`node:24-slim`) installerar paketen och bygger. Det andra (nginx) får bara med de färdiga filerna i `dist/`. Node och `node_modules` stannar kvar i första steget och följer inte med.
+
+- Före, ett steg med `vite preview`: 410 MB
+- Efter, två steg med nginx: 19,2 MB
+
+Måttet är DISK USAGE i `docker image ls`. Mät själv med:
+
+```sh
+docker compose build client
+docker image ls utpost-client
+```
+
+*Bygger klientens avbildning och visar storleken.*
+
+Observera att "före" är avbildningen från `af6c6c1`, innan nginx lades till.
+
+### Publicering
+
+Jobbet ImageCity i pipelinen bygger Docker-avbildningarna. Vid  en PR byggs dom bara, och vid en push till main publiceras de.
+
+Pusha aldrig avbildningar från din egen dator.
 
 ## Miljövariabler
 
@@ -162,7 +206,7 @@ API:et startar inte om `POSTGRES_URL`, `MONGODB_URL` eller `JWT_SECRET` saknas.
 - Adress till API:et för dev-proxyn
 - Lokalt: `http://localhost:4000` (utan `/api`)
 
-Båda "frontendarna" anropar alltid `/api`. Vite skickar vidare anropen till `API_PROXY_TARGET`, så ingen API-adress finns i koden. Starta om dev-servern efter att du ändrat en `.env`-fil.
+Båda "frontendarna" anropar alltid `/api`, och Vue-klienten anropar även `/graphql`. Vite och nginx skickar vidare anropen till `API_PROXY_TARGET`, så ingen API-adress finns i koden. Starta om dev-servern efter att du ändrat en `.env`-fil.
 
 ## Kommandon
 

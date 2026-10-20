@@ -9,7 +9,7 @@ version: "1"
 
 ## Beslut
 
-GraphQL kompletterar REST, det ersätter det inte. Läsningar som idag kräver flera anrop, som startsidan, går via `/graphql`. Inloggning, bilduppladdning och allt som ändrar eller raderar stannar i REST. REST-routerna svarar som förut.
+GraphQL kompletterar REST, det ersätter det inte. Läsningar som idag kräver flera anrop, som startsidan, går via `/graphql`. Inloggning, bilduppladdning och allt som ändrar eller raderar stannar i REST. REST-rutterna svarar som förut.
 
 Undantaget är `createTour`. Det finns både som `POST /api/tours` i REST och som mutation i GraphQL. Klienten skapar inga turer än. När den gör det väljer vi en av dem.
 
@@ -79,7 +79,7 @@ Se till att OrbStack/PodMan eller Docker är igång.
 
 ### REST
 
-Alla förfrågningar görs med GET. Endpointen `/api/health` utelämnas. Alla mätningar okomprimerade.
+Alla förfrågningar görs med GET. Endpointen (slutpunkt/ändpunkt) `/api/health` utelämnas. Alla mätningar okomprimerade.
 
 - curl -s `<endpoint>` | wc -c
 
@@ -150,7 +150,7 @@ curl -s localhost:3001/graphql -H "Content-Type: application/json" -d '{"query":
 
 ### Databas-förfrågningar
 
-Antal frågor till Postgres. REST räknas i routernas kod, eftersom API:et inte loggar dem. GraphQL läses ur API-loggen, som skriver en rad för varje fråga med antalet databasfrågor.
+Antal frågor till Postgres. REST räknas i rutternas kod, eftersom API:et inte loggar dem. GraphQL läses ur API-loggen, som skriver en rad för varje fråga med antalet databasfrågor.
 
 1. Kör `Startsidan`, frågan som startsidan skickar. Kommandot finns under [GraphQL](#graphql) ovan
 2. Kör `AllaTurer`, den tyngsta frågan:
