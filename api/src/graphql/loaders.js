@@ -18,25 +18,23 @@ const groupBy = (rows, key, ids) => {
 	return ids.map((id) => groups.get(id) ?? []);
 };
 
-export const createLoaders = ({ query }) => ({
+export const createLoaders = ({ findTours, query }) => ({
 	guide: new DataLoader(async (ids) =>
 		byId(
 			(await query("select * from guides where id = any($1)", [ids])).rows,
 			ids,
 		),
 	),
-	logs: new DataLoader(async (tourIds) =>
-		groupBy(
-			(
-				await query(
-					"select * from tour_logs where tour_id = any($1) order by recorded_at",
-					[tourIds],
-				)
-			).rows,
-			"tour_id",
-			tourIds,
-		),
-	),
+	logs: new DataLoader(async (tourIds) => {
+		const documents = await findTours(
+			{ tour_id: { $in: tourIds } },
+			{ logs: 1, tour_id: 1 },
+		);
+		const logsByTour = new Map(
+			documents.map((document) => [document.tour_id, document.logs]),
+		);
+		return tourIds.map((id) => logsByTour.get(id) ?? []);
+	}),
 	photos: new DataLoader(async (tourIds) =>
 		groupBy(
 			(

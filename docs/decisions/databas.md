@@ -1,10 +1,10 @@
 ---
 title: "Databas"
-description: "Beslut om databas för turer, med uppmätta siffror (storlek på /api/tours-svaret, antal rader i tour_logs och största turen). Del av M3-momentet."
+description: "Beslut om databas för turer, med uppmätta siffror (storlek på /api/tours-svaret, antal rader i tour_logs och största turen). Del av M3-momentet. Uppdaterad i M5 med migreringen av turloggarna."
 created: "2026-10-12"
 published_date: "2026-10-12"
-last_modified_date: "2026-10-13"
-version: 2
+last_modified_date: "2026-10-26"
+version: 3
 ---
 
 ## Beslut
@@ -18,6 +18,28 @@ Kräver uppgiften att vi flyttar till MongoDB, gör vi det enligt [dokumentmodel
 - Problemet idag är 201 frågor och saknade index, inte Postgres. Båda går att lösa i Postgres (se [utläggning nedan](#problemet-är-kanske-inte-postgres))
 - MongoDB sparade c:a 16 % utrymme, men på väldigt lite data
 - En flytt kräver en migrering, och att två databaser hålls lika under tiden
+
+## Uppdatering i M5
+
+M5 kräver att turloggarna ligger i MongoDB. Det är fallet som [Beslut](#beslut) ovan förutsåg, så vi flyttade dem enligt [dokumentmodellen](#dokumentmodell). Resten av beslutet gäller: användare, guider, turer och bilder stannar i Postgres.
+
+Planen under [Migrering i M5](#migrering-i-m5) gällde hela turen. Vi gjorde bara den del som rör mätpunkterna.
+
+### Vad som flyttades
+
+- Bara mätpunkterna, från `tour_logs` till `logs` i ett dokument per tur i MongoDB
+- Dokumentet följer [dokumentmodellen](#dokumentmodell), men utan `photos` och med bara `points` i `stats`. Bilderna läses fortfarande ur Postgres
+- `Tour.logs` i GraphQL läser MongoDB, med en fråga för alla turer i svaret
+- Tabellen `tour_logs` ligger kvar. REST-rutterna och den gamla klienten läser den fortfarande
+
+### Så fungerar migreringen
+
+`npm run migrate:logs` (i Docker: `npm run docker:migrate-logs`).
+
+- Skriptet skriver ett dokument per tur med `replaceOne` och `upsert` på `tour_id`, och har ett unikt index på `tour_id`. Det går att köra om utan dubbletter
+- Dokument vars `tour_id` inte längre finns i `tours` tas bort
+- Skriptet verifierar själv: antal dokument mot antal turer, och antal mätpunkter i dokumenten mot antal rader i `tour_logs`. Stämmer det inte avslutas det med felkod 1
+- `seed` nollställer Postgres men inte MongoDB. Kör därför `migrate:logs` efter varje seed
 
 ## Nuläge och bakgrund
 
@@ -69,7 +91,7 @@ Så här skulle en tur kunna se ut som ett dokument. Värdena är bara exempel, 
     "notes": null,
     "stats": { "points": 39, "elevation_gain_m": 412, "avg_heart_rate": 121 },
     "logs": [
-        { "t": "2026-05-14T08:12:00Z", "lat": 61.2, "lon": 14.9, "elevation_m": 640, "heart_rate": 118, "note": null }
+        { "recorded_at": "2026-05-14T08:12:00Z", "lat": 61.2, "lon": 14.9, "elevation_m": 640, "heart_rate": 118, "note": null }
     ],
     "photos": [
         { "filename": "tour-70-1.jpg", "width": 4032, "height": 3024, "created_at": "2026-05-14T11:40:00Z" }

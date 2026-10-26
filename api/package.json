@@ -25,6 +25,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "node --watch --env-file-if-exists=.env src/index.js",
+		"migrate:logs": "node --env-file-if-exists=.env src/db/migrate-logs.js",
 		"mongo:smoke": "node --env-file-if-exists=.env src/db/mongo-smoke.js",
 		"seed": "node --env-file-if-exists=.env src/db/seed.js",
 		"start": "node --env-file-if-exists=.env src/index.js",

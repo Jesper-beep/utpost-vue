@@ -34,7 +34,7 @@ const run = async () => {
 			lat: l.lat,
 			lon: l.lon,
 			note: l.note,
-			t: l.recorded_at,
+			recorded_at: l.recorded_at,
 		})),
 		notes: tour.notes,
 		started_at: tour.started_at,

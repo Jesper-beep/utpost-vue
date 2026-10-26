@@ -14,6 +14,7 @@ Databasen, API:et och båda frontendarna körs i containrar.
 cp .env.example .env
 npm run docker:up
 npm run docker:seed
+npm run docker:migrate-logs
 ```
 
 - Vue-klienten ligger på <http://localhost:3001>, tillsammans med `/api/health` och `/graphql`
@@ -55,8 +56,9 @@ Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan
 - Öppna <http://localhost:3001/graphql> i webbläsaren för GraphiQL
 - Databasfrågorna för varje GraphQL-fråga loggas av API:et: `docker logs utpost-api | grep graphql`
 - Stoppa med `npm run docker:down`
-- Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:up` och `npm run docker:seed` igen
+- Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:up`, `npm run docker:seed` och `npm run docker:migrate-logs` igen
 - Får du `504` från API:et behöver du seeda, genom att köra `npm run docker:seed`
+- Turernas mätpunkter läses ur MongoDB i GraphQL. Kör `npm run docker:migrate-logs` efter varje `npm run docker:seed`, annars blir mätpunkterna tomma
 
 ### Bara databasen i Docker
 
@@ -71,6 +73,7 @@ cp client/.env.example client/.env
 cp web/.env.example web/.env
 npm run docker:db
 npm run seed
+npm run migrate:logs
 npm run dev
 ```
 
@@ -79,6 +82,7 @@ npm run dev
 - API:et ligger på <http://localhost:4000>
 - Det finns inget `npm start` i roten, använd `npm run dev`
 - Postgres nås på port `5433` och MongoDB på port `27017` från din dator
+- Kör `npm run migrate:logs` efter varje `npm run seed`. `npm run seed` nollställer Postgres men inte MongoDB
 - Du måste köra `npm run prepare` själv efter `npm install`, eftersom `ignore-scripts` är satt till `true` i `.npmrc`-filen
 - Stoppa databasen med `npm run docker:down`
 
@@ -258,7 +262,7 @@ docker logs utpost-api | grep graphql
 
 *Skickar frågan, skriver ut svarets storlek i byte och visar sedan raden `graphql AllaTurer: N databasfrågor` ur API-loggen.*
 
-Antalet varierar något mellan seed-omgångar, eftersom ungefär var fjärde tur saknar guide.
+Antalet varierar något mellan seeding-omgångar, eftersom ungefär var fjärde tur saknar guide.
 
 ### Efter DataLoader
 
@@ -267,8 +271,11 @@ Mätt på samma seedade databas som "före".
 - Fråga: `AllaTurer`
 - Databasfrågor: 5
 - Före: 190
+- Storlek: 66765 byte
 
 5 är en fråga för listan och en var för `user`, `guide`, `photos` och `logs`, oavsett hur många turer som kommer med. Antalet står i svaret under `extensions.databasfragor` och loggas av API:et.
+
+Storleken är 33 byte större än före (66732), och det är precis `,"extensions":{"databasfragor":5}`. Mätpunkterna läses nu ur MongoDB och ger byte för byte samma svar som Postgres gav.
 
 ```sh
 curl -s localhost:3001/graphql -H "Content-Type: application/json" -d '{"query":"query AllaTurer { tours(limit: 50) { id user { displayName } guide { title } photos { id } logs { recordedAt } } }"}' | tail -c 120
@@ -276,6 +283,32 @@ docker logs utpost-api | grep graphql
 ```
 
 *Skickar samma fråga och visar slutet av svaret, där `"extensions":{"databasfragor":5}` står, och sedan raden `graphql AllaTurer: 5 databasfrågor` ur API-loggen.*
+
+### Migreringen av turloggarna
+
+`npm run migrate:logs` flyttar mätpunkterna från `tour_logs` i Postgres till MongoDB, ett dokument per tur. Skriptet räknar själv efteråt: antal dokument mot antal turer, och antal mätpunkter i dokumenten mot antal rader i `tour_logs`. Stämmer det inte avslutas det med felkod 1.
+
+Så här såg utskrifterna ut mot en tom `tours`-samling i MongoDB, kört med `npm run docker:migrate-logs`.
+
+#### Första körningen
+
+```text
+Postgres: 200 turer, 5943 rader i tour_logs
+MongoDB:  200 dokument i tours (200 nya, 0 ersatta, 0 borttagna), 5943 mätpunkter
+Tid: 76 ms
+Verifierat: inget tappades på vägen.
+```
+
+#### Andra körningen
+
+```text
+Postgres: 200 turer, 5943 rader i tour_logs
+MongoDB:  200 dokument i tours (0 nya, 200 ersatta, 0 borttagna), 5943 mätpunkter
+Tid: 50 ms
+Verifierat: inget tappades på vägen.
+```
+
+Andra gången skapas inget nytt: `0 nya`. Dokumenten ersätts, så antalet är fortfarande 200.
 
 ## Deploy
 

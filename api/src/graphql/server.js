@@ -5,6 +5,7 @@ import { createSchema, createYoga } from "graphql-yoga";
 import jwt from "jsonwebtoken";
 import { config } from "../config.js";
 import { pool } from "../db/client.js";
+import { toursCollection } from "../db/mongo.js";
 import { createLoaders } from "./loaders.js";
 import { resolvers } from "./resolvers.js";
 import { typeDefs } from "./schema.js";
@@ -44,8 +45,12 @@ export const yoga = createYoga({
 			stats.queries += 1;
 			return pool.query(sql, params);
 		};
+		const findTours = (filter, projection) => {
+			stats.queries += 1;
+			return toursCollection().find(filter, { projection }).toArray();
+		};
 		return {
-			loaders: createLoaders({ query }),
+			loaders: createLoaders({ findTours, query }),
 			query,
 			stats,
 			user: userFrom(request),
