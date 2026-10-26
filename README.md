@@ -243,54 +243,42 @@ CI bygger en image för `api`, `client` och `web` när kontrollerna är gröna.
 
 ## Mätning före/efter (M5)
 
-Antal databasfrågor för vår tyngsta GraphQL-fråga, `AllaTurer`: 50 turer med `user`, `guide`, `photos` och `logs`. Vi mäter samma fråga mot en seedad databas före och efter. Hur frågan mättes i M4 står i [api-stil.md](docs/decisions/api-stil.md).
+Vi mäter vår tyngsta GraphQL-fråga, `AllaTurer` (50 turer med `user`, `guide`, `photos` och `logs`), mot samma seedade databas före och efter. Så mättes den i M4: [api-stil.md](docs/decisions/api-stil.md).
 
-### Före
+### N+1 med DataLoader
 
-Mätt på `main` innan DataLoader.
+#### Före
 
-- Fråga: `AllaTurer`
+Mätt på `main`, innan DataLoader.
+
 - Databasfrågor: 190
 - Storlek: 66732 byte
 
-190 är en fråga för listan, en var för `user`, `photos` och `logs` per tur (150), och en för `guide` för de 39 turer som har en.
+190 är en fråga för listan, en var för `user`, `photos` och `logs` per tur (150) och en för `guide` för de 39 turer som har en. Antalet varierar något mellan seeding-omgångar, eftersom ungefär var fjärde tur saknar guide.
+
+#### Efter
+
+- Databasfrågor: 5
+- Storlek: 66765 byte
+
+5 är en fråga för listan och en per relation (`user`, `guide`, `photos` och `logs`). Skillnaden i storlek är `extensions` i svaret. Mätpunkterna kommer nu ur MongoDB.
+
+Mät själv med:
 
 ```sh
 curl -s localhost:3001/graphql -H "Content-Type: application/json" -d '{"query":"query AllaTurer { tours(limit: 50) { id user { displayName } guide { title } photos { id } logs { recordedAt } } }"}' | wc -c
 docker logs utpost-api | grep graphql
 ```
 
-*Skickar frågan, skriver ut svarets storlek i byte och visar sedan raden `graphql AllaTurer: N databasfrågor` ur API-loggen.*
-
-Antalet varierar något mellan seeding-omgångar, eftersom ungefär var fjärde tur saknar guide.
-
-### Efter DataLoader
-
-Mätt på samma seedade databas som "före".
-
-- Fråga: `AllaTurer`
-- Databasfrågor: 5
-- Före: 190
-- Storlek: 66765 byte
-
-5 är en fråga för listan och en var för `user`, `guide`, `photos` och `logs`, oavsett hur många turer som kommer med. Antalet står i svaret under `extensions.databasfragor` och loggas av API:et.
-
-Storleken är 33 byte större än före (66732), och det är precis `,"extensions":{"databasfragor":5}`. Mätpunkterna läses nu ur MongoDB och ger byte för byte samma svar som Postgres gav.
-
-```sh
-curl -s localhost:3001/graphql -H "Content-Type: application/json" -d '{"query":"query AllaTurer { tours(limit: 50) { id user { displayName } guide { title } photos { id } logs { recordedAt } } }"}' | tail -c 120
-docker logs utpost-api | grep graphql
-```
-
-*Skickar samma fråga och visar slutet av svaret, där `"extensions":{"databasfragor":5}` står, och sedan raden `graphql AllaTurer: 5 databasfrågor` ur API-loggen.*
+*Skickar frågan, skriver ut svarets storlek i byte och visar raden `graphql AllaTurer: N databasfrågor` ur API-loggen. Antalet står också i svaret, under `extensions.databasfragor`.*
 
 ### Migreringen av turloggarna
 
-`npm run migrate:logs` flyttar mätpunkterna från `tour_logs` i Postgres till MongoDB, ett dokument per tur. Skriptet räknar själv efteråt: antal dokument mot antal turer, och antal mätpunkter i dokumenten mot antal rader i `tour_logs`. Stämmer det inte avslutas det med felkod 1.
-
-Så här såg utskrifterna ut mot en tom `tours`-samling i MongoDB, kört med `npm run docker:migrate-logs`.
+`npm run migrate:logs` flyttar mätpunkterna från `tour_logs` i Postgres till MongoDB, ett dokument per tur. Skriptet räknar själv efteråt: antal dokument mot antal turer, och antal mätpunkter mot antal rader i `tour_logs`. I Docker heter kommandot `npm run docker:migrate-logs`.
 
 #### Första körningen
+
+Mot en tom samling.
 
 ```text
 Postgres: 200 turer, 5943 rader i tour_logs
@@ -308,7 +296,57 @@ Tid: 50 ms
 Verifierat: inget tappades på vägen.
 ```
 
-Andra gången skapas inget nytt: `0 nya`. Dokumenten ersätts, så antalet är fortfarande 200.
+Andra gången skapas inget nytt.
+
+### Cachen i klienten
+
+Klienten använder urql med `cacheExchange`. Samma fråga med samma variabler besvaras ur minnet.
+
+- Hård omladdning av startsidan: 1 anrop (`Startsidan`)
+- Turer: 1 anrop (`Turlistan`)
+- Tillbaka till startsidan och fram till Turer igen: 0 nya anrop
+- Storlek på `Turlistan`: 6551 byte, mot 278 kB för `/api/tours` (se [databas.md](docs/decisions/databas.md))
+
+Mät själv med:
+
+```sh
+docker logs utpost-api | grep graphql | wc -l
+docker logs utpost-api | grep graphql | tail -n 4
+```
+
+*Räknar hur många GraphQL-frågor API:et har kört och visar de fyra sista. Kör kommandona före och efter att du går mellan vyerna med webbläsarens bakåt- och framåt-knappar. Antalet gick här från 28 till 29.*
+
+Observera att logotypen i `MainHeader.vue` är medvetet en vanlig länk (`<a href="/">`). Den laddar om sidan, och en omladdning tömmer cachen. Använd därför bakåt- och framåt-knapparna när du mäter.
+
+### Vyer med genererade typer
+
+- `HomeView`: frågan `Startsidan`, testad i `client/tests/views/HomeView.test.ts`
+- `TourList` (i `TourListView`): frågan `Turlistan`, testad i `client/tests/components/TourList.test.ts`
+
+Frågorna skrivs i `graphql(…)`, och codegen skriver typerna ur schemat till `client/src/gql/`. Båda testerna mockar `@urql/vue`. De sista raderna ur `npm test` för klienten:
+
+```text
+ Test Files  6 passed (6)
+      Tests  32 passed (32)
+   Start at  12:40:50
+   Duration  628ms (environment 65%, import 17%, tests 12%, transform 6%, worker 1%)
+```
+
+### Borttaget fält stoppar `npm run typecheck`
+
+`npm run typecheck` kör codegen först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.js` på en branch, och kommandot stoppade:
+
+```text
+✖ GraphQL Document Validation failed with 2 errors;
+    Error 0: Cannot query field "lengthKm" on type "Guide".
+      at client/src/views/HomeView.vue:10:4
+
+  Error 1: Cannot query field "lengthKm" on type "Guide".
+      at client/src/views/HomeView.vue:19:4
+✖ One or more errors occurred, no files were generated.
+```
+
+Branchen slogs aldrig ihop med `main` och är borttagen.
 
 ## Deploy
 
