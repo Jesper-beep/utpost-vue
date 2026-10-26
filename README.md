@@ -336,7 +336,7 @@ Observera att logotypen i `MainHeader.vue` är medvetet en vanlig länk (`<a hre
 - `HomeView`: frågan `Startsidan`, testad i `client/tests/views/HomeView.test.ts`
 - `TourList` (i `TourListView`): frågan `Turlistan`, testad i `client/tests/components/TourList.test.ts`
 
-Frågorna skrivs i `graphql(…)`. Codegen skriver typerna ur schemat till `client/src/gql/`. Båda testerna mockar `@urql/vue`. Sista raderna ur `npm test` för klienten:
+Frågorna skrivs i `graphql(...)`. Codegen skriver typerna ur schemat till `client/src/gql/`. Båda testerna mockar `@urql/vue`. Sista raderna ur `npm test` för klienten:
 
 ```text
  Test Files  6 passed (6)
@@ -350,13 +350,13 @@ Frågorna skrivs i `graphql(…)`. Codegen skriver typerna ur schemat till `clie
 `npm run typecheck` kör codegen först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.js` på en branch. Kommandot stoppade:
 
 ```text
-✖ GraphQL Document Validation failed with 2 errors;
+GraphQL Document Validation failed with 2 errors;
     Error 0: Cannot query field "lengthKm" on type "Guide".
       at client/src/views/HomeView.vue:10:4
 
   Error 1: Cannot query field "lengthKm" on type "Guide".
       at client/src/views/HomeView.vue:19:4
-✖ One or more errors occurred, no files were generated.
+One or more errors occurred, no files were generated.
 ```
 
 Branchen slogs aldrig ihop med `main` och är borttagen.
