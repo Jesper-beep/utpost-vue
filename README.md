@@ -260,6 +260,23 @@ docker logs utpost-api | grep graphql
 
 Antalet varierar något mellan seed-omgångar, eftersom ungefär var fjärde tur saknar guide.
 
+### Efter DataLoader
+
+Mätt på samma seedade databas som "före".
+
+- Fråga: `AllaTurer`
+- Databasfrågor: 5
+- Före: 190
+
+5 är en fråga för listan och en var för `user`, `guide`, `photos` och `logs`, oavsett hur många turer som kommer med. Antalet står i svaret under `extensions.databasfragor` och loggas av API:et.
+
+```sh
+curl -s localhost:3001/graphql -H "Content-Type: application/json" -d '{"query":"query AllaTurer { tours(limit: 50) { id user { displayName } guide { title } photos { id } logs { recordedAt } } }"}' | tail -c 120
+docker logs utpost-api | grep graphql
+```
+
+*Skickar samma fråga och visar slutet av svaret, där `"extensions":{"databasfragor":5}` står, och sedan raden `graphql AllaTurer: 5 databasfrågor` ur API-loggen.*
+
 ## Deploy
 
 Fråga Marcus.

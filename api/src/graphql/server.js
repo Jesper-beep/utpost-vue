@@ -5,6 +5,7 @@ import { createSchema, createYoga } from "graphql-yoga";
 import jwt from "jsonwebtoken";
 import { config } from "../config.js";
 import { pool } from "../db/client.js";
+import { createLoaders } from "./loaders.js";
 import { resolvers } from "./resolvers.js";
 import { typeDefs } from "./schema.js";
 
@@ -18,15 +19,20 @@ const userFrom = (request) => {
 	}
 };
 
-const logQueryCount = {
+const reportQueryCount = {
 	onExecute: ({ args }) => ({
-		onExecuteDone: () => {
+		onExecuteDone: ({ result, setResult }) => {
 			const name =
 				getOperationAST(args.document, args.operationName)?.name?.value ??
 				"anonym";
-			console.log(
-				`graphql ${name}: ${args.contextValue.stats.queries} databasfrågor`,
-			);
+			const count = args.contextValue.stats.queries;
+			console.log(`graphql ${name}: ${count} databasfrågor`);
+			if (!(Symbol.asyncIterator in result)) {
+				setResult({
+					...result,
+					extensions: { ...result.extensions, databasfragor: count },
+				});
+			}
 		},
 	}),
 };
@@ -34,16 +40,18 @@ const logQueryCount = {
 export const yoga = createYoga({
 	context: ({ request }) => {
 		const stats = { queries: 0 };
+		const query = (sql, params) => {
+			stats.queries += 1;
+			return pool.query(sql, params);
+		};
 		return {
-			query: (sql, params) => {
-				stats.queries += 1;
-				return pool.query(sql, params);
-			},
+			loaders: createLoaders({ query }),
+			query,
 			stats,
 			user: userFrom(request),
 		};
 	},
 	graphqlEndpoint: "/graphql",
-	plugins: [logQueryCount],
+	plugins: [reportQueryCount],
 	schema: createSchema({ resolvers, typeDefs }),
 });
