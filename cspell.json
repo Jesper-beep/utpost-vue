@@ -57,6 +57,7 @@
 		"turloggarna",
 		"urql",
 		"Codegen",
-		"laddtext"
+		"laddtext",
+		"inloggades"
 	]
 }

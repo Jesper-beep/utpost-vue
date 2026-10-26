@@ -28,17 +28,21 @@ M5 kräver att turloggarna ligger i MongoDB, så vi flyttade dem enligt [dokumen
 ### Vad som flyttades
 
 - Bara punkterna, från `tour_logs` till `logs` i ett dokument per tur i MongoDB
-- Dokumentet följer [dokumentmodellen](#dokumentmodell), men utan `photos` och med bara `points` i `stats`. Bilderna läses fortfarande ur Postgres
-- `Tour.logs` i GraphQL läser MongoDB, med en fråga för alla turer i svaret
+- Dokumentet följer [dokumentmodellen](#dokumentmodell), men utan `photos`. Bilderna läses fortfarande ur Postgres
+- `stats` har bara `points`
+- `Tour.logs` i GraphQL läser MongoDB med en fråga för alla turer i svaret
 - Tabellen `tour_logs` ligger kvar. REST-rutterna och den gamla klienten läser den fortfarande
 
 ### Så fungerar migreringen
 
 `npm run migrate:logs` (i Docker: `npm run docker:migrate-logs`).
 
-- Skriptet skriver ett dokument per tur med `replaceOne` och `upsert` på `tour_id`, och har ett unikt index på `tour_id`. Det går att köra om utan dubbletter
+- Skriptet skriver ett dokument per tur med `replaceOne` och `upsert` på `tour_id`
+- `tour_id` har ett unikt index. Det går att köra om utan dubbletter
 - Dokument vars `tour_id` inte längre finns i `tours` tas bort
-- Skriptet verifierar själv: antal dokument mot antal turer, och antal punkter i dokumenten mot antal rader i `tour_logs`. Stämmer det inte avslutas det med felkod 1
+- Skriptet verifierar själv att antal dokument är lika med antal turer
+- Det verifierar också att antal punkter i dokumenten är lika med antal rader i `tour_logs`
+- Stämmer det inte avslutas skriptet med felkod 1
 - `seed` nollställer Postgres men inte MongoDB. Kör därför `migrate:logs` efter varje seed
 
 ## Nuläge och bakgrund
