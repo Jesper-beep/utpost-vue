@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
   B[branch + commit] --> PR[pull request]
-  PR --> CI[CI på ubuntu, macos, windows]
+  PR --> CI[CI: kvalitet på ubuntu, macos, windows och integration på ubuntu]
   CI --> S{gröna?}
   S -->|ja| G{godkänd + uppdaterad mot main?}
   S -->|nej| F[fixa, pusha igen]
@@ -14,9 +14,19 @@ flowchart LR
   G -->|nej| F
 ```
 
+## Jobb
+
+CI har tre jobb i `.github/workflows/ci.yml`.
+
+- SlopChecker2000: lint, typkontroll, tester och bygge av klienten. Körs på ubuntu, macos och windows
+- Integration: API:ets integrationstester mot riktiga databaser. Körs på ubuntu
+- Image: bygger Docker-avbildningarna för api, client och web. Körs på ubuntu och väntar på SlopChecker2000
+
+Integration är oberoende av SlopChecker2000, så de två körs samtidigt.
+
 ## Steg och tider
 
-Tid per steg och operativsystem i sekunder.
+Stegen i SlopChecker2000. Tid per steg och operativsystem i sekunder.
 
 - Ubuntu: 25 sekunder
 - macOS: 26 sekunder
@@ -56,7 +66,7 @@ Fångar stavfel i .js, .jsx och .md.
 
 ### `npm run typecheck`
 
-Fångar typfel i api och klient.
+Kör först codegen, som genererar klientens typer ur `api/src/graphql/schema.js`. Fångar typfel i api och klient, och frågor som använder ett fält som inte finns i schemat.
 
 ### `npm test`
 
@@ -74,9 +84,28 @@ Fångar fel som bara syns när klienten byggs.
 - Tid på macos: 1 sekund
 - Tid på windows: 2 sekunder
 
+## Integrationsjobbet
+
+Jobbet kör API:ets integrationstester mot riktiga databaser.
+
+- Postgres 18 och MongoDB 8.2 startas som `services`, med hälsokontroll
+- Adresserna och `JWT_SECRET` sätts som miljövariabler. Hemligheten gäller bara CI
+
+### `npm run seed`
+
+Fyller Postgres med testdata.
+
+### `npm run migrate:logs`
+
+Flyttar turloggarna till MongoDB och kontrollerar antalet dokument och mätpunkter mot Postgres. Fångar en migrering som tappar data.
+
+### `npm run test:api`
+
+Fångar N+1 i turlistan och saknat inloggningskrav för `createTour`. Se [testing.md](testing.md).
+
 ## Regler på main
 
-- PR krävs, minst en godkännare och "gröna checks" från alla tre operativsystemen
+- PR krävs, minst en godkännare och "gröna checks" från alla tre operativsystemen och från Integration
 - Branchen måste vara uppdaterad mot main innan merge
 - Reglerna gäller även admins
 
@@ -89,4 +118,12 @@ npm run lint:spelling
 npm run typecheck
 npm test
 npm run build
+```
+
+Integrationstesterna kräver att databaserna är igång, seedade och migrerade. Se [README](../README.md).
+
+```sh
+npm run seed
+npm run migrate:logs
+npm run test:api
 ```
