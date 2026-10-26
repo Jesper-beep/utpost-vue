@@ -10,7 +10,12 @@
 		"bash",
 		"filetypes"
 	],
-	"ignorePaths": ["node_modules", "dist", "package-lock.json"],
+	"ignorePaths": [
+		"node_modules",
+		"dist",
+		"package-lock.json",
+		"client/src/gql"
+	],
 	"import": ["@cspell/dict-sv/cspell-ext.json"],
 	"language": "en,sv",
 	"version": "0.2",
@@ -47,6 +52,12 @@
 		"stackem",
 		"Boogaloo",
 		"Endpointen",
-		"ghcr"
+		"ghcr",
+		"upserted",
+		"turloggarna",
+		"urql",
+		"Codegen",
+		"laddtext",
+		"inloggades"
 	]
 }

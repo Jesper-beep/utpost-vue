@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Guide } from "@utpost/shared";
+import type { GuideSummary } from "@utpost/shared";
 import GuideCard from "./GuideCard.vue";
 
 defineProps<{
-	guides: Guide[];
+	guides: GuideSummary[];
 }>();
 </script>
 

@@ -14,6 +14,7 @@ Databasen, API:et och båda frontendarna körs i containrar.
 cp .env.example .env
 npm run docker:up
 npm run docker:seed
+npm run docker:migrate-logs
 ```
 
 - Vue-klienten ligger på <http://localhost:3001>, tillsammans med `/api/health` och `/graphql`
@@ -55,8 +56,9 @@ Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan
 - Öppna <http://localhost:3001/graphql> i webbläsaren för GraphiQL
 - Databasfrågorna för varje GraphQL-fråga loggas av API:et: `docker logs utpost-api | grep graphql`
 - Stoppa med `npm run docker:down`
-- Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:up` och `npm run docker:seed` igen
+- Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:up`, `npm run docker:seed` och `npm run docker:migrate-logs` igen
 - Får du `504` från API:et behöver du seeda, genom att köra `npm run docker:seed`
+- Turernas mätpunkter läses ur MongoDB i GraphQL. Kör `npm run docker:migrate-logs` efter varje `npm run docker:seed`, annars blir mätpunkterna tomma
 
 ### Bara databasen i Docker
 
@@ -71,6 +73,7 @@ cp client/.env.example client/.env
 cp web/.env.example web/.env
 npm run docker:db
 npm run seed
+npm run migrate:logs
 npm run dev
 ```
 
@@ -79,6 +82,7 @@ npm run dev
 - API:et ligger på <http://localhost:4000>
 - Det finns inget `npm start` i roten, använd `npm run dev`
 - Postgres nås på port `5433` och MongoDB på port `27017` från din dator
+- Kör `npm run migrate:logs` efter varje `npm run seed`. `npm run seed` nollställer Postgres men inte MongoDB
 - Du måste köra `npm run prepare` själv efter `npm install`, eftersom `ignore-scripts` är satt till `true` i `.npmrc`-filen
 - Stoppa databasen med `npm run docker:down`
 
@@ -216,6 +220,7 @@ npm run lint:md
 npm run lint:spelling
 npm run typecheck
 npm test
+npm run test:api
 npm run build
 ```
 
@@ -232,10 +237,150 @@ CI bygger en image för `api`, `client` och `web` när kontrollerna är gröna.
 
 ## Tester
 
-- Klientens tester ligger i `client/tests` och API:ets i `api/tests`. Båda körs med `npm test`
+- Klientens tester ligger i `client/tests` och körs med `npm test`
+- API:ets tester ligger i `api/tests` och `api/src/graphql` och körs med `npm run test:api`. De kräver att databaserna är igång, seedade och migrerade
 - Alla tester ska vara gröna innan en PR mergas
 - Buggfixar ska ha ett test, om det går
 - Läs mer i [teststrategin](docs/testing.md)
+
+## Mätning före/efter (M5)
+
+Vi mäter den tyngsta GraphQL-frågan, `AllaTurer`. Den hämtar 50 turer med `user`, `guide`, `photos` och `logs`. Samma seedade databas används före och efter. Så mättes den i M4: [api-stil.md](docs/decisions/api-stil.md).
+
+### N+1 med DataLoader
+
+#### Före
+
+Mätt på `main`, innan DataLoader.
+
+- Databasfrågor: 190
+- Storlek: 66732 byte
+
+De 190 frågorna är:
+
+- 1 fråga för listan
+- 150 frågor för `user`, `photos` och `logs`, en per tur och relation
+- 39 frågor för `guide`, bara för turer som har en guide
+
+Antalet varierar något mellan seeding-omgångar. Ungefär var fjärde tur saknar guide.
+
+#### Efter
+
+- Databasfrågor: 5
+- Storlek: 66765 byte
+
+De 5 frågorna är 1 för listan och 1 per relation: `user`, `guide`, `photos` och `logs`. Storleken skiljer sig bara med `extensions` i svaret. Mätpunkterna läses nu ur MongoDB.
+
+Mät själv med:
+
+```sh
+curl -s localhost:3001/graphql -H "Content-Type: application/json" -d '{"query":"query AllaTurer { tours(limit: 50) { id user { displayName } guide { title } photos { id } logs { recordedAt } } }"}' | wc -c
+docker logs utpost-api | grep graphql
+```
+
+*Skickar frågan och skriver ut svarets storlek i byte. Visar sedan raden `graphql AllaTurer: N databasfrågor` ur API-loggen. Antalet står också i svaret, under `extensions.databasfragor`.*
+
+### Migreringen av turloggarna
+
+`npm run migrate:logs` flyttar mätpunkterna från `tour_logs` i Postgres till MongoDB. Varje tur blir ett dokument. I Docker heter kommandot `npm run docker:migrate-logs`.
+
+Skriptet räknar själv efteråt:
+
+- Antal dokument ska vara lika med antal turer
+- Antal mätpunkter ska vara lika med antal rader i `tour_logs`
+
+#### Första körningen
+
+Mot en tom samling.
+
+```text
+Postgres: 200 turer, 5943 rader i tour_logs
+MongoDB:  200 dokument i tours (200 nya, 0 ersatta, 0 borttagna), 5943 mätpunkter
+Tid: 76 ms
+Verifierat: inget tappades på vägen.
+```
+
+#### Andra körningen
+
+```text
+Postgres: 200 turer, 5943 rader i tour_logs
+MongoDB:  200 dokument i tours (0 nya, 200 ersatta, 0 borttagna), 5943 mätpunkter
+Tid: 50 ms
+Verifierat: inget tappades på vägen.
+```
+
+Andra gången skapas inget nytt.
+
+### Cachen i klienten
+
+Klienten använder urql med `cacheExchange`. Samma fråga med samma variabler besvaras ur minnet.
+
+- Hård omladdning av startsidan: 1 anrop (`Startsidan`)
+- Turer: 1 anrop (`Turlistan`)
+- Tillbaka till startsidan och fram till Turer igen: 0 nya anrop
+- Storlek på `Turlistan`: 6551 byte, mot 278 kB för `/api/tours` (se [databas.md](docs/decisions/databas.md))
+
+Mät själv med:
+
+```sh
+docker logs utpost-api | grep graphql | wc -l
+docker logs utpost-api | grep graphql | tail -n 4
+```
+
+*Räknar hur många GraphQL-frågor API:et har kört och visar de fyra sista. Kör kommandona före och efter att du går mellan vyerna med webbläsarens bakåt- och framåt-knappar. Antalet gick här från 28 till 29.*
+
+Observera att logotypen i `MainHeader.vue` är medvetet en vanlig länk (`<a href="/">`). Den laddar om sidan. En omladdning tömmer cachen. Använd därför bakåt- och framåt-knapparna när du mäter.
+
+### Vyer med genererade typer
+
+- `HomeView`: frågan `Startsidan`, testad i `client/tests/views/HomeView.test.ts`
+- `TourList` (i `TourListView`): frågan `Turlistan`, testad i `client/tests/components/TourList.test.ts`
+
+Frågorna skrivs i `graphql(…)`. Codegen skriver typerna ur schemat till `client/src/gql/`. Båda testerna mockar `@urql/vue`. Sista raderna ur `npm test` för klienten:
+
+```text
+ Test Files  6 passed (6)
+      Tests  32 passed (32)
+   Start at  12:40:50
+   Duration  628ms (environment 65%, import 17%, tests 12%, transform 6%, worker 1%)
+```
+
+### Borttaget fält stoppar `npm run typecheck`
+
+`npm run typecheck` kör codegen först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.js` på en branch. Kommandot stoppade:
+
+```text
+✖ GraphQL Document Validation failed with 2 errors;
+    Error 0: Cannot query field "lengthKm" on type "Guide".
+      at client/src/views/HomeView.vue:10:4
+
+  Error 1: Cannot query field "lengthKm" on type "Guide".
+      at client/src/views/HomeView.vue:19:4
+✖ One or more errors occurred, no files were generated.
+```
+
+Branchen slogs aldrig ihop med `main` och är borttagen.
+
+### Integrationstester
+
+Testerna i `api/` skickar riktiga GraphQL-frågor till API:et, som läser och skriver i Postgres och MongoDB. Klientens tester mockar `useQuery`, så de ser aldrig hur många databasfrågor en fråga kostar.
+
+Regressionstestet för N+1 heter "turlistan: 50 turer med vem som gick - för två databasfrågor, inte 51". Det kräver att turlistan kostar högst 2 databasfrågor.
+
+Ett regressionstest ska misslyckas utan rättningen och lyckas med den. Vi kopplade därför bort DataLoader i `Tour.user` (en fråga per tur, som i M4). Samma fråga kostade då 51 databasfrågor, och bara det testet misslyckades:
+
+```text
+AssertionError: expected 51 to be less than or equal to 2
+Tests  1 failed | 9 passed (10)
+```
+
+Mät själv med:
+
+```sh
+npm run test:api
+```
+
+*Kör testerna i `api/`. Databaserna måste vara igång. Kör `npm run seed` och `npm run migrate:logs` först.*
 
 ## Deploy
 

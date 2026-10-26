@@ -24,6 +24,48 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  integration:
+    name: Integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: utpost
+          POSTGRES_PASSWORD: utpost
+          POSTGRES_DB: utpost
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U utpost -d utpost"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      mongo:
+        image: mongo:8.2
+        env:
+          MONGO_INITDB_ROOT_USERNAME: utpost
+          MONGO_INITDB_ROOT_PASSWORD: utpost
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      JWT_SECRET: ci-only-secret
+      MONGODB_URL: mongodb://utpost:utpost@localhost:27017/utpost?authSource=admin
+      POSTGRES_URL: postgres://utpost:utpost@localhost:5432/utpost
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run seed
+      - run: npm run migrate:logs
+      - run: npm run test:api
+
   image:
     name: Image
     runs-on: ubuntu-latest

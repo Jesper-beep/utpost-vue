@@ -1,11 +1,15 @@
 {
 	"dependencies": {
+		"@urql/vue": "^2.1.1",
 		"@utpost/shared": "*",
+		"graphql": "^17.0.2",
 		"pinia": "^4.0.3",
 		"vue": "^3.5.42",
 		"vue-router": "^5.3.1"
 	},
 	"devDependencies": {
+		"@graphql-codegen/cli": "^7.4.6",
+		"@graphql-codegen/client-preset": "^6.2.3",
 		"@testing-library/jest-dom": "^7.0.1",
 		"@testing-library/vue": "^8.1.0",
 		"@vitejs/plugin-vue": "^6.0.8",
@@ -20,6 +24,7 @@
 	"private": true,
 	"scripts": {
 		"build": "vite build",
+		"codegen": "graphql-codegen --config codegen.ts",
 		"dev": "vite --port 3001",
 		"preview": "vite preview",
 		"test": "vitest run",

@@ -1,22 +1,35 @@
 <script setup lang="ts">
-import type { TourWithRelations } from "@utpost/shared";
-import { onMounted, ref, useId } from "vue";
+import { useQuery } from "@urql/vue";
+import { computed, useId } from "vue";
 import { RouterLink } from "vue-router";
-import { API_URL } from "../config.js";
-import { bigFetch } from "../utils/bigFetch.js";
+import { graphql } from "../gql/index.js";
 
-const tours = ref<TourWithRelations[]>([]);
-const loading = ref(true);
+const TurlistanDocument = graphql(`
+	query Turlistan {
+		tours(limit: 50) {
+			id
+			title
+			distanceM
+			user {
+				displayName
+			}
+			guide {
+				title
+			}
+			photos {
+				id
+			}
+		}
+	}
+`);
+
+const { data, fetching } = useQuery({ query: TurlistanDocument });
+
+const tours = computed(() => data.value?.tours ?? []);
 const captionId = useId();
-
-onMounted(async () => {
-	const result = await bigFetch<TourWithRelations[]>(`${API_URL}/tours`);
-	tours.value = result.data;
-	loading.value = false;
-});
 </script>
 <template>
-	<p v-if="loading">Laddar turer...</p>
+	<p v-if="fetching">Laddar turer...</p>
 	<section v-else class="tour-list" :aria-labelledby="captionId" tabindex="0">
 		<table class="tour-list__table">
 			<caption :id="captionId" class="visually-hidden">
@@ -38,12 +51,12 @@ onMounted(async () => {
 							{{ tour.title }}
 						</RouterLink>
 					</td>
-					<td class="tour-list__cell">{{ tour.user?.display_name }}</td>
+					<td class="tour-list__cell">{{ tour.user.displayName }}</td>
 					<td class="tour-list__cell">
 						{{ tour.guide ? tour.guide.title : "-" }}
 					</td>
 					<td class="tour-list__cell">
-						{{ Math.round(tour.distance_m / 100) / 10 }} km
+						{{ Math.round(tour.distanceM / 100) / 10 }} km
 					</td>
 					<td class="tour-list__cell">{{ tour.photos.length }}</td>
 				</tr>

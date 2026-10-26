@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Guide } from "@utpost/shared";
+import type { GuideSummary } from "@utpost/shared";
 import { RouterLink } from "vue-router";
 
 defineProps<{
-	guide: Guide;
+	guide: GuideSummary;
 }>();
 </script>
 

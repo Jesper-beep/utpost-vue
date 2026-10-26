@@ -15,7 +15,8 @@
 		"enabled": true
 	},
 	"files": {
-		"ignoreUnknown": true
+		"ignoreUnknown": true,
+		"includes": ["**", "!client/src/gql"]
 	},
 	"formatter": {
 		"enabled": true,

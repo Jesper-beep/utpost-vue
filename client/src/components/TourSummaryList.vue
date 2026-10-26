@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Tour } from "@utpost/shared";
+import type { TourSummary } from "@utpost/shared";
 import { RouterLink } from "vue-router";
 
 defineProps<{
-	tours: Tour[];
+	tours: TourSummary[];
 }>();
 </script>
 
