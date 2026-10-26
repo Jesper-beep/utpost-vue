@@ -49,6 +49,7 @@
 		"Endpointen",
 		"ghcr",
 		"upserted",
-		"turloggarna"
+		"turloggarna",
+		"urql"
 	]
 }
