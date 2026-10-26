@@ -1,10 +1,10 @@
 ---
 title: "Teststrategi"
-description: "Teststrategi för Team 6 i kursen Avancerad frontend-utveckling. Del av M2-momentet."
+description: "Teststrategi för Team 6 i kursen Avancerad frontend-utveckling. Del av M2-momentet. Uppdaterad i M5 med integrationstester för API:et."
 created: "2026-10-06"
 published_date: "2026-10-06"
-last_modified_date: "2026-10-06"
-version: 1
+last_modified_date: "2026-10-26"
+version: 2
 ---
 
 Utöver rena "funktionstester" som kontrollerar komponenter, datahämtningar (fetch) och liknande, vill vi även testa sådant som vi tror att många missar, exempelvis: har varje sida en titel och är den unik? Hygienfaktorer med andra ord.
@@ -13,15 +13,21 @@ I dagsläget skrapar vi endast på ytan, men kommer under projektets gång adder
 
 ## Så testar du
 
-Klientens tester ligger i `client/tests` och API:ets tester i `api/tests`. Kör följande nervkittlande kommando från roten av projektet för att testa båda:
+Klientens tester ligger i `client/tests`. API:ets tester ligger i `api/tests` och `api/src/graphql`. Kör följande nervkittlande kommando från roten av projektet för att testa klienten:
 
 ```sh
-npm run test
+npm test
+```
+
+API:ets tester kräver att databaserna är igång, seedade och migrerade (se [README](../README.md)). Kör dem med:
+
+```sh
+npm run test:api
 ```
 
 ## Typ av tester eller "nivåer" samt beslut
 
-Vi testar klienten och API:et med Vitest på nivåerna enhet, struktur och regression. Vi har inga krav på täckning och mockar API:et när vi skriver de testerna. Kritiska delar prioriteras med sunt förnuft.
+Vi testar klienten och API:et med Vitest på nivåerna enhet, struktur, regression och integration. Vi har inga krav på täckning och mockar API:et när vi skriver klientens tester. Kritiska delar prioriteras med sunt förnuft.
 
 ### Enhetstester
 
@@ -35,13 +41,21 @@ Ett regressionstest skrivs när en bugg har hittats och rättats, för att den i
 
 Just nu testar vi att routerns länkar och sidtitlar hänger ihop: att varje länk och titel är unik, att länkarna är skrivna på samma sätt och att varje sida får titeln " - Utpost" (även kallat "brand suffix"). Testerna går igenom alla routes, så en ny sida testas automatiskt. Det är våra hygienfaktorer.
 
+### Integrationstester
+
+Integrationstesterna skickar riktiga GraphQL-frågor till API:et. Frågorna läser och skriver i Postgres och MongoDB, inte i en mock.
+
+Klientens tester mockar `useQuery`, så ingen resolver körs och ingen databas svarar. De kan därför inte se att en fråga kostar 51 databasfrågor i stället för 2.
+
+Testerna anropar `yoga.fetch` direkt. Då behövs ingen server och ingen port. Frågan körs genom samma schema, samma resolvers och samma databaser som när webbläsaren frågar.
+
 ### Säkerhet
 
-Planerad, men än så länge har vi inga tester. Vi vill testa säkerheten kring inloggat läge.
+Planerad, men än så länge har vi bara ett test för inloggat läge: `createTour` utan token nekas. Vi vill testa mer kring inloggningen.
 
 ## Nuvarande tester
 
-Sökvägarna utgår från `client/tests`, utom under API som utgår från `api/tests`.
+Sökvägarna utgår från `client/tests`, utom under API som utgår från `api`.
 
 ### Komponenter
 
@@ -140,7 +154,7 @@ it.each(routes.map((route) => toUrl(route.path)))(
 
 ### API
 
-#### `lib/unhandledRejection.test.ts`
+#### `tests/lib/unhandledRejection.test.ts`
 
 Regressionstest för skuld 10 i [skulddokumentet](debt.md). Testar `handleUnhandledRejection` i `api/src/lib/unhandledRejection.js`.
 
@@ -157,6 +171,46 @@ it("loggar ett ohanterat fel med console.error", () => {
     "databasen svarar inte",
   );
 });
+```
+
+#### `src/graphql/server.test.js`
+
+Integrationstester för GraphQL-API:et, mot riktiga Postgres och MongoDB.
+
+- Turlistan ger 50 turer med vem som gick, för högst två databasfrågor (regressionstest för N+1)
+- En guide som inte finns är `null`, inte ett fel
+- Ett fält som inte finns ger `errors`, med statuskod 200
+- `createTour` utan token nekas med koden `UNAUTHENTICATED`
+- `createTour` med token skapar turen i den inloggades namn
+- Mätpunkterna kommer från MongoDB och är lika många som raderna i Postgres
+
+Testet som skapar en tur städar efter sig. Det raderar turen när det är klart.
+
+##### Utdrag från koden
+
+```javascript
+expect(extensions.databasfragor).toBeLessThanOrEqual(2);
+```
+
+##### Körning
+
+Sista raderna ur `npm run test:api`. Själva integrationstesterna tog 95 ms.
+
+```text
+ Test Files  3 passed (3)
+      Tests  10 passed (10)
+   Start at  12:59:22
+   Duration  926ms (tests 55%, import 39%, transform 5%, worker 1%)
+```
+
+Raden `Tests` räknar även de fyra övriga testen i `api/tests`.
+
+##### Regressionstestet utan rättningen
+
+Vi kopplade bort DataLoader i `Tour.user`, en fråga per tur som i M4. Då kostade turlistan 51 databasfrågor. Bara det testet misslyckades. Felet:
+
+```text
+AssertionError: expected 51 to be less than or equal to 2
 ```
 
 ## När får en PR mergas?

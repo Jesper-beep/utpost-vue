@@ -220,6 +220,7 @@ npm run lint:md
 npm run lint:spelling
 npm run typecheck
 npm test
+npm run test:api
 npm run build
 ```
 
@@ -236,14 +237,15 @@ CI bygger en image för `api`, `client` och `web` när kontrollerna är gröna.
 
 ## Tester
 
-- Klientens tester ligger i `client/tests` och API:ets i `api/tests`. Båda körs med `npm test`
+- Klientens tester ligger i `client/tests` och körs med `npm test`
+- API:ets tester ligger i `api/tests` och `api/src/graphql` och körs med `npm run test:api`. De kräver att databaserna är igång, seedade och migrerade
 - Alla tester ska vara gröna innan en PR mergas
 - Buggfixar ska ha ett test, om det går
 - Läs mer i [teststrategin](docs/testing.md)
 
 ## Mätning före/efter (M5)
 
-Vi mäter vår tyngsta GraphQL-fråga, `AllaTurer` (50 turer med `user`, `guide`, `photos` och `logs`), mot samma seedade databas före och efter. Så mättes den i M4: [api-stil.md](docs/decisions/api-stil.md).
+Vi mäter den tyngsta GraphQL-frågan, `AllaTurer`. Den hämtar 50 turer med `user`, `guide`, `photos` och `logs`. Samma seedade databas används före och efter. Så mättes den i M4: [api-stil.md](docs/decisions/api-stil.md).
 
 ### N+1 med DataLoader
 
@@ -254,14 +256,20 @@ Mätt på `main`, innan DataLoader.
 - Databasfrågor: 190
 - Storlek: 66732 byte
 
-190 är en fråga för listan, en var för `user`, `photos` och `logs` per tur (150) och en för `guide` för de 39 turer som har en. Antalet varierar något mellan seeding-omgångar, eftersom ungefär var fjärde tur saknar guide.
+De 190 frågorna är:
+
+- 1 fråga för listan
+- 150 frågor för `user`, `photos` och `logs`, en per tur och relation
+- 39 frågor för `guide`, bara för turer som har en guide
+
+Antalet varierar något mellan seeding-omgångar. Ungefär var fjärde tur saknar guide.
 
 #### Efter
 
 - Databasfrågor: 5
 - Storlek: 66765 byte
 
-5 är en fråga för listan och en per relation (`user`, `guide`, `photos` och `logs`). Skillnaden i storlek är `extensions` i svaret. Mätpunkterna kommer nu ur MongoDB.
+De 5 frågorna är 1 för listan och 1 per relation: `user`, `guide`, `photos` och `logs`. Storleken skiljer sig bara med `extensions` i svaret. Mätpunkterna läses nu ur MongoDB.
 
 Mät själv med:
 
@@ -270,11 +278,16 @@ curl -s localhost:3001/graphql -H "Content-Type: application/json" -d '{"query":
 docker logs utpost-api | grep graphql
 ```
 
-*Skickar frågan, skriver ut svarets storlek i byte och visar raden `graphql AllaTurer: N databasfrågor` ur API-loggen. Antalet står också i svaret, under `extensions.databasfragor`.*
+*Skickar frågan och skriver ut svarets storlek i byte. Visar sedan raden `graphql AllaTurer: N databasfrågor` ur API-loggen. Antalet står också i svaret, under `extensions.databasfragor`.*
 
 ### Migreringen av turloggarna
 
-`npm run migrate:logs` flyttar mätpunkterna från `tour_logs` i Postgres till MongoDB, ett dokument per tur. Skriptet räknar själv efteråt: antal dokument mot antal turer, och antal mätpunkter mot antal rader i `tour_logs`. I Docker heter kommandot `npm run docker:migrate-logs`.
+`npm run migrate:logs` flyttar mätpunkterna från `tour_logs` i Postgres till MongoDB. Varje tur blir ett dokument. I Docker heter kommandot `npm run docker:migrate-logs`.
+
+Skriptet räknar själv efteråt:
+
+- Antal dokument ska vara lika med antal turer
+- Antal mätpunkter ska vara lika med antal rader i `tour_logs`
 
 #### Första körningen
 
@@ -316,14 +329,14 @@ docker logs utpost-api | grep graphql | tail -n 4
 
 *Räknar hur många GraphQL-frågor API:et har kört och visar de fyra sista. Kör kommandona före och efter att du går mellan vyerna med webbläsarens bakåt- och framåt-knappar. Antalet gick här från 28 till 29.*
 
-Observera att logotypen i `MainHeader.vue` är medvetet en vanlig länk (`<a href="/">`). Den laddar om sidan, och en omladdning tömmer cachen. Använd därför bakåt- och framåt-knapparna när du mäter.
+Observera att logotypen i `MainHeader.vue` är medvetet en vanlig länk (`<a href="/">`). Den laddar om sidan. En omladdning tömmer cachen. Använd därför bakåt- och framåt-knapparna när du mäter.
 
 ### Vyer med genererade typer
 
 - `HomeView`: frågan `Startsidan`, testad i `client/tests/views/HomeView.test.ts`
 - `TourList` (i `TourListView`): frågan `Turlistan`, testad i `client/tests/components/TourList.test.ts`
 
-Frågorna skrivs i `graphql(…)`, och codegen skriver typerna ur schemat till `client/src/gql/`. Båda testerna mockar `@urql/vue`. De sista raderna ur `npm test` för klienten:
+Frågorna skrivs i `graphql(…)`. Codegen skriver typerna ur schemat till `client/src/gql/`. Båda testerna mockar `@urql/vue`. Sista raderna ur `npm test` för klienten:
 
 ```text
  Test Files  6 passed (6)
@@ -334,7 +347,7 @@ Frågorna skrivs i `graphql(…)`, och codegen skriver typerna ur schemat till `
 
 ### Borttaget fält stoppar `npm run typecheck`
 
-`npm run typecheck` kör codegen först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.js` på en branch, och kommandot stoppade:
+`npm run typecheck` kör codegen först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.js` på en branch. Kommandot stoppade:
 
 ```text
 ✖ GraphQL Document Validation failed with 2 errors;
@@ -347,6 +360,27 @@ Frågorna skrivs i `graphql(…)`, och codegen skriver typerna ur schemat till `
 ```
 
 Branchen slogs aldrig ihop med `main` och är borttagen.
+
+### Integrationstester
+
+Testerna i `api/` skickar riktiga GraphQL-frågor till API:et, som läser och skriver i Postgres och MongoDB. Klientens tester mockar `useQuery`, så de ser aldrig hur många databasfrågor en fråga kostar.
+
+Regressionstestet för N+1 heter "turlistan: 50 turer med vem som gick - för två databasfrågor, inte 51". Det kräver att turlistan kostar högst 2 databasfrågor.
+
+Ett regressionstest ska misslyckas utan rättningen och lyckas med den. Vi kopplade därför bort DataLoader i `Tour.user` (en fråga per tur, som i M4). Samma fråga kostade då 51 databasfrågor, och bara det testet misslyckades:
+
+```text
+AssertionError: expected 51 to be less than or equal to 2
+Tests  1 failed | 9 passed (10)
+```
+
+Mät själv med:
+
+```sh
+npm run test:api
+```
+
+*Kör testerna i `api/`. Databaserna måste vara igång. Kör `npm run seed` och `npm run migrate:logs` först.*
 
 ## Deploy
 
