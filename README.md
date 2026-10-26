@@ -237,6 +237,29 @@ CI bygger en image för `api`, `client` och `web` när kontrollerna är gröna.
 - Buggfixar ska ha ett test, om det går
 - Läs mer i [teststrategin](docs/testing.md)
 
+## Mätning före/efter (M5)
+
+Antal databasfrågor för vår tyngsta GraphQL-fråga, `AllaTurer`: 50 turer med `user`, `guide`, `photos` och `logs`. Vi mäter samma fråga mot en seedad databas före och efter. Hur frågan mättes i M4 står i [api-stil.md](docs/decisions/api-stil.md).
+
+### Före
+
+Mätt på `main` innan DataLoader.
+
+- Fråga: `AllaTurer`
+- Databasfrågor: 190
+- Storlek: 66732 byte
+
+190 är en fråga för listan, en var för `user`, `photos` och `logs` per tur (150), och en för `guide` för de 39 turer som har en.
+
+```sh
+curl -s localhost:3001/graphql -H "Content-Type: application/json" -d '{"query":"query AllaTurer { tours(limit: 50) { id user { displayName } guide { title } photos { id } logs { recordedAt } } }"}' | wc -c
+docker logs utpost-api | grep graphql
+```
+
+*Skickar frågan, skriver ut svarets storlek i byte och visar sedan raden `graphql AllaTurer: N databasfrågor` ur API-loggen.*
+
+Antalet varierar något mellan seed-omgångar, eftersom ungefär var fjärde tur saknar guide.
+
 ## Deploy
 
 Fråga Marcus.
