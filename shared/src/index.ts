@@ -64,6 +64,16 @@ export interface Tour {
 	notes: string | null;
 }
 
+export interface GuideSummary
+	extends Pick<Guide, "body_html" | "length_km" | "region" | "slug" | "title"> {
+	difficulty: string;
+	id: number | string;
+}
+
+export interface TourSummary extends Pick<Tour, "distance_m" | "title"> {
+	id: number | string;
+}
+
 export interface TourWithRelations extends Tour {
 	user: User;
 	guide: Guide | null;
