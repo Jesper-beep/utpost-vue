@@ -2,7 +2,7 @@
 
 import { GraphQLError } from "graphql";
 
-const iso = (d) => new Date(d).toISOString();
+const iso = (date) => new Date(date).toISOString();
 
 export const resolvers = {
 	Guide: {
@@ -19,7 +19,7 @@ export const resolvers = {
 	},
 
 	Mutation: {
-		createTour: async (_, { input }, { query, user }) => {
+		createTour: async (_parent, { input }, { query, user }) => {
 			if (!user) {
 				throw new GraphQLError("Du måste vara inloggad", {
 					extensions: { code: "UNAUTHENTICATED" },
@@ -41,25 +41,25 @@ export const resolvers = {
 		},
 	},
 	Query: {
-		guide: async (_, { slug }, { query }) =>
+		guide: async (_parent, { slug }, { query }) =>
 			(await query("select * from guides where slug = $1", [slug])).rows[0] ??
 			null,
-		guides: async (_, _args, { query }) =>
+		guides: async (_parent, _args, { query }) =>
 			(await query("select * from guides order by updated_at desc")).rows,
-		popularGuides: async (_, { limit }, { query }) =>
+		popularGuides: async (_parent, { limit }, { query }) =>
 			(
 				await query(
 					"select * from guides where published = true order by id desc limit $1",
 					[limit],
 				)
 			).rows,
-		regions: async (_, _args, { query }) =>
+		regions: async (_parent, _args, { query }) =>
 			(
 				await query("select distinct region from guides order by region")
-			).rows.map((r) => r.region),
-		tour: async (_, { id }, { query }) =>
+			).rows.map((row) => row.region),
+		tour: async (_parent, { id }, { query }) =>
 			(await query("select * from tours where id = $1", [id])).rows[0] ?? null,
-		tours: async (_, { limit }, { query }) =>
+		tours: async (_parent, { limit }, { query }) =>
 			(
 				await query("select * from tours order by started_at desc limit $1", [
 					Math.min(limit, 200),
