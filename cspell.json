@@ -72,6 +72,26 @@
 		"Molnfärdig",
 		"committen",
 		"commitens",
-		"mergade"
+		"mergade",
+		"GHCR",
+		"OIDC",
+		"PaaS",
+		"SaaS",
+		"sidecar",
+		"sidecars",
+		"Scaleway",
+		"Safespring",
+		"Kubernetes",
+		"vCPU",
+		"GiB",
+		"kallstart",
+		"kallstarten",
+		"seedar",
+		"seedas",
+		"replika",
+		"repliker",
+		"containerapp",
+		"deployar",
+		"gseomay"
 	]
 }

@@ -39,9 +39,19 @@ Stegen i SlopChecker2000. Tid per steg och operativsystem i sekunder.
 
 Fångar package-lock.json som inte stämmer med package.json.
 
+Före M6, med React-klienten i `web/`:
+
 - Tid på ubuntu: 10 sekunder
 - Tid på macos: 11 sekunder
 - Tid på windows: 19 sekunder
+
+Efter M6, när `web/` var borttagen:
+
+- Tid på ubuntu: 9 sekunder
+- Tid på macos: 11 sekunder
+- Tid på windows: 18 sekunder
+
+Skillnaden är liten, eftersom installationen mest består av de paket som `api/` och `client/` behöver. I M6 behövde bara vyn Profil portas från `web/` till `client/`. De andra vyerna fanns redan i Vue.
 
 ### `biome ci`
 
@@ -117,8 +127,9 @@ Jobbet bygger ingenting. Det säger åt Container Apps att köra de avbildningar
 
 Att kommandot gick igenom betyder bara att Azure tog emot beställningen, därför väntar jobbet på rätt sha.
 
-- Tid på main: ______ sekunder
-- Revisioner: ______
+- Tid på main: 102 sekunder (1 minut och 42 sekunder)
+- Revisioner efter deploy: `utpost-staging--sha-1cccc22-api` (api byts först) och `utpost-staging--sha-1cccc22` (client byts sist)
+- Första revisionen, från `skapa-staging.sh`: `utpost-staging--gseomay`
 
 ## Regler på main
 
