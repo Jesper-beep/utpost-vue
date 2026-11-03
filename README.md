@@ -13,9 +13,9 @@ Databasen, API:et och klienten körs i containrar.
 ```sh
 cp .env.example .env
 npm run docker:up
-npm run docker:seed
-npm run docker:migrate-logs
 ```
+
+Databasen fylls med testdata av sig själv vid första starten, eftersom Compose sätter `SEED_ON_START=1`. Du behöver inte köra `docker:seed` eller `docker:migrate-logs` själv.
 
 - Klienten ligger på <http://localhost:3001>, tillsammans med `/api/health` och `/graphql`
 - API:et har ingen egen port. Klienten skickar vidare `/api` och `/graphql` till det inne i Docker
@@ -55,8 +55,8 @@ Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan
 - Öppna <http://localhost:3001/graphql> i webbläsaren för GraphiQL
 - Databasfrågorna för varje GraphQL-fråga loggas av API:et: `docker logs utpost-api | grep graphql`
 - Stoppa med `npm run docker:down`
-- Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:up`, `npm run docker:seed` och `npm run docker:migrate-logs` igen
-- Får du `504` från API:et behöver du seeda, genom att köra `npm run docker:seed`
+- Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:up`. Databasen seedas och migreras av sig själv vid start
+- Får du `504` från API:et har databasen inte seedats. Kör `npm run docker:seed`
 - Turernas mätpunkter läses ur MongoDB i GraphQL. Kör `npm run docker:migrate-logs` efter varje `npm run docker:seed`, annars blir mätpunkterna tomma
 
 ### Bara databasen i Docker
@@ -83,7 +83,7 @@ npm run dev
 - Du måste köra `npm run prepare` själv efter `npm install`, eftersom `ignore-scripts` är satt till `true` i `.npmrc`-filen
 - Stoppa databasen med `npm run docker:down`
 
-Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är portarna 3000 och 3001 upptagna.
+Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är porten 3001 upptagen.
 
 ## Struktur
 
@@ -167,7 +167,6 @@ Databaserna läser användare och lösenord första gången de startar. Ändrar 
 
 - Köra `npm run docker:reset`
 - Köra `npm run docker:up`
-- Köra `npm run docker:seed`
 
 ### `api/.env`
 
@@ -248,7 +247,7 @@ proxy_pass http://api:4000;
 proxy_pass http://api:4000;
 ```
 
-*Visar de renderade raderna ur nginx-konfigurationen i client-containern.*
+Kommandot visar de renderade raderna ur nginx-konfigurationen i client-containern.
 
 ### Hemligheten
 
@@ -269,12 +268,51 @@ e86dae3 Move API URL and secrets to env files
 4497d54 Initial commit
 ```
 
-*Visar de commits där hemligheten lades till eller togs bort.*
+Kommandot visar de commits där hemligheten lades till eller togs bort.
 
 - `4497d54`: hemligheten läggs in i `config.js`
 - `4ef828f`: `docs/debt.md` citerar den
 - `e86dae3`: borttagen ur `config.js`
 - `6faf346`: borttagen ur `docs/debt.md`
+
+## I molnet (M6)
+
+Staging kör i Azure Container Apps som en app med fyra containrar: client (nginx), api, postgres och mongo. De delar localhost, och bara client nås utifrån. Appen stängs av helt mellan passen, när ingen använder den. Första anropet efter en paus startar den igen. Databaserna har ingen volym och seedas om vid varje kallstart (`SEED_ON_START=1`).
+
+Staging: <https://utpost-staging.purpleplant-b5bdf15c.swedencentral.azurecontainerapps.io>
+
+Varje merge till main byter avbildning i appen. Jobbet och flödet står i [pipeline.md](docs/pipeline.md), och valet av plattform i [hosting.md](docs/decisions/hosting.md).
+
+Mät själv med:
+
+```sh
+curl -s https://utpost-staging.purpleplant-b5bdf15c.swedencentral.azurecontainerapps.io/api/health
+git rev-parse main
+```
+
+```text
+{"mongodb":"ok","ok":true,"postgres":"ok","sha":"1cccc22ff7e5c2e3acebce13093e133035b4736b"}
+1cccc22ff7e5c2e3acebce13093e133035b4736b
+```
+
+Kommandot visar vilken commit staging kör. `sha` ska vara lika med `git rev-parse main`.
+
+Så såg api-loggen ut vid första starten:
+
+```text
+boot: väntar på Postgres (1/30): connect ECONNREFUSED 127.0.0.1:5432
+boot: väntar på Postgres (2/30): connect ECONNREFUSED 127.0.0.1:5432
+boot: väntar på Postgres (3/30): connect ECONNREFUSED 127.0.0.1:5432
+boot: tom databas, seedar
+Seed klar: 12 användare, 40 guider, 200 turer, 5953 loggpunkter.
+Postgres: 200 turer, 5953 rader i tour_logs
+MongoDB:  200 dokument i tours (200 nya, 0 ersatta, 0 borttagna), 5953 mätpunkter
+Tid: 133 ms
+Verifierat: inget tappades på vägen.
+API lyssnar på http://localhost:4000
+```
+
+Loggen hämtas med `az containerapp logs show --container api --tail 30`. Postgres behövde några sekunder på sig, och api:et väntade in den.
 
 ## Kommandon
 
@@ -294,7 +332,7 @@ Samma kontroller körs av CI på varje PR och vid push till main. Se [pipeline](
 
 CI bygger en image för `api` och `client` när kontrollerna är gröna.
 
-- Vd  en PR byggs containeravbildningarna bara (de publiceras inte)
+- Vid en PR byggs containeravbildningarna bara (de publiceras inte)
 - Vid push till main publiceras de i GitHub Container Registry som `ghcr.io/<ägare>/<repo>-api` och `-client`
 - Varje containeravbildning får taggarna `latest` och `sha-` följt av commit-hash
 - Databaserna ingår inte (de körs separat)
@@ -448,7 +486,7 @@ npm run test:api
 
 ## Deploy
 
-Fråga Marcus.
+Varje merge till main deployar till staging i Azure. Se [I molnet (M6)](#i-molnet-m6) och [pipeline.md](docs/pipeline.md).
 
 ## Branchstrategi
 
