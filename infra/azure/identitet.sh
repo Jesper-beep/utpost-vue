@@ -14,7 +14,11 @@
 #   - az inloggad
 #   - gh inloggad
 #
-# Skriver ut raderna som skapar GitHub-miljön och variablerna.
+# Skriver ut raderna som skapar GitHub-miljön, variablerna och secreten AZURE_RG.
+#
+# Två federerade identiteter skapas (en regel i Azure som säger att en token signerad av
+# GitHub godtas, om subjectet i den matchar exakt). GitHub kan skicka subjectet på två sätt:
+# med repots och ägarens id:n, eller bara med namnen. Azure godtar den som matchar.
 set -euo pipefail
 
 : "${REPO:?Sätt REPO=<ägare>/<repo>}"
@@ -23,8 +27,6 @@ APP="${APP:-utpost-staging}"
 GH_ENV="${GH_ENV:-azure-staging}"
 NAME="${NAME:-${REPO##*/}-github}"
 
-OWNER="${REPO%%/*}"
-REPO_NAME="${REPO##*/}"
 SUB="$(az account show --query id --output tsv)"
 TENANT="$(az account show --query tenantId --output tsv)"
 SCOPE="/subscriptions/${SUB}/resourceGroups/${RG}"
@@ -60,25 +62,36 @@ fi
 
 REPO_ID="$(gh api "repos/${REPO}" --jq .id)"
 OWNER_ID="$(gh api "repos/${REPO}" --jq .owner.id)"
-SUBJECT="repo:${OWNER}@${OWNER_ID}/${REPO_NAME}@${REPO_ID}:environment:${GH_ENV}"
-CREDENTIAL_NAME="github-${GH_ENV}"
-CREDENTIAL="{
-  \"name\": \"${CREDENTIAL_NAME}\",
+OWNER="$(gh api "repos/${REPO}" --jq .owner.login)"
+REPO_NAME="$(gh api "repos/${REPO}" --jq .name)"
+
+skapa_federation() {
+  local namn="$1"
+  local subject="$2"
+  local credential="{
+  \"name\": \"${namn}\",
   \"issuer\": \"https://token.actions.githubusercontent.com\",
-  \"subject\": \"${SUBJECT}\",
+  \"subject\": \"${subject}\",
   \"audiences\": [\"api://AzureADTokenExchange\"]
 }"
 
-echo "-> federerad identitet, subject: ${SUBJECT}"
-if ! az ad app federated-credential show \
-  --id "${APPID}" \
-  --federated-credential-id "${CREDENTIAL_NAME}" \
-  --output none 2>/dev/null; then
+  echo "-> federerad identitet ${namn}, subject: ${subject}"
+  if az ad app federated-credential show \
+    --id "${APPID}" \
+    --federated-credential-id "${namn}" \
+    --output none 2>/dev/null; then
+    return
+  fi
   az ad app federated-credential create \
     --id "${APPID}" \
-    --parameters "${CREDENTIAL}" \
+    --parameters "${credential}" \
     --output none
-fi
+}
+
+skapa_federation "github-${GH_ENV}-id" \
+  "repo:${OWNER}@${OWNER_ID}/${REPO_NAME}@${REPO_ID}:environment:${GH_ENV}"
+skapa_federation "github-${GH_ENV}-namn" \
+  "repo:${OWNER}/${REPO_NAME}:environment:${GH_ENV}"
 
 FQDN="$(az containerapp show \
   --name "${APP}" \
@@ -90,12 +103,13 @@ SET="gh variable set"
 TARGET="--env ${GH_ENV} --repo ${REPO} --body"
 
 echo
-echo "Klart. Kör raderna nedan. Det är variables, inte secrets, ett id är ingen hemlighet."
+echo "Klart. Kör raderna nedan. Id:n är variables, ett id är ingen hemlighet."
+echo "Resursgruppens namn är en secret, så att det inte syns i loggen."
 echo
 echo "gh api -X PUT repos/${REPO}/environments/${GH_ENV} > /dev/null"
 echo "${SET} AZURE_CLIENT_ID       ${TARGET} ${APPID}"
 echo "${SET} AZURE_TENANT_ID       ${TARGET} ${TENANT}"
 echo "${SET} AZURE_SUBSCRIPTION_ID ${TARGET} ${SUB}"
-echo "${SET} AZURE_RG              ${TARGET} ${RG}"
+echo "gh secret set AZURE_RG --env ${GH_ENV} --repo ${REPO} --body ${RG}"
 echo "${SET} AZURE_APP             ${TARGET} ${APP}"
 echo "${SET} AZURE_URL             ${TARGET} https://${FQDN}"
