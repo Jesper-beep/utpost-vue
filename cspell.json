@@ -1,5 +1,6 @@
 {
 	"$schema": "./node_modules/@cspell/cspell-types/cspell.schema.json",
+	"caseSensitive": true,
 	"dictionaries": [
 		"node",
 		"npm",
@@ -58,6 +59,19 @@
 		"urql",
 		"Codegen",
 		"laddtext",
-		"inloggades"
+		"inloggades",
+		"commiten",
+		"nginx",
+		"postgres",
+		"oneline",
+		"codegen",
+		"ohanterat",
+		"databasfrågor",
+		"databasfragor",
+		"kebnekaise",
+		"Molnfärdig",
+		"committen",
+		"commitens",
+		"mergade"
 	]
 }

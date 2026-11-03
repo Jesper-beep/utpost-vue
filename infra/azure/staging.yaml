@@ -1,0 +1,84 @@
+# staging.yaml - Utpost staging i Azure Container Apps (M6)
+#
+# En app med fyra containrar (sidecars) som delar localhost:
+#   - client: nginx, tar emot trafiken utifrån
+#   - api, postgres och mongo: nås bara inifrån appen
+#
+# Databaserna har ingen volym. Varje kallstart ger tomma databaser, som api seedar
+# själv (SEED_ON_START).
+#
+# Platshållarna __NAMN__ byts ut av skapa-staging.sh. Pipelinen byter bara avbildning
+# med az containerapp update och rör aldrig den här filen.
+location: __LOCATION__
+name: __APP__
+resourceGroup: __RG__
+type: Microsoft.App/containerApps
+properties:
+  managedEnvironmentId: __ENV_ID__
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      external: true
+      targetPort: 3001
+      transport: auto
+      allowInsecure: false
+    secrets:
+      - name: jwt-secret
+        value: __JWT_SECRET__
+      - name: postgres-url
+        value: postgres://utpost:__DB_PASSWORD__@localhost:5432/utpost
+      - name: mongodb-url
+        value: mongodb://utpost:__DB_PASSWORD__@localhost:27017/utpost?authSource=admin
+      - name: db-password
+        value: __DB_PASSWORD__
+  template:
+    containers:
+      - name: client
+        image: __IMAGE_CLIENT__
+        resources:
+          cpu: 0.25
+          memory: 0.5Gi
+        env:
+          - name: API_UPSTREAM
+            value: localhost:4000
+      - name: api
+        image: __IMAGE_API__
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        env:
+          - name: PORT
+            value: "4000"
+          - name: SEED_ON_START
+            value: "1"
+          - name: POSTGRES_URL
+            secretRef: postgres-url
+          - name: MONGODB_URL
+            secretRef: mongodb-url
+          - name: JWT_SECRET
+            secretRef: jwt-secret
+      - name: postgres
+        image: postgres:18
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        env:
+          - name: POSTGRES_USER
+            value: utpost
+          - name: POSTGRES_DB
+            value: utpost
+          - name: POSTGRES_PASSWORD
+            secretRef: db-password
+      - name: mongo
+        image: mongo:8.2
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        env:
+          - name: MONGO_INITDB_ROOT_USERNAME
+            value: utpost
+          - name: MONGO_INITDB_ROOT_PASSWORD
+            secretRef: db-password
+    scale:
+      minReplicas: 0
+      maxReplicas: 1

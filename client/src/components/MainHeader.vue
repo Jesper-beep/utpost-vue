@@ -1,5 +1,5 @@
 <script setup>
-import { useRouter } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import { useSessionStore } from "../stores/session.js";
 import BaseButton from "./BaseButton.vue";
 import MainNav from "./MainNav.vue";
@@ -42,7 +42,9 @@ const logout = () => {
 
 			<div class="topbar__actions">
 				<template v-if="session.isLoggedIn">
-					<span class="topbar__user">{{ session.user?.display_name }}</span>
+					<RouterLink to="/profil" class="topbar__user">{{
+						session.user?.display_name
+					}}</RouterLink>
 					<BaseButton @click="logout">Logga ut</BaseButton>
 				</template>
 				<template v-else>
@@ -90,6 +92,12 @@ const logout = () => {
 	padding-inline: 0.75rem;
 	font-weight: 700;
 	color: #fff;
+	text-decoration: none;
+
+	&:hover {
+		text-decoration: underline;
+		text-underline-offset: 0.25em;
+	}
 }
 
 .topbar__logo {

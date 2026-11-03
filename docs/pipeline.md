@@ -12,15 +12,18 @@ flowchart LR
   F --> PR
   G -->|ja| M[merge till main]
   G -->|nej| F
+  M --> D[Deploy to Azure staging: byt avbildning till commitens sha, vänta på /api/health, röktesta]
+  D --> ST[staging kör den mergade committen]
 ```
 
 ## Jobb
 
-CI har tre jobb i `.github/workflows/ci.yml`.
+CI har fyra jobb i `.github/workflows/ci.yml`.
 
 - SlopChecker2000: lint, typkontroll, tester och bygge av klienten. Körs på ubuntu, macos och windows
 - Integration: API:ets integrationstester mot riktiga databaser. Körs på ubuntu
-- Image: bygger Docker-avbildningarna för api, client och web. Körs på ubuntu och väntar på SlopChecker2000
+- Image: bygger Docker-avbildningarna för api och client. Körs på ubuntu och väntar på SlopChecker2000
+- Deploy to Azure staging: byter avbildning på api och client i Azure Container Apps. Körs på ubuntu, bara vid push till main, och väntar på Image och Integration
 
 Integration är oberoende av SlopChecker2000, så de två körs samtidigt.
 
@@ -103,11 +106,26 @@ Flyttar turloggarna till MongoDB och kontrollerar antalet dokument och mätpunkt
 
 Fångar N+1 i turlistan och saknat inloggningskrav för `createTour`. Se [testing.md](testing.md).
 
+## Deploy
+
+Jobbet bygger ingenting. Det säger åt Container Apps att köra de avbildningar som Image redan byggt, med taggen `sha-` och commitens sju första tecken.
+
+- Loggar in i Azure med OIDC. Inga lösenord i GitHub, bara id:n som variabler på miljön `azure-staging`
+- Byter avbildning på `api` och `client`. Det ger två revisioner per deploy
+- Väntar tills `/api/health` svarar med commitens hela sha och sista revisionen är klar
+- Röktestar `/graphql` genom nginx, med ett anrop som kräver data ur databasen
+
+Att kommandot gick igenom betyder bara att Azure tog emot beställningen, därför väntar jobbet på rätt sha.
+
+- Tid på main: ______ sekunder
+- Revisioner: ______
+
 ## Regler på main
 
 - PR krävs, minst en godkännare och "gröna checks" från alla tre operativsystemen och från Integration
 - Branchen måste vara uppdaterad mot main innan merge
 - Reglerna gäller även admins
+- Deploy to Azure staging är inte en status check. Den körs efter merge, på main, och hoppas över på en PR. Blir den röd är main ändå korrekt, men staging uppdaterades inte
 
 ## Kommandon
 

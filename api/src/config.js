@@ -7,6 +7,7 @@ const required = (name) => {
 };
 
 export const config = {
+	gitSha: process.env["GIT_SHA"] ?? "dev",
 	jwtSecret: required("JWT_SECRET"),
 	mongodbUrl: required("MONGODB_URL"),
 	port: Number(process.env["PORT"] ?? 4000),

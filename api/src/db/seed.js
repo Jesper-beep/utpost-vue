@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { pool } from "./client.js";
 import { createTables } from "./migrate.js";
 
@@ -55,7 +56,7 @@ const bodyHtml = (title, region) =>
 <ul><li>Vindskydd vid halva sträckan</li><li>Ingen service utmed leden</li><li>Mobiltäckning delvis</li></ul>
 <p><em>Senast granskad av redaktionen.</em></p>`.trim();
 
-const run = async () => {
+export const seed = async () => {
 	await createTables();
 	await pool.query(
 		"truncate photos, tour_logs, tours, guides, users restart identity",
@@ -160,10 +161,15 @@ const run = async () => {
 	console.log(
 		`Testinloggning: ${newestTourRow.email} / ${TEST_PASSWORD}, tur ${newestTourRow.id}`,
 	);
-	await pool.end();
 };
 
-run().catch((err) => {
-	console.error(err);
-	process.exit(1);
-});
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+	try {
+		await seed();
+	} catch (err) {
+		console.error(err);
+		process.exitCode = 1;
+	} finally {
+		await pool.end();
+	}
+}

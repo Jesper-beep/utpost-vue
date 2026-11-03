@@ -8,7 +8,7 @@ Det finns två sätt att köra Utpost lokalt. Båda behöver OrbStack, Podman el
 
 ### Allt i Docker
 
-Databasen, API:et och båda frontendarna körs i containrar.
+Databasen, API:et och klienten körs i containrar.
 
 ```sh
 cp .env.example .env
@@ -17,9 +17,8 @@ npm run docker:seed
 npm run docker:migrate-logs
 ```
 
-- Vue-klienten ligger på <http://localhost:3001>, tillsammans med `/api/health` och `/graphql`
-- React-appen ligger på <http://localhost:3000>
-- API:et har ingen egen port. Klienten och React-appen skickar vidare `/api` och `/graphql` till det inne i Docker
+- Klienten ligger på <http://localhost:3001>, tillsammans med `/api/health` och `/graphql`
+- API:et har ingen egen port. Klienten skickar vidare `/api` och `/graphql` till det inne i Docker
 
 #### Efter kodändringar
 
@@ -27,7 +26,7 @@ npm run docker:migrate-logs
 
 #### Vue-klienten (client/) med Vite istället för nginx
 
-Docker servar Vue-klienten (client/) med nginx. I utvecklarläge rekommenderas att köra den via Vite istället. Då ligger API:et, databasen och React-appen kvar i Docker och bara Vue-klienten körs via Vite.
+Docker servar Vue-klienten (client/) med nginx. I utvecklarläge rekommenderas att köra den via Vite istället. Då ligger API:et och databasen kvar i Docker och bara klienten körs via Vite.
 
 Vite skickar `/api`, `/uploads` och `/graphql` vidare till `http://localhost:4000`, men API:et i Docker har ingen publicerad port.
 
@@ -51,7 +50,7 @@ Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan
 
 #### Felsökning och övrigt
 
-- Kontrollera API:et med `curl localhost:3001/api/health`. Båda databaserna ska visa `ok`: `{"mongodb":"ok","ok":true,"postgres":"ok"}`
+- Kontrollera API:et med `curl localhost:3001/api/health`. Båda databaserna ska visa `ok`: `{"mongodb":"ok","ok":true,"postgres":"ok","sha":"dev"}`
 - Felsöker du API:et direkt kan du lägga tillbaka `ports: "127.0.0.1:4000:4000"` under `api` i `compose.yaml`. Checka inte in det
 - Öppna <http://localhost:3001/graphql> i webbläsaren för GraphiQL
 - Databasfrågorna för varje GraphQL-fråga loggas av API:et: `docker logs utpost-api | grep graphql`
@@ -70,15 +69,13 @@ npm run prepare
 cp .env.example .env
 cp api/.env.example api/.env
 cp client/.env.example client/.env
-cp web/.env.example web/.env
 npm run docker:db
 npm run seed
 npm run migrate:logs
 npm run dev
 ```
 
-- Vue-klienten ligger på <http://localhost:3001>
-- React-appen ligger på <http://localhost:3000>
+- Klienten ligger på <http://localhost:3001>
 - API:et ligger på <http://localhost:4000>
 - Det finns inget `npm start` i roten, använd `npm run dev`
 - Postgres nås på port `5433` och MongoDB på port `27017` från din dator
@@ -94,13 +91,9 @@ Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är p
 
 Express + Postgres (Drizzle) + MongoDB + GraphQL (graphql-yoga).
 
-### Web (`web/`)
-
-React + Vite.
-
 ### Client (`client/`)
 
-Vue 3 + Vue Router + Vite. Allt flyttas hit från `web/`, en bit i taget. I Docker serveras bygget av nginx, se `client/nginx`.
+Vue 3 + Vue Router + Vite. I Docker serveras bygget av nginx, se `client/nginx`.
 
 ### Shared (`shared/`)
 
@@ -134,7 +127,7 @@ Pusha aldrig avbildningar från din egen dator.
 
 ## Miljövariabler
 
-Projektets rot, `api/`, `client/` och `web/` har var sin `.env`-fil som inte ska checkas in.
+Projektets rot, `api/` och `client/` har var sin `.env`-fil som inte ska checkas in.
 
 Kopiera `.env.example` enligt nedan:
 
@@ -142,13 +135,12 @@ Kopiera `.env.example` enligt nedan:
 cp .env.example .env
 cp api/.env.example api/.env
 cp client/.env.example client/.env
-cp web/.env.example web/.env
 ```
 
 Vilka filer du behöver beror på hur du kör Utpost:
 
 - Allt i Docker: bara `.env` i roten
-- Bara databasen i Docker: alla fyra, eftersom `npm run dev` läser `api/.env`, `client/.env` och `web/.env`
+- Bara databasen i Docker: alla tre, eftersom `npm run dev` läser `api/.env` och `client/.env`
 
 ### `.env` i roten
 
@@ -165,7 +157,7 @@ Användare, lösenord och databasnamn för MongoDB
 #### `JWT_SECRET`
 
 - Samma sak som i `api/.env`, men för API-containern
-- Lokalt: `dev-only-secret`
+- Lokalt: `a-long-random-string`
 
 Kör du API:et utanför Docker måste miljövariablerna för Postgres och MongoDB stämma med `POSTGRES_URL` och `MONGODB_URL` i `api/.env`.
 
@@ -201,16 +193,88 @@ Anslutning till MongoDB
 - Valfri, standard `./uploads`
 - Mappen där uppladdade filer ska sparas
 
+#### `SEED_ON_START`
+
+- Valfri, `1` seedar en tom databas vid start (`src/boot.js`)
+- Compose sätter den till `1`
+
+#### `GIT_SHA`
+
+- Valfri, standard `dev`
+- Sätts vid bygget med `--build-arg`, inte i en `.env`
+- Visas som `sha` i `/api/health`
+
 API:et startar inte om `POSTGRES_URL`, `MONGODB_URL` eller `JWT_SECRET` saknas.
 
-### `client/.env` och `web/.env`
+### `client/.env`
 
 #### `API_PROXY_TARGET`
 
-- Adress till API:et för dev-proxyn
+- Adress till API:et för Vites dev-proxy
 - Lokalt: `http://localhost:4000` (utan `/api`)
 
-Båda "frontendarna" anropar alltid `/api`, och Vue-klienten anropar även `/graphql`. Vite och nginx skickar vidare anropen till `API_PROXY_TARGET`, så ingen API-adress finns i koden. Starta om dev-servern efter att du ändrat en `.env`-fil.
+Starta om dev-servern efter att du ändrat en `.env`-fil.
+
+### `client`-containern
+
+#### `API_UPSTREAM`
+
+- Adress till API:et för nginx, utan `http://`
+- Lokalt (compose): `api:4000`
+- Azure: `localhost:4000`
+- Valfri, standard `api:4000`
+
+nginx fyller i `${API_UPSTREAM}` i `client/nginx/default.conf.template` när containern startar. Kontrollera med `docker compose exec client cat /etc/nginx/conf.d/default.conf`.
+
+## Konfiguration och hemligheter (M6)
+
+Adresser och hemligheter läses när containern startar, inte när avbildningen byggs. Samma avbildning kan därför köras både i compose och i Azure. Det enda som bakas in vid bygget är `GIT_SHA`.
+
+### Konfiguration utifrån
+
+nginx-mallen `client/nginx/default.conf.template` ligger i `/etc/nginx/templates/` i client-containern. Vid start byter nginx ut `${API_UPSTREAM}` mot värdet i miljön.
+
+- Compose: `API_UPSTREAM=api:4000`
+- Azure: `API_UPSTREAM=localhost:4000`, eftersom containrarna i appen delar localhost
+
+Mät själv med:
+
+```sh
+docker compose exec client cat /etc/nginx/conf.d/default.conf | grep proxy_pass
+```
+
+```text
+proxy_pass http://api:4000;
+proxy_pass http://api:4000;
+```
+
+*Visar de renderade raderna ur nginx-konfigurationen i client-containern.*
+
+### Hemligheten
+
+`JWT_SECRET` låg i `api/src/config.js` sedan första commiten. Vi har tagit bort den ur koden och bytt ut den. Det gamla värdet används inte längre någonstans.
+
+Det nya värdet finns lokalt i vår egen `.env`, som inte checkas in. `.env.example` visar vilka namn som behövs. I Azure skapar `infra/azure/skapa-staging.sh` värdet med `openssl rand` och sparar det som secret i Container Apps. Det skrivs aldrig i någon fil.
+
+Mät själv med:
+
+```sh
+git log --oneline -S "utpost-super-secret"
+```
+
+```text
+6faf346 Steg 1 - Molnfärdig: konfiguration utifrån och sha i health
+e86dae3 Move API URL and secrets to env files
+4ef828f M0 slutförd
+4497d54 Initial commit
+```
+
+*Visar de commits där hemligheten lades till eller togs bort.*
+
+- `4497d54`: hemligheten läggs in i `config.js`
+- `4ef828f`: `docs/debt.md` citerar den
+- `e86dae3`: borttagen ur `config.js`
+- `6faf346`: borttagen ur `docs/debt.md`
 
 ## Kommandon
 
@@ -228,10 +292,10 @@ Samma kontroller körs av CI på varje PR och vid push till main. Se [pipeline](
 
 ## Containeravbildningar i CI
 
-CI bygger en image för `api`, `client` och `web` när kontrollerna är gröna.
+CI bygger en image för `api` och `client` när kontrollerna är gröna.
 
 - Vd  en PR byggs containeravbildningarna bara (de publiceras inte)
-- Vid push till main publiceras de i GitHub Container Registry som `ghcr.io/<ägare>/<repo>-api`, `-client` och `-web`
+- Vid push till main publiceras de i GitHub Container Registry som `ghcr.io/<ägare>/<repo>-api` och `-client`
 - Varje containeravbildning får taggarna `latest` och `sha-` följt av commit-hash
 - Databaserna ingår inte (de körs separat)
 
@@ -347,7 +411,7 @@ Frågorna skrivs i `graphql(...)`. Codegen skriver typerna ur schemat till `clie
 
 ### Borttaget fält stoppar `npm run typecheck`
 
-`npm run typecheck` kör codegen först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.js` på en branch. Kommandot stoppade:
+`npm run typecheck` kör `codegen` först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.js` på en branch. Kommandot stoppade:
 
 ```text
 GraphQL Document Validation failed with 2 errors;

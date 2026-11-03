@@ -98,7 +98,7 @@ Databasens lösenord och nyckeln som används för att kontrollera inloggningar 
 ```javascript
 export const config = {
   databaseUrl: 'postgres://utpost:utpost@localhost:5433/utpost',
-  jwtSecret: 'utpost-super-secret-2021',
+  jwtSecret: '<den gamla hemligheten, borttagen och roterad i M6>',
   port: 4000,
   uploadDir: './uploads',
 };

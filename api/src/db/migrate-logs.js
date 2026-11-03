@@ -1,7 +1,8 @@
+import { fileURLToPath } from "node:url";
 import { pool } from "./client.js";
 import { mongo, toursCollection } from "./mongo.js";
 
-const run = async () => {
+export const migrateLogs = async () => {
 	const started = Date.now();
 	const tours = (await pool.query("select * from tours order by id")).rows;
 	const logs = (
@@ -80,11 +81,16 @@ const run = async () => {
 		);
 	}
 	console.log("Verifierat: inget tappades på vägen.");
-	await mongo.close();
-	await pool.end();
 };
 
-run().catch((error) => {
-	console.error(error.message);
-	process.exit(1);
-});
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+	try {
+		await migrateLogs();
+	} catch (error) {
+		console.error(error.message);
+		process.exitCode = 1;
+	} finally {
+		await mongo.close();
+		await pool.end();
+	}
+}
