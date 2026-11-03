@@ -30,10 +30,10 @@ const seedIfEmpty = async () => {
 		users = 0;
 	}
 	if (users > 0) {
-		console.log(`boot: ${users} användare finns redan – ingen seed`);
+		console.log(`boot: ${users} användare finns redan, ingen seed`);
 		return;
 	}
-	console.log("boot: tom databas – seedar");
+	console.log("boot: tom databas, seedar");
 	await seed();
 	await mongo.connect();
 	await migrateLogs();

@@ -259,7 +259,7 @@ Det nya värdet finns lokalt i vår egen `.env`, som inte checkas in. `.env.exam
 Mät själv med:
 
 ```sh
-git log --oneline -S "utpost-super-secret-2021"
+git log --oneline -S "utpost-super-secret"
 ```
 
 ```text

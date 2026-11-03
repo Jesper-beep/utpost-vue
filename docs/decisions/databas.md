@@ -314,7 +314,7 @@ Om vi flyttar till MongoDB:
 
 ## M6: `tour_logs` ligger kvar
 
-React-klienten i `web/` är borttagen, men `tour_logs` ligger kvar i Postgres. Seedningen skriver till tabellen och `migrate:logs` läser den för att fylla MongoDB, och det körs vid varje start i staging (`SEED_ON_START`). Vue-klienten använder dessutom fortfarande REST-routerna för inloggning, guider, turer och foton, så de ligger också kvar.
+React-klienten i `web/` är borttagen, men `tour_logs` ligger kvar i Postgres. Seedningen skriver till tabellen och `migrate:logs` läser den för att fylla MongoDB, och det körs vid varje start i staging (`SEED_ON_START`). Vue-klienten använder dessutom fortfarande REST-rutterna för inloggning, guider, turer och foton, så de ligger också kvar.
 
 ## Test
 
