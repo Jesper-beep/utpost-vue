@@ -8,7 +8,7 @@ Det finns två sätt att köra Utpost lokalt. Båda behöver OrbStack, Podman el
 
 ### Allt i Docker
 
-Databasen, API:et och båda frontendarna körs i containrar.
+Databasen, API:et och klienten körs i containrar.
 
 ```sh
 cp .env.example .env
@@ -17,9 +17,8 @@ npm run docker:seed
 npm run docker:migrate-logs
 ```
 
-- Vue-klienten ligger på <http://localhost:3001>, tillsammans med `/api/health` och `/graphql`
-- React-appen ligger på <http://localhost:3000>
-- API:et har ingen egen port. Klienten och React-appen skickar vidare `/api` och `/graphql` till det inne i Docker
+- Klienten ligger på <http://localhost:3001>, tillsammans med `/api/health` och `/graphql`
+- API:et har ingen egen port. Klienten skickar vidare `/api` och `/graphql` till det inne i Docker
 
 #### Efter kodändringar
 
@@ -27,7 +26,7 @@ npm run docker:migrate-logs
 
 #### Vue-klienten (client/) med Vite istället för nginx
 
-Docker servar Vue-klienten (client/) med nginx. I utvecklarläge rekommenderas att köra den via Vite istället. Då ligger API:et, databasen och React-appen kvar i Docker och bara Vue-klienten körs via Vite.
+Docker servar Vue-klienten (client/) med nginx. I utvecklarläge rekommenderas att köra den via Vite istället. Då ligger API:et och databasen kvar i Docker och bara klienten körs via Vite.
 
 Vite skickar `/api`, `/uploads` och `/graphql` vidare till `http://localhost:4000`, men API:et i Docker har ingen publicerad port.
 
@@ -70,15 +69,13 @@ npm run prepare
 cp .env.example .env
 cp api/.env.example api/.env
 cp client/.env.example client/.env
-cp web/.env.example web/.env
 npm run docker:db
 npm run seed
 npm run migrate:logs
 npm run dev
 ```
 
-- Vue-klienten ligger på <http://localhost:3001>
-- React-appen ligger på <http://localhost:3000>
+- Klienten ligger på <http://localhost:3001>
 - API:et ligger på <http://localhost:4000>
 - Det finns inget `npm start` i roten, använd `npm run dev`
 - Postgres nås på port `5433` och MongoDB på port `27017` från din dator
@@ -94,13 +91,9 @@ Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är p
 
 Express + Postgres (Drizzle) + MongoDB + GraphQL (graphql-yoga).
 
-### Web (`web/`)
-
-React + Vite.
-
 ### Client (`client/`)
 
-Vue 3 + Vue Router + Vite. Allt flyttas hit från `web/`, en bit i taget. I Docker serveras bygget av nginx, se `client/nginx`.
+Vue 3 + Vue Router + Vite. I Docker serveras bygget av nginx, se `client/nginx`.
 
 ### Shared (`shared/`)
 
@@ -134,7 +127,7 @@ Pusha aldrig avbildningar från din egen dator.
 
 ## Miljövariabler
 
-Projektets rot, `api/`, `client/` och `web/` har var sin `.env`-fil som inte ska checkas in.
+Projektets rot, `api/` och `client/` har var sin `.env`-fil som inte ska checkas in.
 
 Kopiera `.env.example` enligt nedan:
 
@@ -142,13 +135,12 @@ Kopiera `.env.example` enligt nedan:
 cp .env.example .env
 cp api/.env.example api/.env
 cp client/.env.example client/.env
-cp web/.env.example web/.env
 ```
 
 Vilka filer du behöver beror på hur du kör Utpost:
 
 - Allt i Docker: bara `.env` i roten
-- Bara databasen i Docker: alla fyra, eftersom `npm run dev` läser `api/.env`, `client/.env` och `web/.env`
+- Bara databasen i Docker: alla tre, eftersom `npm run dev` läser `api/.env` och `client/.env`
 
 ### `.env` i roten
 
@@ -300,10 +292,10 @@ Samma kontroller körs av CI på varje PR och vid push till main. Se [pipeline](
 
 ## Containeravbildningar i CI
 
-CI bygger en image för `api`, `client` och `web` när kontrollerna är gröna.
+CI bygger en image för `api` och `client` när kontrollerna är gröna.
 
 - Vd  en PR byggs containeravbildningarna bara (de publiceras inte)
-- Vid push till main publiceras de i GitHub Container Registry som `ghcr.io/<ägare>/<repo>-api`, `-client` och `-web`
+- Vid push till main publiceras de i GitHub Container Registry som `ghcr.io/<ägare>/<repo>-api` och `-client`
 - Varje containeravbildning får taggarna `latest` och `sha-` följt av commit-hash
 - Databaserna ingår inte (de körs separat)
 

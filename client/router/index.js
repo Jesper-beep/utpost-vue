@@ -44,6 +44,12 @@ export const routes = [
 		path: "/turer/:id",
 	},
 	{
+		component: () => import("../src/views/ProfileView.vue"),
+		meta: { title: "Min sida" },
+		name: "Min sida",
+		path: "/profil",
+	},
+	{
 		component: () => import("../src/views/PhotoTestView.vue"),
 		meta: { title: "Testa bilduppladdning" },
 		name: "Testa bilduppladdning",

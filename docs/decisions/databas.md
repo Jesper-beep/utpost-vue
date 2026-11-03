@@ -312,6 +312,10 @@ Om vi flyttar till MongoDB:
 - En tur har en gräns på 5 000 punkter innan den måste delas upp.
 - `/api/tours` hämtar fortfarande bara 50 turer, om vi inte ändrar det.
 
+## M6: `tour_logs` ligger kvar
+
+React-klienten i `web/` är borttagen, men `tour_logs` ligger kvar i Postgres. Seedningen skriver till tabellen och `migrate:logs` läser den för att fylla MongoDB, och det körs vid varje start i staging (`SEED_ON_START`). Vue-klienten använder dessutom fortfarande REST-routerna för inloggning, guider, turer och foton, så de ligger också kvar.
+
 ## Test
 
 Observera att `mongo-smoke.js` endast mäter en tur, medan de seedade Postgres-turerna innehåller all data, vilket väger mycket tyngre.

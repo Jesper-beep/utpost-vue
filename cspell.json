@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/@cspell/cspell-types/cspell.schema.json",
-	 "caseSensitive": true,
+	"caseSensitive": true,
 	"dictionaries": [
 		"node",
 		"npm",

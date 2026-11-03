@@ -20,7 +20,7 @@ CI har tre jobb i `.github/workflows/ci.yml`.
 
 - SlopChecker2000: lint, typkontroll, tester och bygge av klienten. Körs på ubuntu, macos och windows
 - Integration: API:ets integrationstester mot riktiga databaser. Körs på ubuntu
-- Image: bygger Docker-avbildningarna för api, client och web. Körs på ubuntu och väntar på SlopChecker2000
+- Image: bygger Docker-avbildningarna för api och client. Körs på ubuntu och väntar på SlopChecker2000
 
 Integration är oberoende av SlopChecker2000, så de två körs samtidigt.
 

@@ -117,20 +117,3 @@ jobs:
           labels: ${{ steps.meta-client.outputs.labels }}
           cache-from: type=gha,scope=client
           cache-to: type=gha,mode=max,scope=client
-
-      - id: meta-web
-        uses: docker/metadata-action@v6
-        with:
-          images: ghcr.io/${{ github.repository }}-web
-          tags: |
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
-      - uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: web/Dockerfile
-          push: ${{ github.event_name == 'push' }}
-          tags: ${{ steps.meta-web.outputs.tags }}
-          labels: ${{ steps.meta-web.outputs.labels }}
-          cache-from: type=gha,scope=web
-          cache-to: type=gha,mode=max,scope=web

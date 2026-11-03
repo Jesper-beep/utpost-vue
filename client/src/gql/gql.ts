@@ -14,10 +14,12 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "\n\tquery MinaTurer {\n\t\ttours(limit: 200) {\n\t\t\tid\n\t\t\ttitle\n\t\t\tdistance_m: distanceM\n\t\t\tuser {\n\t\t\t\tid\n\t\t\t}\n\t\t}\n\t}\n": typeof types.MinaTurerDocument,
     "\n\tquery Turlistan {\n\t\ttours(limit: 50) {\n\t\t\tid\n\t\t\ttitle\n\t\t\tdistanceM\n\t\t\tuser {\n\t\t\t\tdisplayName\n\t\t\t}\n\t\t\tguide {\n\t\t\t\ttitle\n\t\t\t}\n\t\t\tphotos {\n\t\t\t\tid\n\t\t\t}\n\t\t}\n\t}\n": typeof types.TurlistanDocument,
     "\n\tquery Startsidan {\n\t\tguides {\n\t\t\tid\n\t\t\tslug\n\t\t\ttitle\n\t\t\tregion\n\t\t\tdifficulty\n\t\t\tbody_html: bodyHtml\n\t\t\tlength_km: lengthKm\n\t\t}\n\t\tpopularGuides(limit: 6) {\n\t\t\tid\n\t\t\tslug\n\t\t\ttitle\n\t\t\tregion\n\t\t\tdifficulty\n\t\t\tbody_html: bodyHtml\n\t\t\tlength_km: lengthKm\n\t\t}\n\t\tregions\n\t\ttours(limit: 5) {\n\t\t\tid\n\t\t\ttitle\n\t\t\tdistance_m: distanceM\n\t\t}\n\t}\n": typeof types.StartsidanDocument,
 };
 const documents: Documents = {
+    "\n\tquery MinaTurer {\n\t\ttours(limit: 200) {\n\t\t\tid\n\t\t\ttitle\n\t\t\tdistance_m: distanceM\n\t\t\tuser {\n\t\t\t\tid\n\t\t\t}\n\t\t}\n\t}\n": types.MinaTurerDocument,
     "\n\tquery Turlistan {\n\t\ttours(limit: 50) {\n\t\t\tid\n\t\t\ttitle\n\t\t\tdistanceM\n\t\t\tuser {\n\t\t\t\tdisplayName\n\t\t\t}\n\t\t\tguide {\n\t\t\t\ttitle\n\t\t\t}\n\t\t\tphotos {\n\t\t\t\tid\n\t\t\t}\n\t\t}\n\t}\n": types.TurlistanDocument,
     "\n\tquery Startsidan {\n\t\tguides {\n\t\t\tid\n\t\t\tslug\n\t\t\ttitle\n\t\t\tregion\n\t\t\tdifficulty\n\t\t\tbody_html: bodyHtml\n\t\t\tlength_km: lengthKm\n\t\t}\n\t\tpopularGuides(limit: 6) {\n\t\t\tid\n\t\t\tslug\n\t\t\ttitle\n\t\t\tregion\n\t\t\tdifficulty\n\t\t\tbody_html: bodyHtml\n\t\t\tlength_km: lengthKm\n\t\t}\n\t\tregions\n\t\ttours(limit: 5) {\n\t\t\tid\n\t\t\ttitle\n\t\t\tdistance_m: distanceM\n\t\t}\n\t}\n": types.StartsidanDocument,
 };
@@ -36,6 +38,10 @@ const documents: Documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n\tquery MinaTurer {\n\t\ttours(limit: 200) {\n\t\t\tid\n\t\t\ttitle\n\t\t\tdistance_m: distanceM\n\t\t\tuser {\n\t\t\t\tid\n\t\t\t}\n\t\t}\n\t}\n"): (typeof documents)["\n\tquery MinaTurer {\n\t\ttours(limit: 200) {\n\t\t\tid\n\t\t\ttitle\n\t\t\tdistance_m: distanceM\n\t\t\tuser {\n\t\t\t\tid\n\t\t\t}\n\t\t}\n\t}\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

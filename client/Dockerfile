@@ -6,7 +6,6 @@ COPY package.json package-lock.json .npmrc tsconfig.base.json ./
 COPY shared/package.json shared/
 COPY api/package.json api/
 COPY client/package.json client/
-COPY web/package.json web/
 RUN npm ci --workspace=client
 
 COPY shared/ shared/
