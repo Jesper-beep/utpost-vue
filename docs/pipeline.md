@@ -110,7 +110,7 @@ Fångar N+1 i turlistan och saknat inloggningskrav för `createTour`. Se [testin
 
 Jobbet bygger ingenting. Det säger åt Container Apps att köra de avbildningar som Image redan byggt, med taggen `sha-` och commitens sju första tecken.
 
-- Loggar in i Azure med OIDC. Inga lösenord i GitHub, bara id:n som variabler på miljön `azure-staging`
+- Loggar in i Azure med OIDC. Inga lösenord i GitHub, bara id:n som variabler på miljön `azure-staging`. Resursgruppens namn är en secret, så att det inte syns i loggen
 - Byter avbildning på `api` och `client`. Det ger två revisioner per deploy
 - Väntar tills `/api/health` svarar med commitens hela sha och sista revisionen är klar
 - Röktestar `/graphql` genom nginx, med ett anrop som kräver data ur databasen

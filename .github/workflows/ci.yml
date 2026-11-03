@@ -142,7 +142,7 @@ jobs:
 
       - name: Byt image på api och client, exakt den här committen
         env:
-          RG: ${{ vars.AZURE_RG }}
+          RG: ${{ secrets.AZURE_RG }}
           APP: ${{ vars.AZURE_APP }}
         run: |
           az extension add --name containerapp --upgrade --only-show-errors
@@ -159,7 +159,7 @@ jobs:
       - name: Vänta tills staging kör den här committen
         env:
           URL: ${{ vars.AZURE_URL }}
-          RG: ${{ vars.AZURE_RG }}
+          RG: ${{ secrets.AZURE_RG }}
           APP: ${{ vars.AZURE_APP }}
         run: |
           URL="${URL%/}"
