@@ -262,6 +262,7 @@ git log --oneline -S "utpost-super-secret"
 ```
 
 ```text
+b22c6ed Steg 2 - Hemligheten ur koden och roterad
 6faf346 Steg 1 - Molnfärdig: konfiguration utifrån och sha i health
 e86dae3 Move API URL and secrets to env files
 4ef828f M0 slutförd
@@ -274,10 +275,15 @@ Kommandot visar de commits där hemligheten lades till eller togs bort.
 - `4ef828f`: `docs/debt.md` citerar den
 - `e86dae3`: borttagen ur `config.js`
 - `6faf346`: borttagen ur `docs/debt.md`
+- `b22c6ed`: README visar början av värdet i sökkommandot ovan, men inte värdet i sin helhet
 
 ## I molnet (M6)
 
-Staging kör i Azure Container Apps som en app med fyra containrar: client (nginx), api, postgres och mongo. De delar localhost, och bara client nås utifrån. Appen stängs av helt mellan passen, när ingen använder den. Första anropet efter en paus startar den igen. Databaserna har ingen volym och seedas om vid varje kallstart (`SEED_ON_START=1`).
+Staging kör i Azure Container Apps som en app med fyra containrar: client (nginx), api, postgres och mongo. De delar localhost, och bara client nås utifrån.
+
+Appen stängs av helt mellan passen, när ingen använder den. Första anropet efter en paus startar den igen.
+
+Databaserna har ingen volym och seedas om vid varje kallstart (`SEED_ON_START=1`).
 
 Staging: <https://utpost-staging.purpleplant-b5bdf15c.swedencentral.azurecontainerapps.io>
 
@@ -291,11 +297,13 @@ git rev-parse main
 ```
 
 ```text
-{"mongodb":"ok","ok":true,"postgres":"ok","sha":"1cccc22ff7e5c2e3acebce13093e133035b4736b"}
-1cccc22ff7e5c2e3acebce13093e133035b4736b
+{"mongodb":"ok","ok":true,"postgres":"ok","sha":"7c13c742eebd03f932490b3f209d10b4424e7014"}
+7c13c742eebd03f932490b3f209d10b4424e7014
 ```
 
 Kommandot visar vilken commit staging kör. `sha` ska vara lika med `git rev-parse main`.
+
+Staging byter commit vid varje merge till main, så värdet ovan gäller commiten som kördes när vi skrev det. Kör kommandona igen för att se vad staging kör nu.
 
 Så såg api-loggen ut vid första starten:
 

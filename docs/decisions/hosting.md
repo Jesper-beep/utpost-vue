@@ -25,7 +25,7 @@ Produktion är inte beslutad. Det vi vet om den står under [Staging och produkt
 - Appen är avstängd när ingen använder den, och kostar då inget
 - Pipelinen loggar in med OIDC, utan lösenord i GitHub
 - Prenumerationen och resursgrupperna finns redan i kursen, så vi behöver inget betalkort
-- Beslutet gäller staging. Vi har inte jämfört alternativen för produktion
+- Beslutet gäller staging. Produktion är inte beslutad
 
 ## Vad vi faktiskt hyr
 
