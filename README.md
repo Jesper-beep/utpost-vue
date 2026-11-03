@@ -165,7 +165,7 @@ Användare, lösenord och databasnamn för MongoDB
 #### `JWT_SECRET`
 
 - Samma sak som i `api/.env`, men för API-containern
-- Lokalt: `dev-only-secret`
+- Lokalt: `a-long-random-string`
 
 Kör du API:et utanför Docker måste miljövariablerna för Postgres och MongoDB stämma med `POSTGRES_URL` och `MONGODB_URL` i `api/.env`.
 
@@ -233,6 +233,56 @@ Starta om dev-servern efter att du ändrat en `.env`-fil.
 - Valfri, standard `api:4000`
 
 nginx fyller i `${API_UPSTREAM}` i `client/nginx/default.conf.template` när containern startar. Kontrollera med `docker compose exec client cat /etc/nginx/conf.d/default.conf`.
+
+## Konfiguration och hemligheter (M6)
+
+Adresser och hemligheter läses när containern startar, inte när avbildningen byggs. Samma avbildning kan därför köras både i compose och i Azure. Det enda som bakas in vid bygget är `GIT_SHA`.
+
+### Konfiguration utifrån
+
+nginx-mallen `client/nginx/default.conf.template` ligger i `/etc/nginx/templates/` i client-containern. Vid start byter nginx ut `${API_UPSTREAM}` mot värdet i miljön.
+
+- Compose: `API_UPSTREAM=api:4000`
+- Azure: `API_UPSTREAM=localhost:4000`, eftersom containrarna i appen delar localhost
+
+Mät själv med:
+
+```sh
+docker compose exec client cat /etc/nginx/conf.d/default.conf | grep proxy_pass
+```
+
+```text
+proxy_pass http://api:4000;
+proxy_pass http://api:4000;
+```
+
+*Visar de renderade raderna ur nginx-konfigurationen i client-containern.*
+
+### Hemligheten
+
+`JWT_SECRET` låg i `api/src/config.js` sedan första commiten. Vi har tagit bort den ur koden och bytt ut den. Det gamla värdet används inte längre någonstans.
+
+Det nya värdet finns lokalt i vår egen `.env`, som inte checkas in. `.env.example` visar vilka namn som behövs. I Azure skapar `infra/azure/skapa-staging.sh` värdet med `openssl rand` och sparar det som secret i Container Apps. Det skrivs aldrig i någon fil.
+
+Mät själv med:
+
+```sh
+git log --oneline -S "utpost-super-secret-2021"
+```
+
+```text
+6faf346 Steg 1 - Molnfärdig: konfiguration utifrån och sha i health
+e86dae3 Move API URL and secrets to env files
+4ef828f M0 slutförd
+4497d54 Initial commit
+```
+
+*Visar de commits där hemligheten lades till eller togs bort.*
+
+- `4497d54`: hemligheten läggs in i `config.js`
+- `4ef828f`: `docs/debt.md` citerar den
+- `e86dae3`: borttagen ur `config.js`
+- `6faf346`: borttagen ur `docs/debt.md`
 
 ## Kommandon
 
@@ -369,7 +419,7 @@ Frågorna skrivs i `graphql(...)`. Codegen skriver typerna ur schemat till `clie
 
 ### Borttaget fält stoppar `npm run typecheck`
 
-`npm run typecheck` kör codegen först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.js` på en branch. Kommandot stoppade:
+`npm run typecheck` kör `codegen` först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.js` på en branch. Kommandot stoppade:
 
 ```text
 GraphQL Document Validation failed with 2 errors;
