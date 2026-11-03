@@ -15,7 +15,7 @@ RUN npm run build --workspace=client
 
 FROM nginxinc/nginx-unprivileged:stable-alpine-slim
 
-ENV API_PROXY_TARGET=http://api:4000
+ENV API_UPSTREAM=api:4000
 
 COPY client/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY client/nginx/headers.conf /etc/nginx/headers.conf

@@ -51,7 +51,7 @@ Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan
 
 #### Felsökning och övrigt
 
-- Kontrollera API:et med `curl localhost:3001/api/health`. Båda databaserna ska visa `ok`: `{"mongodb":"ok","ok":true,"postgres":"ok"}`
+- Kontrollera API:et med `curl localhost:3001/api/health`. Båda databaserna ska visa `ok`: `{"mongodb":"ok","ok":true,"postgres":"ok","sha":"dev"}`
 - Felsöker du API:et direkt kan du lägga tillbaka `ports: "127.0.0.1:4000:4000"` under `api` i `compose.yaml`. Checka inte in det
 - Öppna <http://localhost:3001/graphql> i webbläsaren för GraphiQL
 - Databasfrågorna för varje GraphQL-fråga loggas av API:et: `docker logs utpost-api | grep graphql`
@@ -201,16 +201,38 @@ Anslutning till MongoDB
 - Valfri, standard `./uploads`
 - Mappen där uppladdade filer ska sparas
 
+#### `SEED_ON_START`
+
+- Valfri, `1` seedar en tom databas vid start (`src/boot.js`)
+- Compose sätter den till `1`
+
+#### `GIT_SHA`
+
+- Valfri, standard `dev`
+- Sätts vid bygget med `--build-arg`, inte i en `.env`
+- Visas som `sha` i `/api/health`
+
 API:et startar inte om `POSTGRES_URL`, `MONGODB_URL` eller `JWT_SECRET` saknas.
 
-### `client/.env` och `web/.env`
+### `client/.env`
 
 #### `API_PROXY_TARGET`
 
-- Adress till API:et för dev-proxyn
+- Adress till API:et för Vites dev-proxy
 - Lokalt: `http://localhost:4000` (utan `/api`)
 
-Båda "frontendarna" anropar alltid `/api`, och Vue-klienten anropar även `/graphql`. Vite och nginx skickar vidare anropen till `API_PROXY_TARGET`, så ingen API-adress finns i koden. Starta om dev-servern efter att du ändrat en `.env`-fil.
+Starta om dev-servern efter att du ändrat en `.env`-fil.
+
+### `client`-containern
+
+#### `API_UPSTREAM`
+
+- Adress till API:et för nginx, utan `http://`
+- Lokalt (compose): `api:4000`
+- Azure: `localhost:4000`
+- Valfri, standard `api:4000`
+
+nginx fyller i `${API_UPSTREAM}` i `client/nginx/default.conf.template` när containern startar. Kontrollera med `docker compose exec client cat /etc/nginx/conf.d/default.conf`.
 
 ## Kommandon
 

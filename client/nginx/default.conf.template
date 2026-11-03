@@ -11,8 +11,6 @@ server {
 
 	include /etc/nginx/headers.conf;
 
-	resolver 127.0.0.11 valid=10s;
-
 	location = /health {
 		access_log off;
 		default_type text/plain;
@@ -21,13 +19,13 @@ server {
 
 	location = /api/photos {
 		client_max_body_size 11m;
-		set $api ${API_PROXY_TARGET};
+		proxy_pass http://${API_UPSTREAM};
 		include /etc/nginx/proxy.conf;
 	}
 
 	location ~ ^/(api|uploads|graphql)(/|$) {
 		client_max_body_size 1m;
-		set $api ${API_PROXY_TARGET};
+		proxy_pass http://${API_UPSTREAM};
 		include /etc/nginx/proxy.conf;
 	}
 

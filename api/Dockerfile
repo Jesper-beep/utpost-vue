@@ -14,7 +14,10 @@ COPY api/ api/
 
 RUN mkdir -p /data/uploads && chown node:node /data/uploads
 
+ARG GIT_SHA=dev
+ENV GIT_SHA=$GIT_SHA
+
 WORKDIR /app/api
 USER node
 EXPOSE 4000
-CMD ["node", "src/index.js"]
+CMD ["node", "src/boot.js"]

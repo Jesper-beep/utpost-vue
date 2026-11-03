@@ -47,6 +47,7 @@ services:
       MONGODB_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/${MONGO_DB}?authSource=admin
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is not set in .env}
       UPLOAD_DIR: /data/uploads
+      SEED_ON_START: "1"
     volumes:
       - uploads:/data/uploads
     depends_on:
@@ -62,7 +63,7 @@ services:
       dockerfile: client/Dockerfile
     restart: unless-stopped
     environment:
-      API_PROXY_TARGET: http://api:4000
+      API_UPSTREAM: api:4000
     ports:
       - "127.0.0.1:3001:3001"
     depends_on:
