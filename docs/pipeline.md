@@ -51,7 +51,7 @@ Efter M6, när `web/` var borttagen:
 - Tid på macos: 11 sekunder
 - Tid på windows: 18 sekunder
 
-Skillnaden är liten, eftersom installationen mest består av de paket som `api/` och `client/` behöver. I M6 behövde bara vyn Profil portas från `web/` till `client/`. De andra vyerna fanns redan i Vue.
+Skillnaden är liten. I M6 behövde bara vyn Profil portas från `web/` till `client/`, och de andra vyerna fanns redan i Vue.
 
 ### `biome ci`
 
@@ -120,6 +120,8 @@ Fångar N+1 i turlistan och saknat inloggningskrav för `createTour`. Se [testin
 
 Jobbet bygger ingenting. Det säger åt Container Apps att köra de avbildningar som Image redan byggt, med taggen `sha-` och commitens sju första tecken.
 
+Fångar fel som bara syns när avbildningarna kör i Azure, till exempel en nginx-mall som inte renderas.
+
 - Loggar in i Azure med OIDC. Inga lösenord i GitHub, bara id:n som variabler på miljön `azure-staging`. Resursgruppens namn är en secret, så att det inte syns i loggen
 - Byter avbildning på `api` och `client`. Det ger två revisioner per deploy
 - Väntar tills `/api/health` svarar med commitens hela sha och sista revisionen är klar
@@ -127,9 +129,10 @@ Jobbet bygger ingenting. Det säger åt Container Apps att köra de avbildningar
 
 Att kommandot gick igenom betyder bara att Azure tog emot beställningen, därför väntar jobbet på rätt sha.
 
-- Tid på main: 102 sekunder (1 minut och 42 sekunder)
-- Revisioner efter deploy: `utpost-staging--sha-1cccc22-api` (api byts först) och `utpost-staging--sha-1cccc22` (client byts sist)
+- Tid på main: 102 sekunder första gången och 86 sekunder andra gången
 - Första revisionen, från `skapa-staging.sh`: `utpost-staging--gseomay`
+- Första deployen: `utpost-staging--sha-1cccc22-api` (api byts först) och `utpost-staging--sha-1cccc22` (client byts sist)
+- Andra deployen, efter merge av PR 65: `utpost-staging--sha-7c13c74-api` och `utpost-staging--sha-7c13c74`
 
 ## Regler på main
 
