@@ -514,3 +514,4 @@ Vi kör "trunk-based" med följande motivering:
 - Kontakt sker på Discord
 - Alla behöver våga be om hjälp
 - Vi hjälps åt att motivera teamet och hör av oss till varandra
+- Vi andas luft
