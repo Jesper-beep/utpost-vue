@@ -1,0 +1,5 @@
+.funcignore
+.gitignore
+local.settings.example.json
+local.settings.json
+src
