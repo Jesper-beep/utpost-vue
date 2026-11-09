@@ -14,16 +14,19 @@ flowchart LR
   G -->|nej| F
   M --> D[Deploy to Azure staging: byt avbildning till commitens sha, vänta på /api/health, röktesta]
   D --> ST[staging kör den mergade committen]
+  M --> DF[Deploy to Azure Functions: bygg funktionen, publicera, röktesta]
+  DF --> FN[bildfunktionen kör den mergade committen]
 ```
 
 ## Jobb
 
-CI har fyra jobb i `.github/workflows/ci.yml`.
+CI har fem jobb i `.github/workflows/ci.yml`.
 
-- SlopChecker2000: lint, typkontroll, tester och bygge av klienten. Körs på ubuntu, macos och windows
+- SlopChecker2000: lint, typkontroll, tester (även bildfunktionens) och bygge av klienten. Körs på ubuntu, macos och windows
 - Integration: API:ets integrationstester mot riktiga databaser. Körs på ubuntu
 - Image: bygger Docker-avbildningarna för api och client. Körs på ubuntu och väntar på SlopChecker2000
 - Deploy to Azure staging: byter avbildning på api och client i Azure Container Apps. Körs på ubuntu, bara vid push till main, och väntar på Image och Integration
+- Deploy to Azure Functions: bygger och publicerar bildfunktionen i Azure Functions. Körs på ubuntu, bara vid push till main, och väntar på SlopChecker2000
 
 Integration är oberoende av SlopChecker2000, så de två körs samtidigt.
 
@@ -134,12 +137,25 @@ Att kommandot gick igenom betyder bara att Azure tog emot beställningen, därf�
 - Första deployen: `utpost-staging--sha-1cccc22-api` (api byts först) och `utpost-staging--sha-1cccc22` (client byts sist)
 - Andra deployen, efter merge av PR 65: `utpost-staging--sha-7c13c74-api` och `utpost-staging--sha-7c13c74`
 
+## Deploy av funktionen
+
+Jobbet publicerar bildfunktionen i `functions/` till Azure Functions. Det är ett eget jobb, eftersom funktionen inte är en avbildning och inte byts av Deploy to Azure staging.
+
+Fångar fel som bara syns när koden kör i Azure, till exempel att `sharp` saknar binärerna för Linux.
+
+- Bygger funktionen med `esbuild` och installerar bara de beroenden som körs i Azure (`npm ci --omit=dev`), på ubuntu
+- Loggar in i Azure med samma OIDC-identitet som Deploy to Azure staging
+- Publicerar paketet med `Azure/functions-action`. Funktionens namn ligger i variabeln `AZURE_FUNCTION_APP` på miljön `azure-staging`
+- Röktestar funktionen med data som inte är en bild. Svaret ska vara 400. Då vet vi att koden kör och att nyckeln fungerar. Nyckeln hämtas med `az` i jobbet och maskeras i loggen
+
+Röktestet bevisar inte att en riktig bild går att behandla i Azure. Det prövas med en uppladdning efter merge.
+
 ## Regler på main
 
 - PR krävs, minst en godkännare och "gröna checks" från alla tre operativsystemen och från Integration
 - Branchen måste vara uppdaterad mot main innan merge
 - Reglerna gäller även admins
-- Deploy to Azure staging är inte en status check. Den körs efter merge, på main, och hoppas över på en PR. Blir den röd är main ändå korrekt, men staging uppdaterades inte
+- Deploy to Azure staging och Deploy to Azure Functions är inte status checks. De körs efter merge, på main, och hoppas över på en PR. Blir en av dem röd är main ändå korrekt, men staging eller funktionen uppdaterades inte
 
 ## Kommandon
 

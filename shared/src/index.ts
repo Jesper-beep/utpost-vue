@@ -54,6 +54,20 @@ export interface Photo {
 	created_at: string;
 }
 
+export interface PhotoVariant {
+	width: number;
+	height: number;
+	sizeBytes: number;
+}
+
+export interface PhotoUploadResponse extends Photo {
+	variants: PhotoVariant[];
+	processingMs: number;
+	apiMs: number;
+	coldStart: boolean;
+	instance: string;
+}
+
 export interface Tour {
 	id: number;
 	user_id: number;

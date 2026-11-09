@@ -1,0 +1,23 @@
+{
+	"dependencies": {
+		"@azure/functions": "^4.16.5",
+		"sharp": "^0.35.5"
+	},
+	"devDependencies": {
+		"esbuild": "^0.28.2",
+		"vitest": "^5.1.0"
+	},
+	"engines": {
+		"node": ">=24.0.0"
+	},
+	"main": "dist/process-image.js",
+	"name": "utpost-functions",
+	"private": true,
+	"scripts": {
+		"build": "esbuild src/process-image.js --bundle --platform=node --format=esm --packages=external --outfile=dist/process-image.js",
+		"start": "npm run build && func start",
+		"test": "vitest run"
+	},
+	"type": "module",
+	"version": "1.4.2"
+}

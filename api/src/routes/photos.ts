@@ -2,6 +2,8 @@ import {
 	type ApiError,
 	PHOTO_MAX_UPLOAD_MB,
 	type Photo,
+	type PhotoUploadResponse,
+	type PhotoVariant,
 	type Tour,
 	type User,
 } from "@utpost/shared";
@@ -10,15 +12,18 @@ import { config } from "../config.js";
 import { pool } from "../db/client.js";
 import { requireUser } from "../lib/auth.js";
 import {
+	ImageFunctionError,
+	type ImageFunctionVariant,
 	InvalidPhotoError,
 	type ProcessedPhoto,
-	processPhoto,
-	removePhoto,
-} from "../lib/photos.ts";
+	requestPhotoProcessing,
+} from "../lib/imageFunction.ts";
+import { removePhoto, savePhotoVariants } from "../lib/photos.ts";
 
 export const photosRouter = Router();
 
 const MAX_UPLOAD_SIZE = `${PHOTO_MAX_UPLOAD_MB}mb`;
+const DEFAULT_CONTENT_TYPE = "application/octet-stream";
 
 const getUserId = (request: Request): User["id"] => {
 	const { user } = request as Request & { user: Pick<User, "id"> };
@@ -73,16 +78,48 @@ const insertPhoto = async (
 	}
 };
 
+const toPhotoVariant = (variant: ImageFunctionVariant): PhotoVariant => {
+	return {
+		height: variant.height,
+		sizeBytes: variant.sizeBytes,
+		width: variant.width,
+	};
+};
+
+const buildUploadResponse = (
+	savedPhoto: Photo,
+	processedPhoto: ProcessedPhoto,
+	apiMs: number,
+): PhotoUploadResponse => {
+	return {
+		...savedPhoto,
+		apiMs,
+		coldStart: processedPhoto.coldStart,
+		instance: processedPhoto.instance,
+		processingMs: processedPhoto.processingMs,
+		variants: processedPhoto.variants.map(toPhotoVariant),
+	};
+};
+
 const saveUploadedPhoto = async (
 	tourId: Tour["id"],
 	imageBuffer: Buffer,
-): Promise<Photo> => {
-	const photo = await processPhoto(imageBuffer, config.uploadDir);
+	contentType: string,
+): Promise<PhotoUploadResponse> => {
+	const startedAt = performance.now();
+	const processedPhoto = await requestPhotoProcessing(imageBuffer, contentType);
+	await savePhotoVariants(
+		config.uploadDir,
+		processedPhoto.key,
+		processedPhoto.variants,
+	);
 
 	try {
-		return await insertPhoto(tourId, photo);
+		const savedPhoto = await insertPhoto(tourId, processedPhoto);
+		const apiMs = Math.round(performance.now() - startedAt);
+		return buildUploadResponse(savedPhoto, processedPhoto, apiMs);
 	} catch (error) {
-		await removePhoto(config.uploadDir, photo.key);
+		await removePhoto(config.uploadDir, processedPhoto.key);
 		throw error;
 	}
 };
@@ -93,6 +130,11 @@ const sendUploadError = (response: Response, error: unknown) => {
 	}
 
 	console.error("Uppladdningen misslyckades:", error);
+
+	if (error instanceof ImageFunctionError) {
+		return sendError(response, 502, "bildbehandlingen är inte tillgänglig");
+	}
+
 	return sendError(response, 500, "uppladdningen misslyckades");
 };
 
@@ -118,8 +160,12 @@ const uploadPhoto = async (request: Request, response: Response) => {
 			return sendError(response, 403, "inte din tur");
 		}
 
-		const photo = await saveUploadedPhoto(tourId, request.body);
-		return response.json(photo);
+		const uploadResponse = await saveUploadedPhoto(
+			tourId,
+			request.body,
+			request.headers["content-type"] ?? DEFAULT_CONTENT_TYPE,
+		);
+		return response.json(uploadResponse);
 	} catch (error) {
 		return sendUploadError(response, error);
 	}

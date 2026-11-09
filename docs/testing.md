@@ -1,10 +1,10 @@
 ---
 title: "Teststrategi"
-description: "Teststrategi för Team 6 i kursen Avancerad frontend-utveckling. Del av M2-momentet. Uppdaterad i M5 med integrationstester för API:et."
+description: "Teststrategi för Team 6 i kursen Avancerad frontend-utveckling. Del av M2-momentet. Uppdaterad i M5 med integrationstester för API:et och i M7 med tester för bilduppladdningen."
 created: "2026-10-06"
 published_date: "2026-10-06"
-last_modified_date: "2026-10-26"
-version: 2
+last_modified_date: "2026-11-09"
+version: 3
 ---
 
 Utöver rena "funktionstester" som kontrollerar komponenter, datahämtningar (fetch) och liknande, vill vi även testa sådant som vi tror att många missar, exempelvis: har varje sida en titel och är den unik? Hygienfaktorer med andra ord.
@@ -83,6 +83,35 @@ it("får klassen för vald variant", () => {
   expect(wrapper.classes()).not.toContain("button--primary");
 });
 ```
+
+#### `components/PhotoUploader.test.ts`
+
+Testar bilduppladdningen `PhotoUploader`. `uploadPhoto` är mockad, så ingen bild skickas på riktigt.
+
+- Går inte att ladda upp innan en bild är vald
+- Skickar vald bild och tur till uppladdningen och meddelar att den är klar
+- Gömmer Debug info tills man öppnar den
+- Visar svaret från bildfunktionen under Debug info
+- Visar att bilden laddas upp och går inte att skicka igen under tiden
+- Visar felet och meddelar inte att bilden är klar när uppladdningen misslyckas
+
+#### `components/PhotoDebugInfo.test.ts`
+
+Testar att svaret från bildfunktionen visas med rubriker och underrubriker.
+
+- Har en rubrik för tider, bildfunktionen och varianter
+- Visar tiderna under egna underrubriker
+- Visar vilken instans bildfunktionen körde på
+- Visar om det var en kallstart (Ja eller Nej)
+- Visar dimension och storlek under en rubrik för varje variant
+
+#### `components/TourArticle.test.ts`
+
+Testar turens sida: bilderna och uppladdningen. `bigFetch` och `PhotoUploader` är ersatta.
+
+- Visar turens bilder, och säger till när turen saknar bilder
+- Visar uppladdningen bara för turens ägare, inte för andra och inte utan inloggning
+- Lägger till den uppladdade bilden bland bilderna
 
 ### Bibliotek/delade grejer
 
@@ -172,6 +201,26 @@ it("loggar ett ohanterat fel med console.error", () => {
   );
 });
 ```
+
+#### `tests/photos.test.ts` och `tests/imageFunction.test.ts`
+
+Testar att API:et lämnar bildbehandlingen till bildfunktionen. Funktionen och databasen är mockade, men filerna sparas på riktigt i en tillfällig mapp.
+
+- Ger 413 för en bild över 10 MB, 404 för en tur som inte finns och 403 för någon annans tur, utan att anropa bildfunktionen
+- Sparar varianterna och svarar med mått och tider, men utan bilddata
+- Ger 400 när bildfunktionen avvisar bilden och 502 när den inte går att nå
+- Tar bort filerna igen när bilden inte kan sparas i databasen
+- `requestPhotoProcessing` skickar nyckeln i `x-functions-key`, avvisar svar med en nyckel som kan peka utanför uppladdningsmappen och misslyckas utan nätanrop när adressen saknas
+
+#### `functions/src/image.test.js`
+
+Testar bildbehandlingen i bildfunktionen, med riktiga bilder som `sharp` skapar.
+
+- Skapar bilden som 16:9 i alla storlekar
+- Godkänner en bild som är lagrad stående men ska visas liggande
+- Avvisar en bild över 50 MP, en bild som är för liten, ett bildformat som inte stöds och data som inte är en bild
+
+Kör dem med `npm --prefix functions test`.
 
 #### `src/graphql/server.test.js`
 
