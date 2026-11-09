@@ -186,6 +186,10 @@ describe("Uppladdning med bildfunktionen", () => {
 			],
 		});
 		expect(body.apiMs).toBeGreaterThanOrEqual(0);
+		expect(pool.query).toHaveBeenLastCalledWith(
+			expect.stringContaining("insert into photos"),
+			[TOUR_ID, PHOTO_KEY, 1920, 1080],
+		);
 		expect(JSON.stringify(body)).not.toContain("dataBase64");
 		expect((await readdir(uploadDirectory)).sort()).toEqual([
 			`${PHOTO_KEY}-1920.avif`,

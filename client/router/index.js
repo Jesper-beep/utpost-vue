@@ -50,12 +50,6 @@ export const routes = [
 		path: "/profil",
 	},
 	{
-		component: () => import("../src/views/PhotoTestView.vue"),
-		meta: { title: "Testa bilduppladdning" },
-		name: "Testa bilduppladdning",
-		path: "/testa-bilduppladdning",
-	},
-	{
 		component: () => import("../src/views/NotFoundView.vue"),
 		meta: { title: "Sidan kan inte visas" },
 		name: "NotFound",

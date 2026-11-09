@@ -3,7 +3,7 @@ import {
 	getPhotoFilename,
 	PHOTO_MAX_UPLOAD_MB,
 	PHOTO_WIDTHS,
-	type Photo,
+	type PhotoUploadResponse,
 } from "@utpost/shared";
 import { API_URL } from "../config.js";
 
@@ -19,11 +19,15 @@ export const buildPhotoSrcset = (filename: string): string => {
 	).join(", ");
 };
 
+export const formatKilobytes = (sizeBytes: number): string => {
+	return `${Math.round(sizeBytes / 1024)} kB`;
+};
+
 export const uploadPhoto = async (
 	token: string,
 	tourId: number,
 	file: File,
-): Promise<Photo | ApiError> => {
+): Promise<PhotoUploadResponse | ApiError> => {
 	try {
 		const response = await fetch(`${API_URL}/photos?tourId=${tourId}`, {
 			body: file,

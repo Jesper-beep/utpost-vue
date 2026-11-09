@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import type { TourDetail } from "@utpost/shared";
+import type { Photo, TourDetail } from "@utpost/shared";
 import { computed, ref, useId, watch } from "vue";
 import { useRoute } from "vue-router";
 import { API_URL } from "../config.js";
 import { distanceKm, elevationGain } from "../lib/tours.js";
+import { useSessionStore } from "../stores/session.js";
 import { bigFetch } from "../utils/bigFetch.js";
+import PhotoGallery from "./PhotoGallery.vue";
+import PhotoUploader from "./PhotoUploader.vue";
 
 const route = useRoute();
+const session = useSessionStore();
 
 const tour = ref<TourDetail | null>(null);
 const captionId = useId();
@@ -32,6 +36,18 @@ watch(tour, (value) => {
 const distance = computed(() => distanceKm(tour.value));
 
 const climb = computed(() => elevationGain(tour.value?.logs ?? []));
+
+const isOwner = computed(() => {
+	if (!session.isLoggedIn || !tour.value) {
+		return false;
+	} else {
+		return session.user?.id === tour.value.user_id;
+	}
+});
+
+const addUploadedPhoto = (photo: Photo) => {
+	tour.value?.photos.push(photo);
+};
 </script>
 
 <template>
@@ -43,6 +59,13 @@ const climb = computed(() => elevationGain(tour.value?.logs ?? []));
 			{{ climb }} höjdmeter
 		</p>
 		<p v-if="tour.notes">{{ tour.notes }}</p>
+		<h2 class="tour-article__subheading">Bilder</h2>
+		<PhotoGallery :photos="tour.photos" :tour-title="tour.title" />
+		<PhotoUploader
+			v-if="isOwner"
+			:tour-id="tour.id"
+			@uploaded="addUploadedPhoto"
+		/>
 		<h2 class="tour-article__subheading">Mätpunkter</h2>
 		<section
 			class="tour-article__logs"
