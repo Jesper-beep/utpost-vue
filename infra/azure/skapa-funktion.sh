@@ -185,11 +185,16 @@ az functionapp deployment source config-zip \
 rm -rf "${WORK_DIR}"
 
 FUNCTION_KEY="$(read_function_key)"
-HOST_NAME="$(az functionapp show \
+HOST_NAME="$(az resource show \
   --name "${FUNCTION_APP}" \
   --resource-group "${RG}" \
-  --query defaultHostName \
+  --resource-type Microsoft.Web/sites \
+  --query properties.defaultHostName \
   --output tsv)"
+if [ -z "${HOST_NAME}" ]; then
+  echo "FEL: hittade ingen adress för ${FUNCTION_APP}." >&2
+  exit 1
+fi
 FUNCTION_URL="https://${HOST_NAME}/api/process-image"
 
 connect_staging "${FUNCTION_URL}" "${FUNCTION_KEY}"
