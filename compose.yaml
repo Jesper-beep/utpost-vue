@@ -48,6 +48,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is not set in .env}
       UPLOAD_DIR: /data/uploads
       SEED_ON_START: "1"
+      IMAGE_FUNCTION_URL: http://host.docker.internal:7071/api/process-image
+      IMAGE_FUNCTION_KEY: ${IMAGE_FUNCTION_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - uploads:/data/uploads
     depends_on:

@@ -8,6 +8,8 @@ const required = (name) => {
 
 export const config = {
 	gitSha: process.env["GIT_SHA"] ?? "dev",
+	imageFunctionKey: process.env["IMAGE_FUNCTION_KEY"] ?? "",
+	imageFunctionUrl: process.env["IMAGE_FUNCTION_URL"] ?? "",
 	jwtSecret: required("JWT_SECRET"),
 	mongodbUrl: required("MONGODB_URL"),
 	port: Number(process.env["PORT"] ?? 4000),
