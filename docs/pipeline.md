@@ -121,7 +121,7 @@ Fångar N+1 i turlistan och saknat inloggningskrav för `createTour`. Se [testin
 
 ## Deploy
 
-Jobbet bygger ingenting. Det säger åt Container Apps att köra de avbildningar som Image redan byggt, med taggen `sha-` och commitens sju första tecken.
+Jobbet säger åt Container Apps att köra de avbildningar som Image redan byggt, med taggen `sha-` och commitens sju första tecken.
 
 Fångar fel som bara syns när avbildningarna kör i Azure, till exempel en nginx-mall som inte renderas.
 
@@ -139,7 +139,7 @@ Att kommandot gick igenom betyder bara att Azure tog emot beställningen, därf�
 
 ## Deploy av funktionen
 
-Jobbet publicerar bildfunktionen i `functions/` till Azure Functions. Det är ett eget jobb, eftersom funktionen inte är en avbildning och inte byts av Deploy to Azure staging.
+Jobbet publicerar bildfunktionen i `functions/` till Azure Functions. Det är ett eget jobb, eftersom funktionen publiceras som kod. Deploy to Azure staging byter avbildningar.
 
 Fångar fel som bara syns när koden kör i Azure, till exempel att `sharp` saknar binärerna för Linux.
 
@@ -148,7 +148,7 @@ Fångar fel som bara syns när koden kör i Azure, till exempel att `sharp` sakn
 - Publicerar paketet med `Azure/functions-action`. Funktionens namn ligger i variabeln `AZURE_FUNCTION_APP` på miljön `azure-staging`
 - Röktestar funktionen med data som inte är en bild. Svaret ska vara 400. Då vet vi att koden kör och att nyckeln fungerar. Nyckeln hämtas med `az` i jobbet och maskeras i loggen
 
-Röktestet bevisar inte att en riktig bild går att behandla i Azure. Det prövas med en uppladdning efter merge.
+Att en riktig bild går att behandla i Azure prövas med en uppladdning efter merge.
 
 ## Regler på main
 

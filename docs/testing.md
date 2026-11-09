@@ -25,6 +25,14 @@ API:ets tester kräver att databaserna är igång, seedade och migrerade (se [RE
 npm run test:api
 ```
 
+Bildfunktionens tester ligger i `functions/src`. De behöver inga databaser. Kör dem med:
+
+```sh
+npm --prefix functions test
+```
+
+CI kör dem i SlopChecker2000, på alla tre operativsystemen.
+
 ## Typ av tester eller "nivåer" samt beslut
 
 Vi testar klienten och API:et med Vitest på nivåerna enhet, struktur, regression och integration. Vi har inga krav på täckning och mockar API:et när vi skriver klientens tester. Kritiska delar prioriteras med sunt förnuft.
@@ -55,7 +63,7 @@ Planerad, men än så länge har vi bara ett test för inloggat läge: `createTo
 
 ## Nuvarande tester
 
-Sökvägarna utgår från `client/tests`, utom under API som utgår från `api`.
+Sökvägarna utgår från `client/tests`, utom under API som utgår från `api`. Funktionens test står med sökväg från roten.
 
 ### Komponenter
 

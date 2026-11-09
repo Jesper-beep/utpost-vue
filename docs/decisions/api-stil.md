@@ -9,7 +9,7 @@ version: "1"
 
 ## Beslut
 
-GraphQL kompletterar REST, det ersätter det inte. Läsningar som idag kräver flera anrop, som startsidan, går via `/graphql`. Inloggning, bilduppladdning och allt som ändrar eller raderar stannar i REST. REST-rutterna svarar som förut.
+GraphQL kompletterar REST. Läsningar som idag kräver flera anrop, som startsidan, går via `/graphql`. Inloggning, bilduppladdning och allt som ändrar eller raderar stannar i REST. REST-rutterna svarar som förut.
 
 Undantaget är `createTour`. Det finns både som `POST /api/tours` i REST och som mutation i GraphQL. Klienten skapar inga turer än. När den gör det väljer vi en av dem.
 

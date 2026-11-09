@@ -51,6 +51,8 @@ properties:
             value: "4000"
           - name: SEED_ON_START
             value: "1"
+          - name: UPLOAD_DIR
+            value: /data/uploads
           - name: POSTGRES_URL
             secretRef: postgres-url
           - name: MONGODB_URL
