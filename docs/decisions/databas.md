@@ -15,7 +15,7 @@ Kräver uppgiften att vi flyttar till MongoDB, gör vi det enligt [dokumentmodel
 
 ### Varför
 
-- Problemet idag är 201 frågor och saknade index, inte Postgres. Båda går att lösa i Postgres (se [utläggning nedan](#problemet-är-kanske-inte-postgres))
+- Problemet idag är 201 frågor och saknade index. Båda går att lösa i Postgres (se [utläggning nedan](#problemet-är-kanske-inte-postgres))
 - MongoDB sparade c:a 16 % utrymme, men på väldigt lite data
 - En flytt kräver en migrering, och att två databaser hålls lika under tiden
 
@@ -82,7 +82,7 @@ Trots det blev MongoDB mindre.
 
 ## Dokumentmodell
 
-Så här skulle en tur kunna se ut som ett dokument. Värdena är bara exempel, men fälten kommer från `tours`, `tour_logs` och `photos`. Det här är ett förslag, inget färdigt.
+Så här skulle en tur kunna se ut som ett dokument. Värdena är bara exempel, men fälten kommer från `tours`, `tour_logs` och `photos`. Det här är ett förslag.
 
 ```json
 {
@@ -208,7 +208,7 @@ Det borde lösa de 201 frågorna och kräver ingen ny databas. Men en tur ligger
 
 ### Problemet är (kanske) inte Postgres
 
-Problemet idag är inte Postgres i sig, utan hur koden är skriven. Just nu körs multipla queries, och `tour_logs` saknar index.
+Problemet idag är hur koden är skriven. Just nu körs multipla queries, och `tour_logs` saknar index.
 
 Så som uppgiften är utformad, finns inget utrymme att faktiskt testa huruvida MongoDB skulle vara snabbare och "bättre".
 
@@ -418,6 +418,6 @@ För samma 200 turer sparar MongoDB ungefär 16 % utrymme.
 - Siffrorna kommer från seedad data med 20 till 39 punkter per tur. En riktig tur har ungefär 300 punkter, enligt kommentaren i `schema.js`
 - Bilder (`photos`) ingår inte, varken i Postgres eller i MongoDB
 - `/api/tours` hämtar bara de 50 senaste turerna (`limit 50`)
-- Skillnaden på 16 % är liten. Den största vinsten är färre uppslag, inte mindre utrymme
+- Skillnaden på 16 % är liten. Den största vinsten är färre uppslag
 - MongoDB komprimerar data på disk som standard, det gör inte Postgres. En del av skillnaden kan bero på det
 - Att välja MongoDB kan anses ceremoniellt i sammanhanget

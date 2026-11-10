@@ -30,6 +30,7 @@
 		"Ohanterat",
 		"searchrow",
 		"topbar",
+		"functionapp",
 		"repot",
 		"begäranden",
 		"databaskoden",
@@ -97,6 +98,7 @@
 		"deployen",
 		"Seeden",
 		"headern",
-		"Headern"
+		"Headern",
+		"proxyns"
 	]
 }

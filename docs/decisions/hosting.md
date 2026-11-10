@@ -3,8 +3,8 @@ title: "Hosting"
 description: "Beslut om var Utpost körs i molnet, med bortvalda alternativ, vad vi faktiskt hyr och vad som låser oss till Azure. Del av M6-momentet."
 created: "2026-11-03"
 published_date: "-"
-last_modified_date: "2026-11-03"
-version: "1"
+last_modified_date: "2026-11-09"
+version: "2"
 ---
 
 ## Beslut
@@ -119,7 +119,7 @@ Staging räcker för att testa en deploy. Produktion kräver mer.
 
 ## Inlåsning
 
-Ingenting i avbildningarna vet att de kör i Azure. Fyra filer och några värden skulle behöva ändras om vi flyttade.
+Ingenting i avbildningarna vet att de kör i Azure. Fyra filer och några värden skulle behöva ändras om vi flyttade. Bildfunktionen har sin egen lista i [serverless.md](serverless.md).
 
 ### Filer som bara finns för Azure
 
@@ -162,12 +162,18 @@ Ingenting i avbildningarna vet att de kör i Azure. Fyra filer och några värde
 - Compose: `1`
 - Azure: `1`
 
+#### `UPLOAD_DIR`
+
+- Compose: `/data/uploads`, på en volym
+- Azure: `/data/uploads`, utan volym
+
 ## Konsekvenser
 
 - Första anropet efter en paus tog 32 sekunder, från första anropet till `"ok":true`
 - Anropet gick först ut i timeout efter 20 sekunder, sedan kom ett 502 medan api:et startade, och sedan svarade appen
 - Databaserna fylls med ny testdata vid varje kallstart, så användare som någon registrerat försvinner när appen har stängts av
 - Databaserna har ingen volym och ingen backup, så det finns inget att återställa från
+- Uppladdade bilder ligger i `/data/uploads` utan volym och försvinner också vid en kallstart
 - Vi har `maxReplicas: 1`, eftersom databaserna lever i samma replika. Går den ner är appen nere tills en ny har startat
 - Deploy byter api och client i två anrop och ger två revisioner. Mellan dem kör appen en ny api med en gammal client
 - Jobbet väntar därför på den sista revisionen och på rätt `sha`

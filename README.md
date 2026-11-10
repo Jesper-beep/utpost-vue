@@ -85,6 +85,24 @@ npm run dev
 
 Stoppa containrarna med `npm run docker:down` innan du byter sätt. Annars är porten 3001 upptagen.
 
+### Bildfunktionen
+
+Bilderna behandlas av en Azure Function i `functions/`. Den måste köra för att en uppladdning ska fungera, oavsett hur du kör Utpost.
+
+Du behöver Azure Functions Core Tools (`func`). Kör sedan i ett eget fönster:
+
+```sh
+npm --prefix functions install
+cp functions/local.settings.example.json functions/local.settings.json
+npm --prefix functions start
+```
+
+- Funktionen lyssnar på <http://localhost:7071/api/process-image>
+- Compose pekar API-containern dit med `IMAGE_FUNCTION_URL`. Kör du API:et på din dator sätter du den i `api/.env`
+- Kör funktionen inte får uppladdningen svaret 502
+- Funktionens tester körs med `npm --prefix functions test`
+- Beslutet och mätningarna står i [serverless.md](docs/decisions/serverless.md)
+
 ## Struktur
 
 ### API (`api/`)
@@ -94,6 +112,10 @@ Express + Postgres (Drizzle) + MongoDB + GraphQL (graphql-yoga).
 ### Client (`client/`)
 
 Vue 3 + Vue Router + Vite. I Docker serveras bygget av nginx, se `client/nginx`.
+
+### Functions (`functions/`)
+
+Azure Function som behandlar bilderna med `sharp`. API:et skickar bilderna dit.
 
 ### Shared (`shared/`)
 
@@ -159,6 +181,11 @@ Användare, lösenord och databasnamn för MongoDB
 - Samma sak som i `api/.env`, men för API-containern
 - Lokalt: `a-long-random-string`
 
+#### `IMAGE_FUNCTION_KEY`
+
+- Nyckeln till bildfunktionen, för API-containern
+- Valfri, tom som standard
+
 Kör du API:et utanför Docker måste miljövariablerna för Postgres och MongoDB stämma med `POSTGRES_URL` och `MONGODB_URL` i `api/.env`.
 
 Kör du allt i Docker behöver du inte tänka på det. Då bygger Compose båda adresserna åt dig, med `postgres` och `mongo` som värdnamn.
@@ -191,6 +218,18 @@ Anslutning till MongoDB
 
 - Valfri, standard `./uploads`
 - Mappen där uppladdade filer ska sparas
+- Compose och Azure sätter den till `/data/uploads`
+
+#### `IMAGE_FUNCTION_URL`
+
+- Valfri, standard tom
+- Adressen till bildfunktionen. Lokalt: `http://localhost:7071/api/process-image`
+- Utan den får uppladdningen svaret 502
+
+#### `IMAGE_FUNCTION_KEY`
+
+- Valfri, standard tom
+- Skickas i headern `x-functions-key`. I Azure är den en secret
 
 #### `SEED_ON_START`
 
@@ -285,14 +324,14 @@ Appen stängs av helt mellan passen, när ingen använder den. Första anropet e
 
 Databaserna har ingen volym och seedas om vid varje kallstart (`SEED_ON_START=1`).
 
-Staging: <https://utpost-staging.purpleplant-b5bdf15c.swedencentral.azurecontainerapps.io>
+Staging: <https://utpost-staging.yellowisland-a04de7fc.swedencentral.azurecontainerapps.io>
 
 Varje merge till main byter avbildning i appen. Jobbet och flödet står i [pipeline.md](docs/pipeline.md), och valet av plattform i [hosting.md](docs/decisions/hosting.md).
 
 Mät själv med:
 
 ```sh
-curl -s https://utpost-staging.purpleplant-b5bdf15c.swedencentral.azurecontainerapps.io/api/health
+curl -s https://utpost-staging.yellowisland-a04de7fc.swedencentral.azurecontainerapps.io/api/health
 git rev-parse main
 ```
 
@@ -322,6 +361,26 @@ API lyssnar på http://localhost:4000
 
 Loggen hämtas med `az containerapp logs show --container api --tail 30`. Postgres behövde några sekunder på sig, och api:et väntade in den.
 
+## Bildfunktionen i molnet (M7)
+
+Bildbehandlingen körs i en Azure Function (`utpost-vue-fn`, Flex Consumption). Den stängs av när ingen använder den, så första uppladdningen efter en paus är en kallstart.
+
+Funktionen skapas en gång av en människa, och publiceras därefter av jobbet Deploy to Azure Functions:
+
+```sh
+REPO=<ägare>/<repo> RG=<resursgrupp> ./infra/azure/skapa-funktion.sh
+```
+
+*Skapar funktionen, kopplar den till staging och skriver ut adressen och nyckeln. Nyckeln visas bara här.*
+
+Pipelinen hittar funktionen via variabeln `AZURE_FUNCTION_APP` på miljön `azure-staging`:
+
+```sh
+gh variable set AZURE_FUNCTION_APP --env azure-staging --repo <ägare>/<repo> --body utpost-vue-fn
+```
+
+Beslutet och mätningarna står i [serverless.md](docs/decisions/serverless.md), och jobbet i [pipeline.md](docs/pipeline.md).
+
 ## Kommandon
 
 ```sh
@@ -331,6 +390,7 @@ npm run lint:spelling
 npm run typecheck
 npm test
 npm run test:api
+npm --prefix functions test
 npm run build
 ```
 
@@ -349,6 +409,7 @@ CI bygger en image för `api` och `client` när kontrollerna är gröna.
 
 - Klientens tester ligger i `client/tests` och körs med `npm test`
 - API:ets tester ligger i `api/tests` och `api/src/graphql` och körs med `npm run test:api`. De kräver att databaserna är igång, seedade och migrerade
+- Bildfunktionens tester ligger i `functions/src` och körs med `npm --prefix functions test`
 - Alla tester ska vara gröna innan en PR mergas
 - Buggfixar ska ha ett test, om det går
 - Läs mer i [teststrategin](docs/testing.md)
@@ -494,7 +555,7 @@ npm run test:api
 
 ## Deploy
 
-Varje merge till main deployar till staging i Azure. Se [I molnet (M6)](#i-molnet-m6) och [pipeline.md](docs/pipeline.md).
+Varje merge till main deployar till staging i Azure och publicerar bildfunktionen. Se [I molnet (M6)](#i-molnet-m6), [Bildfunktionen i molnet (M7)](#bildfunktionen-i-molnet-m7) och [pipeline.md](docs/pipeline.md).
 
 ## Branchstrategi
 
