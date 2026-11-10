@@ -83,6 +83,53 @@ node scripts/mat-upload.mjs --image <bildfil> --email <e-post> --tour <tur-id>
 
 API:et svarar alltså lika snabbt under uppladdningar som utan. Observera att funktionen kördes på samma dator, så uppladdningarna tog lika lång tid som förut.
 
+## Kallstart
+
+Funktionen stängs av när ingen använder den, så första anropet efter en paus startar en ny instans. Vi mätte direkt mot funktionen i Azure, utan API:et emellan, för att slippa att staging också väcks från noll.
+
+Första anropet gjordes efter en paus, och aldrig direkt efter en deploy. En deploy startar om funktionen, så den hade gett en kallstart som inte säger något om en vanlig dag.
+
+### Så mätte vi
+
+```sh
+KEY="$(az functionapp keys list --name utpost-vue-fn --resource-group <resursgrupp> --query functionKeys.default --output tsv)"
+for run in 1 2 3; do
+  curl -s -o /tmp/svar.json -w "total tid: %{time_total}s\n" -X POST -H "x-functions-key: $KEY" -H "Content-Type: image/jpeg" --data-binary @<bildfil> https://utpost-vue-fn.azurewebsites.net/api/process-image
+  jq '{coldStart, instance, processingMs}' /tmp/svar.json
+done
+unset KEY
+```
+
+*Hämtar nyckeln, skickar bilden tre gånger och skriver ut total tid, om det var en kallstart, vilken instans som körde och hur länge bildbehandlingen tog. Nyckeln skrivs aldrig ut.*
+
+### Kall
+
+Det första anropet efter pausen gjordes med en skärmbild: 20,9 s totalt, varav 19,2 s bildbehandling.
+
+Därefter använde vi ett foto på 4592 × 2584 px i alla anrop. Sju av nio anrop startade en ny instans (`coldStart: true`, olika `instance`).
+
+- Total tid: 20,9 till 22,1 s
+- Bildbehandlingen: 19,2 till 19,8 s
+- Tid utanför bildbehandlingen: 1,6 till 2,6 s
+
+### Varm
+
+Samma foto. Två av de nio anropen körde på instanser som redan var igång (`coldStart: false`).
+
+- Total tid: 22,2 s och 21,0 s
+- Bildbehandlingen: 20,4 s och 19,2 s
+- Tid utanför bildbehandlingen: 1,8 s i båda
+
+Tiden utanför bildbehandlingen varierar mellan 1,6 och 2,6 s för de kalla anropen, så de 1,8 s för de varma ligger inom samma spann. Två varma anrop är få, så siffran är ett tecken och inget bevis.
+
+### Duger kallstarten?
+
+Ja. En ny instans lägger högst c:a 1 s på en uppladdning som tar c:a 21 s. Skillnaden är mindre än variationen mellan anropen.
+
+Det som tar tid är bildbehandlingen, c:a 19 s per bild i Azure. Den tar lika lång tid på en kall som på en varm instans. Hur mycket av det som är AVIF-kodningen och hur mycket som är instansens processorkraft har vi inte undersökt.
+
+Observera att Azure ibland startar en ny instans trots att varma instanser finns. Det såg vi i mätningarna och vi vet inte varför.
+
 ## Var koden bor och vad som låser
 
 Bara filen som tar emot anropet och det som skapar och publicerar funktionen vet att koden kör i Azure.
@@ -117,7 +164,8 @@ Om vi flyttade skrivs `process-image.js` om till den nya leverantörens form. AP
 
 ## Konsekvenser
 
-- Första uppladdningen efter en paus är en kallstart
+- Första uppladdningen efter en paus är en kallstart, som lägger högst c:a 1 s på uppladdningen. Se [Kallstart](#kallstart)
+- Bildbehandlingen tar c:a 19 s per bild i Azure. API:et väntar på den, så uppladdningen i webbläsaren tar lika lång tid
 - Kostnaden i staging har vi inte kunnat läsa av. Funktionen har inga instanser som alltid är igång, så den kostar bara när den körs
 - Nyckeln visas bara när funktionen skapas. Den ligger som secret i Container App och får inte läggas i någon fil i repot
 - Vi har två jobb som publicerar till Azure: Deploy to Azure staging för api och client, och Deploy to Azure Functions för funktionen
