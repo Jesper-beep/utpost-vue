@@ -3,7 +3,7 @@ title: "Serverless"
 description: "Beslut om att flytta bildbehandlingen från API:et till en Azure Function, med uppmätta siffror, bortvalt alternativ och vad som låser oss till Azure. Del av M7-momentet."
 created: "2026-11-09"
 published_date: "-"
-last_modified_date: "2026-11-09"
+last_modified_date: "2026-11-10"
 version: "1"
 ---
 
@@ -13,13 +13,13 @@ Vi har flyttat bildbehandlingen från API:et till en Azure Function (`process-im
 
 API:et tar fortfarande emot bilden och kontrollerar att turen finns och tillhör användaren. Sedan skickar det bilden till funktionen och sparar varianterna som funktionen svarar med.
 
-Funktionen stängs av helt mellan anropen, när ingen använder den. Första anropet efteråt startar den igen, och det kallar vi en kallstart.
+Funktionen stängs av helt mellan anropen, när ingen använder den. Första anropet efteråt startar en ny instans, och det kallar vi en kallstart.
 
 ### Motivering
 
-- Bildbehandling tar lång tid och äter processor. Medan API:et behandlade bilderna dröjde `/api/health` som längst 7381 ms. Nu dröjer den 22 ms
+- Bildbehandling tar lång tid och belastar processorn hårt. Medan API:et behandlade bilderna dröjde `/api/health` som längst 1215 ms (median). Nu är det 25 ms
 - Funktionen skalar för sig, så API:et behöver inte bli större för att klara fler uppladdningar
-- En bild som är för stor tar ner funktionen. API:et fortsätter svara på inloggning och turer
+- En bild som är för stor kraschar funktionen. API:et fortsätter svara på inloggning och turer
 - Funktionen är avstängd när ingen laddar upp en bild
 - Vi behåller `sharp`, så bilderna blir likadana som förut
 
@@ -29,11 +29,11 @@ Före M7 gjorde API:et allt i samma anrop: tog emot bilden, kontrollerade den, b
 
 Det är skuld 9 i [skulddokumentet](../debt.md): en bild som är för stor kan använda upp API:ets minne och få tjänsten att sluta svara.
 
-Vi mätte vad en uppladdning kostar resten av appen. Medan flera bilder laddades upp samtidigt dröjde `/api/health` 7381 ms som längst. Så här mätte vi står under [Mätningar](#mätningar).
+Vi mätte vad en uppladdning kostar resten av appen. Medan flera bilder laddades upp samtidigt dröjde `/api/health` som längst 1215 ms (median). Hur vi mätte beskrivs under [Mätningar](#mätningar).
 
 ## Alternativ vi jämförde
 
-Vi har inte provat Serverless Framework. Uppgifterna om det kommer från tilläggets egen sida på GitHub i november 2026. Resten är vår egen bedömning.
+Vi har inte provat Serverless Framework. Uppgifterna om verktyget kommer från tilläggets egen sida på GitHub i november 2026. Resten är vår egen bedömning.
 
 ### Azure Functions (valt)
 
@@ -53,7 +53,7 @@ Vi har inte provat Serverless Framework. Uppgifterna om det kommer från tilläg
 
 ## Mätningar
 
-Vi mäter hur länge API:et som längst dröjer med att svara på `/api/health` medan flera bilder laddas upp samtidigt. Siffran kallar vi `health max`.
+Vi mäter hur länge `/api/health` som längst dröjer medan flera bilder laddas upp samtidigt. Den tiden kallar vi *längsta svarstid*.
 
 Skriptet [mat-upload.mjs](../../scripts/mat-upload.mjs) loggar in, skickar uppladdningarna samtidigt och frågar `/api/health` var 100:e millisekund. Båda mätningarna kördes lokalt i Docker.
 
@@ -62,40 +62,52 @@ Skriptet [mat-upload.mjs](../../scripts/mat-upload.mjs) loggar in, skickar uppla
 1. Kör `npm run docker:up`
 2. Kör `npm run docker:seed`
 3. Seeden skriver ut en rad som `Testinloggning: <e-post> / hemligt123, tur <id>`. Använd den e-postadressen och turen nedan
-4. Efter flytten: kör funktionen med `npm --prefix functions start`
+4. Efter flytten: starta den lokala ersättningen för funktionen med `node scripts/lokal-funktion.mjs`, i en egen terminal ([lokal-funktion.mjs](../../scripts/lokal-funktion.mjs))
 
 ### Kommandot
 
 ```sh
-node scripts/mat-upload.mjs --image <bildfil> --email <e-post> --tour <tur-id>
+node scripts/mat-upload.mjs --image "/sökväg/till/bild.jpg" --email "e-post" --tour "tur-id"
 ```
 
 *Loggar in, laddar upp bilden flera gånger samtidigt och skriver ut hur länge `/api/health` som längst dröjde.*
 
 ### Före: `sharp` i API:et
 
-- health max: 7381 ms
-- Längsta uppladdningen: 28378 ms
+Fem körningar med tio uppladdningar samtidigt. Siffrorna varierar mellan körningarna, så vi visar medianen.
+
+- Längsta svarstid för `/api/health`: 1215 ms
+- Längsta uppladdningen: 49,1 s
+
+Över de fem körningarna låg `/api/health` mellan 13 och 9933 ms, och uppladdningarna mellan 47,0 och 51,9 s.
 
 ### Efter: `sharp` i funktionen
 
-- health max: 22 ms
+Fem körningar med tio uppladdningar samtidigt, mot den lokala ersättningen för funktionen. Siffrorna varierar mellan körningarna, så vi visar medianen.
 
-API:et svarar alltså lika snabbt under uppladdningar som utan. Observera att funktionen kördes på samma dator, så uppladdningarna tog lika lång tid som förut.
+- Längsta svarstid för `/api/health`: 25 ms
+- Längsta uppladdningen: 25,8 s
+
+Över de fem körningarna låg `/api/health` mellan 23 och 201 ms, och uppladdningarna mellan 25,1 och 26,6 s. Jämfört med före är svarstiden för `/api/health` ungefär 50 gånger lägre och uppladdningen ungefär dubbelt så snabb. Körningarna gjordes inte om varandra, så en del av skillnaden kan bero på maskinens belastning.
+
+Mätningarna gick via klienten på port 3001, så varje health-anrop har även proxyns tid med sig. Ersättningen kör samma bildbehandling som funktionen, men utan Azure-värdens omkostnad.
 
 ## Kallstart
 
-Funktionen stängs av när ingen använder den, så första anropet efter en paus startar en ny instans. Vi mätte direkt mot funktionen i Azure, utan API:et emellan, för att slippa att staging också väcks från noll.
+Funktionen stängs av när ingen använder den, så första anropet efter en paus startar en ny instans. Vi mätte direkt mot funktionen i Azure, utan API:et emellan, så att staging inte också behöver väckas från noll.
 
-Första anropet gjordes efter en paus, och aldrig direkt efter en deploy. En deploy startar om funktionen, så den hade gett en kallstart som inte säger något om en vanlig dag.
+Första anropet gjordes efter en paus, och aldrig direkt efter en deploy. En deploy startar om funktionen, så det hade blivit en kallstart som inte säger något om en vanlig dag.
 
 ### Så mätte vi
 
 ```sh
-KEY="$(az functionapp keys list --name utpost-vue-fn --resource-group <resursgrupp> --query functionKeys.default --output tsv)"
+az login
+RESURSGRUPP="ditt-resursgrupp"
+BILDFIL="/sökväg/till/bild.jpg"
+KEY="$(az functionapp keys list --name utpost-vue-fn --resource-group "$RESURSGRUPP" --query functionKeys.default --output tsv)"
 for run in 1 2 3; do
-  curl -s -o /tmp/svar.json -w "total tid: %{time_total}s\n" -X POST -H "x-functions-key: $KEY" -H "Content-Type: image/jpeg" --data-binary @<bildfil> https://utpost-vue-fn.azurewebsites.net/api/process-image
-  jq '{coldStart, instance, processingMs}' /tmp/svar.json
+  curl -s -o "$TMPDIR/svar.json" -w "total tid: %{time_total}s\n" -X POST -H "x-functions-key: $KEY" -H "Content-Type: image/jpeg" --data-binary "@$BILDFIL" https://utpost-vue-fn.azurewebsites.net/api/process-image
+  jq '{coldStart, instance, processingMs}' "$TMPDIR/svar.json"
 done
 unset KEY
 ```
@@ -106,7 +118,7 @@ unset KEY
 
 Det första anropet efter pausen gjordes med en skärmbild: 20,9 s totalt, varav 19,2 s bildbehandling.
 
-Därefter använde vi ett foto på 4592 × 2584 px i alla anrop. Sju av nio anrop startade en ny instans (`coldStart: true`, olika `instance`).
+Därefter gjorde vi nio anrop med ett foto på 4592 × 2584 px. Sju av dem startade en ny instans (`coldStart: true`, olika `instance`).
 
 - Total tid: 20,9 till 22,1 s
 - Bildbehandlingen: 19,2 till 19,8 s
@@ -120,19 +132,19 @@ Samma foto. Två av de nio anropen körde på instanser som redan var igång (`c
 - Bildbehandlingen: 20,4 s och 19,2 s
 - Tid utanför bildbehandlingen: 1,8 s i båda
 
-Tiden utanför bildbehandlingen varierar mellan 1,6 och 2,6 s för de kalla anropen, så de 1,8 s för de varma ligger inom samma spann. Två varma anrop är få, så siffran är ett tecken och inget bevis.
+Tiden utanför bildbehandlingen var 1,6–2,6 s för de kalla anropen och 1,8 s för de varma - så skillnaden syns inte i mätningarna. Två varma anrop är för få för att säga något säkert.
 
 ### Duger kallstarten?
 
-Ja. En ny instans lägger högst c:a 1 s på en uppladdning som tar c:a 21 s. Skillnaden är mindre än variationen mellan anropen.
+Ja, den duger. Vi ser ingen mätbar skillnad mellan kalla och varma anrop, och variationen mellan anropen är större än skillnaden.
 
 Det som tar tid är bildbehandlingen, c:a 19 s per bild i Azure. Den tar lika lång tid på en kall som på en varm instans. Hur mycket av det som är AVIF-kodningen och hur mycket som är instansens processorkraft har vi inte undersökt.
 
-Observera att Azure ibland startar en ny instans trots att varma instanser finns. Det såg vi i mätningarna och vi vet inte varför.
+Azure startar ibland en ny instans trots att varma instanser finns. Det såg vi i mätningarna, och vi vet inte varför.
 
 ## Var koden bor och vad som låser
 
-Bara filen som tar emot anropet och det som skapar och publicerar funktionen vet att koden kör i Azure.
+Bara filen som tar emot anropet och det som skapar och publicerar funktionen vet att koden körs i Azure.
 
 ### Filer som bara finns för Azure
 
@@ -160,19 +172,19 @@ Bara filen som tar emot anropet och det som skapar och publicerar funktionen vet
 - Compose: värdet ur `.env`, tomt som standard
 - Azure: funktionens nyckel, som secret i Container App
 
-Om vi flyttade skrivs `process-image.js` om till den nya leverantörens form. API:et får en ny adress och en ny nyckel, och skriptet och pipelinejobbet byts ut. `image.js` går att köra i vilken Node-miljö som helst.
+Om vi flyttar skrivs `process-image.js` om till den nya leverantörens form. API:et får en ny adress och en ny nyckel, och skriptet och pipelinejobbet byts ut. `image.js` går att köra i vilken Node-miljö som helst.
 
 ## Konsekvenser
 
-- Första uppladdningen efter en paus är en kallstart, som lägger högst c:a 1 s på uppladdningen. Se [Kallstart](#kallstart)
+- Första uppladdningen efter en paus är en kallstart. Vi ser ingen mätbar skillnad mot en varm instans. Se [Kallstart](#kallstart)
 - Bildbehandlingen tar c:a 19 s per bild i Azure. API:et väntar på den, så uppladdningen i webbläsaren tar lika lång tid
 - Kostnaden i staging har vi inte kunnat läsa av. Funktionen har inga instanser som alltid är igång, så den kostar bara när den körs
 - Nyckeln visas bara när funktionen skapas. Den ligger som secret i Container App och får inte läggas i någon fil i repot
 - Vi har två jobb som publicerar till Azure: Deploy to Azure staging för api och client, och Deploy to Azure Functions för funktionen
-- Ingen av dem är en status check. Blir en röd är `main` ändå korrekt, men Azure uppdaterades inte
+- Ingen av dem är en obligatorisk statuscheck. Om något av dem blir rött är `main` ändå korrekt, men Azure har inte uppdaterats
 - Röktestet i pipelinen skickar data som inte är en bild och väntar på 400. Det visar att koden kör och att nyckeln fungerar. Att en riktig bild går att behandla prövas med en uppladdning efter merge
-- API:et väntar på funktionen i högst 60 sekunder. Går det inte att nå funktionen får användaren 502, och avvisar funktionen bilden får användaren 400
+- API:et väntar på funktionen i högst 60 sekunder. Om funktionen inte går att nå får användaren 502, och om den avvisar bilden får användaren 400
 - Funktionen svarar med varianterna som base64, vilket gör svaret c:a en tredjedel större än bilderna
 - Bilderna sparas fortfarande på API:ets disk. Staging har ingen volym, så de försvinner när appen startas om
-- Permanent lagring hade betytt Blob Storage och Event Grid. Det valde vi bort för M7
-- Lokalt kräver uppladdningen att funktionen körs, med `npm --prefix functions start`
+- Permanent lagring hade inneburit Blob Storage och Event Grid, och det blev för mycket för M7. Så det valde vi bort
+- Lokalt kräver uppladdningen att den lokala ersättningen körs, med `node scripts/lokal-funktion.mjs`
