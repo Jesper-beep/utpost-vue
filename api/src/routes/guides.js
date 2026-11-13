@@ -1,5 +1,8 @@
 import { Router } from "express";
 import { pool } from "../db/client.js";
+import { searchSchema } from "../lib/schemas.js";
+import { validate } from "../lib/validate.js";
+import { wrap } from "../lib/wrap.js";
 
 export const guidesRouter = Router();
 
@@ -24,13 +27,18 @@ guidesRouter.get("/popular", async (_req, res) => {
 	res.json(result.rows);
 });
 
-// Sök. Byggd i all hast inför lanseringen.
-guidesRouter.get("/search", async (req, res) => {
-	const q = req.query.q || "";
-	const sql = `select * from guides where title ilike '%${q}%' or region ilike '%${q}%'`;
-	const result = await pool.query(sql);
-	res.json(result.rows);
-});
+guidesRouter.get(
+	"/search",
+	validate(searchSchema, "query"),
+	wrap(async (req, res) => {
+		const { q: searchText } = req.validQuery;
+		const result = await pool.query(
+			"select * from guides where title ilike $1 or region ilike $1 order by updated_at desc",
+			[`%${searchText}%`],
+		);
+		res.json(result.rows);
+	}),
+);
 
 guidesRouter.get("/:slug", async (req, res) => {
 	const result = await pool.query("select * from guides where slug = $1", [

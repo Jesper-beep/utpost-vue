@@ -11,9 +11,9 @@ import { sign } from "../lib/auth.js";
 // Varje hål som lagas har ett test som var rött före rättningen.
 // Testet bevisar att hålet fanns och hindrar det från att komma tillbaka.
 let server;
-let base;
-const api = (path, { method = "GET", body, token } = {}) =>
-	fetch(`${base}${path}`, {
+let baseUrl;
+const callApi = (path, { method = "GET", body, token } = {}) =>
+	fetch(`${baseUrl}${path}`, {
 		body: body === undefined ? undefined : JSON.stringify(body),
 		headers: {
 			"content-type": "application/json",
@@ -36,7 +36,7 @@ const countPhotos = async () =>
 beforeAll(async () => {
 	server = app.listen(0);
 	await new Promise((resolve) => server.once("listening", resolve));
-	base = `http://127.0.0.1:${server.address().port}`;
+	baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
 
 afterAll(async () => {
@@ -48,7 +48,7 @@ afterAll(async () => {
 describe("A07 Authentication Failures - inloggningen", () => {
 	it("svaret på en lyckad inloggning innehåller token och användaren - men aldrig password_hash", async () => {
 		const user = await findUser(1);
-		const res = await api("/api/auth/login", {
+		const res = await callApi("/api/auth/login", {
 			body: { email: user.email, password: "hemligt123" },
 			method: "POST",
 		});
@@ -62,11 +62,11 @@ describe("A07 Authentication Failures - inloggningen", () => {
 
 	it("fel lösenord och okänd e-post ger samma svar (401, samma text)", async () => {
 		const user = await findUser(1);
-		const wrongPassword = await api("/api/auth/login", {
+		const wrongPassword = await callApi("/api/auth/login", {
 			body: { email: user.email, password: "fel" },
 			method: "POST",
 		});
-		const unknownEmail = await api("/api/auth/login", {
+		const unknownEmail = await callApi("/api/auth/login", {
 			body: { email: "finns.inte@example.com", password: "fel" },
 			method: "POST",
 		});
@@ -83,7 +83,7 @@ describe("A07 Authentication Failures - inloggningen", () => {
 	});
 
 	it("registrering med för kort lösenord ger 400 med vad som var fel", async () => {
-		const res = await api("/api/auth/register", {
+		const res = await callApi("/api/auth/register", {
 			body: { displayName: "Ny", email: "ny@example.com", password: "kort" },
 			method: "POST",
 		});
@@ -96,7 +96,7 @@ describe("A07 Authentication Failures - inloggningen", () => {
 
 describe("A01 Broken Access Control - vems tur är det?", () => {
 	it("DELETE /api/tours/:id utan token ger 401 och turen finns kvar", async () => {
-		const res = await api("/api/tours/1", { method: "DELETE" });
+		const res = await callApi("/api/tours/1", { method: "DELETE" });
 		expect(res.status).toBe(401);
 		const { rows } = await pool.query("select id from tours where id = 1");
 		expect(rows).toHaveLength(1);
@@ -113,7 +113,7 @@ describe("A01 Broken Access Control - vems tur är det?", () => {
 				[tour.user_id],
 			)
 		).rows[0];
-		const res = await api(`/api/tours/${tour.id}`, {
+		const res = await callApi(`/api/tours/${tour.id}`, {
 			method: "DELETE",
 			token: sign(otherMember),
 		});
@@ -129,7 +129,7 @@ describe("A01 Broken Access Control - vems tur är det?", () => {
 			`insert into tours (user_id, title, started_at, distance_m) values ($1, 'Testtur M8', now(), 100) returning id`,
 			[owner.id],
 		);
-		const res = await api(`/api/tours/${created.rows[0].id}`, {
+		const res = await callApi(`/api/tours/${created.rows[0].id}`, {
 			method: "DELETE",
 			token: sign(owner),
 		});
@@ -144,7 +144,7 @@ describe("A01 Broken Access Control - vems tur är det?", () => {
 	});
 
 	it("POST /api/photos utan token ger 401 - uppladdning kräver inloggning", async () => {
-		const res = await api("/api/photos", {
+		const res = await callApi("/api/photos", {
 			body: { filename: "mountain.jpg", height: 3000, tourId: 1, width: 4000 },
 			method: "POST",
 		});
@@ -154,7 +154,9 @@ describe("A01 Broken Access Control - vems tur är det?", () => {
 
 describe("A05 Injection - sökningen", () => {
 	it("ett citattecken i sökordet ger 200 och en tom lista, inte 500", async () => {
-		const res = await api(`/api/guides/search?q=${encodeURIComponent("'")}`);
+		const res = await callApi(
+			`/api/guides/search?q=${encodeURIComponent("'")}`,
+		);
 		expect(res.status).toBe(200);
 		expect(await res.json()).toEqual([]);
 	});
@@ -162,7 +164,9 @@ describe("A05 Injection - sökningen", () => {
 	it("en vanlig sökning hittar guider i landskapet", async () => {
 		const region = (await pool.query("select region from guides limit 1"))
 			.rows[0].region;
-		const res = await api(`/api/guides/search?q=${encodeURIComponent(region)}`);
+		const res = await callApi(
+			`/api/guides/search?q=${encodeURIComponent(region)}`,
+		);
 		expect(res.status).toBe(200);
 		const guides = await res.json();
 		expect(guides.length).toBeGreaterThan(0);
@@ -171,35 +175,34 @@ describe("A05 Injection - sökningen", () => {
 });
 
 describe("Validering av indata - A10 Mishandling of Exceptional Conditions", () => {
-	it("en bild med orimliga mått stoppas med 400 innan något sparas", async () => {
+	// Ersätter lärarens test med JSON och mått. Vår uppladdning tar råa bilder,
+	// och bilder över 50 MP stoppas av bildfunktionen (functions/src/image.test.js).
+	it("ett tourId som inte är ett heltal stoppas med 400 innan något sparas", async () => {
 		const owner = await findUser(1);
 		const photoCountBefore = await countPhotos();
-		const res = await api("/api/photos", {
-			body: {
-				filename: "enorm.jpg",
-				height: 1_000_000,
-				tourId: 1,
-				width: 1_000_000,
+		const res = await fetch(`${baseUrl}/api/photos?tourId=1e0`, {
+			body: new Uint8Array(100),
+			headers: {
+				authorization: `Bearer ${sign(owner)}`,
+				"content-type": "image/jpeg",
 			},
 			method: "POST",
-			token: sign(owner),
 		});
 		expect(res.status).toBe(400);
-		const responseBody = await res.json();
-		expect(responseBody.issues.map((issue) => issue.path)).toEqual(
-			expect.arrayContaining(["width", "height"]),
-		);
+		expect(await res.json()).toEqual({
+			error: "tourId saknas eller är ogiltigt",
+		});
 		expect(await countPhotos()).toBe(photoCountBefore);
 	});
 
 	it("ett id som inte är ett tal ger 400, inte ett ohanterat fel", async () => {
-		const res = await api("/api/tours/abc");
+		const res = await callApi("/api/tours/abc");
 		expect(res.status).toBe(400);
 		expect(await res.json()).toEqual({ error: "ogiltigt id" });
 	});
 
 	it("trasig JSON ger 400 med ett svar - inte ett anrop som hänger", async () => {
-		const res = await fetch(`${base}/api/auth/login`, {
+		const res = await fetch(`${baseUrl}/api/auth/login`, {
 			body: '{"email": ',
 			headers: { "content-type": "application/json" },
 			method: "POST",

@@ -94,9 +94,9 @@ const postPhoto = (imageBytes: Uint8Array<ArrayBuffer>, userId = OWNER_ID) => {
 	});
 };
 
-const mockTourOwnedBy = (userId: number) => {
+const mockTourOwnedBy = (userId: number, photoCount = 0) => {
 	vi.mocked(pool.query).mockResolvedValueOnce({
-		rows: [{ user_id: userId }],
+		rows: [{ photo_count: photoCount, user_id: userId }],
 	} as never);
 };
 
@@ -133,6 +133,8 @@ afterEach(async () => {
 
 describe("Uppladdning till API:et", () => {
 	it("avvisar en bild som är större än 10 MB", async () => {
+		mockTourOwnedBy(OWNER_ID);
+
 		const response = await postPhoto(new Uint8Array(11 * 1024 * 1024));
 
 		expect(response.status).toBe(413);
@@ -140,9 +142,63 @@ describe("Uppladdning till API:et", () => {
 	});
 
 	it("avvisar en tom uppladdning", async () => {
+		mockTourOwnedBy(OWNER_ID);
+
 		const response = await postPhoto(new Uint8Array(0));
 
 		expect(response.status).toBe(400);
+		expect(requestPhotoProcessing).not.toHaveBeenCalled();
+	});
+
+	it("ger 401 utan token och kontrollerar inte turen", async () => {
+		const response = await fetch(`${photosUrl}?tourId=${TOUR_ID}`, {
+			body: new Uint8Array(100),
+			headers: { "Content-Type": "image/jpeg" },
+			method: "POST",
+		});
+
+		expect(response.status).toBe(401);
+		expect(pool.query).not.toHaveBeenCalled();
+		expect(requestPhotoProcessing).not.toHaveBeenCalled();
+	});
+
+	it.each(["1e0", "0x1", "01", "0", "-1", "abc", "2147483648"])(
+		"avvisar tourId %s utan att fråga databasen",
+		async (tourId) => {
+			const response = await fetch(`${photosUrl}?tourId=${tourId}`, {
+				body: new Uint8Array(100),
+				headers: {
+					Authorization: `Bearer ${createLoginToken(OWNER_ID)}`,
+					"Content-Type": "image/jpeg",
+				},
+				method: "POST",
+			});
+
+			expect(response.status).toBe(400);
+			expect(pool.query).not.toHaveBeenCalled();
+			expect(requestPhotoProcessing).not.toHaveBeenCalled();
+		},
+	);
+
+	it("kontrollerar turen innan bilden läses in, så en stor bild till någon annans tur ger 403", async () => {
+		mockTourOwnedBy(OWNER_ID);
+
+		const response = await postPhoto(
+			new Uint8Array(11 * 1024 * 1024),
+			OTHER_USER_ID,
+		);
+
+		expect(response.status).toBe(403);
+		expect(requestPhotoProcessing).not.toHaveBeenCalled();
+	});
+
+	it("ger 409 när turen redan har en bild och anropar inte bildfunktionen", async () => {
+		mockTourOwnedBy(OWNER_ID, 1);
+
+		const response = await postPhoto(new Uint8Array(100));
+
+		expect(response.status).toBe(409);
+		expect(await response.json()).toEqual({ error: "turen har redan en bild" });
 		expect(requestPhotoProcessing).not.toHaveBeenCalled();
 	});
 

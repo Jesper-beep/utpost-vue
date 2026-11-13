@@ -7,7 +7,12 @@ import {
 	type Tour,
 	type User,
 } from "@utpost/shared";
-import express, { type Request, type Response, Router } from "express";
+import express, {
+	type NextFunction,
+	type Request,
+	type Response,
+	Router,
+} from "express";
 import { config } from "../config.js";
 import { pool } from "../db/client.js";
 import { requireUser } from "../lib/auth.js";
@@ -24,6 +29,13 @@ export const photosRouter = Router();
 
 const MAX_UPLOAD_SIZE = `${PHOTO_MAX_UPLOAD_MB}mb`;
 const DEFAULT_CONTENT_TYPE = "application/octet-stream";
+const TOUR_ID_PATTERN = /^[1-9]\d*$/;
+const MAX_TOUR_ID = 2_147_483_647;
+
+interface TourForUpload {
+	photoCount: number;
+	userId: Tour["user_id"];
+}
 
 const getUserId = (request: Request): User["id"] => {
 	const { user } = request as Request & { user: Pick<User, "id"> };
@@ -35,29 +47,37 @@ const sendError = (response: Response, status: number, message: string) => {
 	return response.status(status).json(body);
 };
 
+// Bara siffror utan inledande nolla. Number() skulle också godta 1e0 och 0x1
 const readTourId = (query: Request["query"]): Tour["id"] | null => {
-	const tourId = Number(query["tourId"]);
+	const value = query["tourId"];
 
-	if (!Number.isInteger(tourId) || tourId < 1) {
+	if (typeof value !== "string" || !TOUR_ID_PATTERN.test(value)) {
+		return null;
+	}
+
+	const tourId = Number(value);
+
+	if (tourId > MAX_TOUR_ID) {
 		return null;
 	} else {
 		return tourId;
 	}
 };
 
-const findTourOwnerId = async (
+const findTourForUpload = async (
 	tourId: Tour["id"],
-): Promise<Tour["user_id"] | null> => {
-	const result = await pool.query<Pick<Tour, "user_id">>(
-		"select user_id from tours where id = $1",
+): Promise<TourForUpload | null> => {
+	const result = await pool.query<{ photo_count: number; user_id: number }>(
+		`select user_id, (select count(*)::int from photos where tour_id = $1) as photo_count
+		 from tours where id = $1`,
 		[tourId],
 	);
-	const tour = result.rows[0];
+	const row = result.rows[0];
 
-	if (tour === undefined) {
+	if (row === undefined) {
 		return null;
 	} else {
-		return tour.user_id;
+		return { photoCount: row.photo_count, userId: row.user_id };
 	}
 };
 
@@ -138,28 +158,48 @@ const sendUploadError = (response: Response, error: unknown) => {
 	return sendError(response, 500, "uppladdningen misslyckades");
 };
 
-const uploadPhoto = async (request: Request, response: Response) => {
+// Körs före express.raw, så att ingen bild läses in för en tur som användaren inte får ladda upp till
+const checkTourForUpload = async (
+	request: Request,
+	response: Response,
+	next: NextFunction,
+) => {
 	const tourId = readTourId(request.query);
 
 	if (tourId === null) {
 		return sendError(response, 400, "tourId saknas eller är ogiltigt");
 	}
 
+	try {
+		const tour = await findTourForUpload(tourId);
+
+		if (tour === null) {
+			return sendError(response, 404, "hittades inte");
+		}
+
+		if (tour.userId !== getUserId(request)) {
+			return sendError(response, 403, "inte din tur");
+		}
+
+		if (tour.photoCount > 0) {
+			return sendError(response, 409, "turen har redan en bild");
+		}
+
+		response.locals["tourId"] = tourId;
+		return next();
+	} catch (error) {
+		return sendUploadError(response, error);
+	}
+};
+
+const uploadPhoto = async (request: Request, response: Response) => {
+	const tourId: Tour["id"] = response.locals["tourId"];
+
 	if (!Buffer.isBuffer(request.body) || request.body.length === 0) {
 		return sendError(response, 400, "ingen bild skickades");
 	}
 
 	try {
-		const ownerId = await findTourOwnerId(tourId);
-
-		if (ownerId === null) {
-			return sendError(response, 404, "hittades inte");
-		}
-
-		if (ownerId !== getUserId(request)) {
-			return sendError(response, 403, "inte din tur");
-		}
-
 		const uploadResponse = await saveUploadedPhoto(
 			tourId,
 			request.body,
@@ -174,6 +214,7 @@ const uploadPhoto = async (request: Request, response: Response) => {
 photosRouter.post(
 	"/",
 	requireUser,
+	checkTourForUpload,
 	express.raw({ limit: MAX_UPLOAD_SIZE, type: "image/*" }),
 	uploadPhoto,
 );

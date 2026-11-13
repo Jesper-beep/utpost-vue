@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 
-const auth = useAuthStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -28,7 +28,7 @@ const submit = async () => {
 	error.value = null;
 	busy.value = true;
 	try {
-		await auth.login({ email: email.value, password: password.value });
+		await authStore.login({ email: email.value, password: password.value });
 		router.push(redirectPath());
 	} catch (caughtError) {
 		error.value = (caughtError as Error).message;

@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { hashPassword } from "../lib/password.js";
 import { pool } from "./client.js";
 import { createTables } from "./migrate.js";
 
@@ -42,9 +43,17 @@ const LAST = [
 	"Kvist",
 ];
 const TEST_PASSWORD = "hemligt123";
+const EDITOR_EMAIL = "redaktor@utpost.se";
+const MEMBER_EMAIL = "medlem@utpost.se";
 
 const rnd = (n) => Math.floor(Math.random() * n);
 const pick = (arr) => arr[rnd(arr.length)];
+
+const createEmail = (index, name) => {
+	if (index === 0) return EDITOR_EMAIL;
+	if (index === 1) return MEMBER_EMAIL;
+	return `${name.toLowerCase().replace(" ", ".")}${index}@example.com`;
+};
 
 const bodyHtml = (title, region) =>
 	`
@@ -62,10 +71,12 @@ export const seed = async () => {
 		"truncate photos, tour_logs, tours, guides, users restart identity",
 	);
 
+	const passwordHash = await hashPassword(TEST_PASSWORD);
+
 	const userIds = [];
 	for (let i = 0; i < 12; i++) {
 		const name = `${pick(FIRST)} ${pick(LAST)}`;
-		const email = `${name.toLowerCase().replace(" ", ".")}${i}@example.com`;
+		const email = createEmail(i, name);
 		let role;
 		if (i === 0) {
 			role = "editor";
@@ -74,7 +85,7 @@ export const seed = async () => {
 		}
 		const userResult = await pool.query(
 			`insert into users (email, password_hash, display_name, role) values ($1,$2,$3,$4) returning id`,
-			[email, `plaintext:${TEST_PASSWORD}`, name, role],
+			[email, passwordHash, name, role],
 		);
 		userIds.push(userResult.rows[0].id);
 	}

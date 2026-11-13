@@ -31,14 +31,14 @@ export const hashPassword = async (password) => {
 const DUMMY_HASH = await hashPassword("no-such-user");
 
 export const verifyPassword = async (password, storedHash) => {
-	const [scheme, salt, keyHex] = String(storedHash ?? "").split(":");
+	const [scheme, salt, storedKeyHex] = String(storedHash ?? "").split(":");
 	const isKnownFormat =
-		scheme === HASH_SCHEME && Boolean(salt) && Boolean(keyHex);
-	const [, saltToUse, keyHexToUse] = (
+		scheme === HASH_SCHEME && Boolean(salt) && Boolean(storedKeyHex);
+	const [, saltToCompare, keyHexToCompare] = (
 		isKnownFormat ? storedHash : DUMMY_HASH
 	).split(":");
-	const derivedKey = await deriveKey(password, saltToUse);
-	const expectedKey = Buffer.from(keyHexToUse, "hex");
+	const derivedKey = await deriveKey(password, saltToCompare);
+	const expectedKey = Buffer.from(keyHexToCompare, "hex");
 	// timingSafeEqual tar lika lång tid oavsett var skillnaden finns
 	const isSameKey =
 		derivedKey.length === expectedKey.length &&
