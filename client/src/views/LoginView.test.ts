@@ -3,14 +3,15 @@ import userEvent from "@testing-library/user-event";
 import { cleanup, render, screen } from "@testing-library/vue";
 import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { post } from "../api";
-import { getToken } from "../lib/token";
-import { useAuthStore } from "../stores/auth";
+import { post } from "../api.js";
+import { getToken } from "../lib/token.js";
+import { useAuthStore } from "../stores/auth.js";
 import LoginView from "./LoginView.vue";
 
-vi.mock("../api", () => ({ post: vi.fn() }));
+vi.mock("../api.js", () => ({ post: vi.fn() }));
 const push = vi.fn();
-vi.mock("vue-router", () => ({
+vi.mock("vue-router", async (importOriginal) => ({
+	...(await importOriginal<typeof import("vue-router")>()),
 	useRoute: () => ({ query: { till: "/turer/1/bild" } }),
 	useRouter: () => ({ push }),
 }));
@@ -22,7 +23,7 @@ const fillAndSubmit = async (user: ReturnType<typeof userEvent.setup>) => {
 	await user.click(screen.getByRole("button", { name: "Logga in" }));
 };
 
-describe("LoginView (M8)", () => {
+describe("LoginView", () => {
 	beforeEach(() => {
 		setActivePinia(createPinia());
 		useAuthStore().logout();
@@ -33,7 +34,7 @@ describe("LoginView (M8)", () => {
 		cleanup();
 	});
 
-	it("fel uppgifter: API:ets felsvar visas som alert, ingen token sparas", async () => {
+	it("visar API:ets felmeddelande vid fel uppgifter och sparar ingen token", async () => {
 		mockedPost.mockResolvedValue({ error: "fel e-post eller lösenord" });
 		const user = userEvent.setup();
 		render(LoginView);
@@ -46,7 +47,7 @@ describe("LoginView (M8)", () => {
 		expect(push).not.toHaveBeenCalled();
 	});
 
-	it("rätt uppgifter: token hamnar i minnet, aldrig i localStorage, och vi skickas dit vi var på väg", async () => {
+	it("sparar token i minnet och inte i localStorage, och skickar användaren tillbaka till sidan som efterfrågades", async () => {
 		mockedPost.mockResolvedValue({
 			token: "jwt-from-api",
 			user: {

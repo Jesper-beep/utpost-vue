@@ -2,7 +2,7 @@
 import { useQuery } from "@urql/vue";
 import { computed } from "vue";
 import { graphql } from "../gql/index.js";
-import { useSessionStore } from "../stores/session.js";
+import { useAuthStore } from "../stores/auth.js";
 import TourSummaryList from "./TourSummaryList.vue";
 
 const MinaTurerDocument = graphql(`
@@ -18,23 +18,23 @@ const MinaTurerDocument = graphql(`
 	}
 `);
 
-const session = useSessionStore();
+const authStore = useAuthStore();
 
 const { data, error, fetching } = useQuery({ query: MinaTurerDocument });
 
 const myTours = computed(() =>
 	(data.value?.tours ?? []).filter(
-		(tour) => String(tour.user.id) === String(session.user?.id),
+		(tour) => String(tour.user.id) === String(authStore.user?.id),
 	),
 );
 </script>
 
 <template>
-	<p v-if="!session.user">Du är inte inloggad.</p>
+	<p v-if="!authStore.user">Du är inte inloggad.</p>
 	<div v-else class="profile-article">
-		<h1>{{ session.user.display_name }}</h1>
+		<h1>{{ authStore.user.display_name }}</h1>
 		<p class="profile-article__meta">
-			{{ session.user.email }} - {{ session.user.role }}
+			{{ authStore.user.email }} - {{ authStore.user.role }}
 		</p>
 		<h2>Mina turer ({{ myTours.length }})</h2>
 		<p v-if="error" aria-live="assertive">

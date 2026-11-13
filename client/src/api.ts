@@ -1,5 +1,5 @@
 import { API_URL } from "./config.js";
-import { getToken } from "./lib/token";
+import { getToken } from "./lib/token.js";
 
 const buildHeaders = (extraHeaders: Record<string, string> = {}) => {
 	const token = getToken();

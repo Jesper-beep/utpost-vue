@@ -7,7 +7,7 @@ import {
 } from "@utpost/shared";
 import { computed, ref, useId } from "vue";
 import { uploadPhoto } from "../lib/photos.js";
-import { useSessionStore } from "../stores/session.js";
+import { getToken } from "../lib/token.js";
 import BaseButton from "./BaseButton.vue";
 import PhotoDebugInfo from "./PhotoDebugInfo.vue";
 
@@ -18,8 +18,6 @@ const props = defineProps<{
 const emit = defineEmits<{
 	uploaded: [photo: PhotoUploadResponse];
 }>();
-
-const session = useSessionStore();
 
 const file = ref<File | null>(null);
 const result = ref<PhotoUploadResponse | null>(null);
@@ -58,14 +56,16 @@ const chooseFile = (event: Event) => {
 };
 
 const upload = async () => {
-	if (!file.value || session.token === null) {
+	const token = getToken();
+
+	if (!file.value || token === null) {
 		return;
 	}
 
 	error.value = null;
 	result.value = null;
 	isUploading.value = true;
-	const response = await uploadPhoto(session.token, props.tourId, file.value);
+	const response = await uploadPhoto(token, props.tourId, file.value);
 	isUploading.value = false;
 
 	if ("error" in response) {

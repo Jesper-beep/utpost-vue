@@ -1,10 +1,10 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/vue";
 import type { PhotoUploadResponse } from "@utpost/shared";
-import { createPinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import PhotoUploader from "../../src/components/PhotoUploader.vue";
 import { uploadPhoto } from "../../src/lib/photos.js";
+import { setToken } from "../../src/lib/token.js";
 
 vi.mock("../../src/lib/photos.js", async (importOriginal) => ({
 	...(await importOriginal<typeof import("../../src/lib/photos.js")>()),
@@ -32,10 +32,7 @@ const svar = (coldStart: boolean): PhotoUploadResponse => ({
 });
 
 const renderUploader = () =>
-	render(PhotoUploader, {
-		global: { plugins: [createPinia()] },
-		props: { tourId: TOUR_ID },
-	});
+	render(PhotoUploader, { props: { tourId: TOUR_ID } });
 
 const chooseImage = async () => {
 	const image = new File(["bild"], "bild.jpg", { type: "image/jpeg" });
@@ -50,8 +47,7 @@ const clickUpload = () =>
 
 describe("PhotoUploader", () => {
 	beforeEach(() => {
-		localStorage.clear();
-		localStorage.setItem("token", "test-token");
+		setToken("test-token");
 		vi.resetAllMocks();
 	});
 

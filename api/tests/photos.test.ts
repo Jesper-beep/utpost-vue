@@ -180,7 +180,7 @@ describe("Uppladdning till API:et", () => {
 		},
 	);
 
-	it("kontrollerar turen innan bilden läses in, så en stor bild till någon annans tur ger 403", async () => {
+	it("ger 403 för någon annans tur redan innan bilden läses in, även när bilden är stor", async () => {
 		mockTourOwnedBy(OWNER_ID);
 
 		const response = await postPhoto(

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "../src/stores/auth.ts";
 
 export const routes = [
 	{
@@ -45,7 +46,7 @@ export const routes = [
 	},
 	{
 		component: () => import("../src/views/ProfileView.vue"),
-		meta: { title: "Min sida" },
+		meta: { requiresAuth: true, title: "Min sida" },
 		name: "Min sida",
 		path: "/profil",
 	},
@@ -60,6 +61,14 @@ export const routes = [
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
 	routes,
+});
+
+// Vakten sparar användaren ett onödigt besök på en sida som kräver inloggning.
+// Det riktiga skyddet finns i API:et.
+router.beforeEach((to) => {
+	if (to.meta.requiresAuth && !useAuthStore().isLoggedIn) {
+		return { name: "Logga in", query: { till: to.fullPath } };
+	}
 });
 
 router.afterEach((to) => {
