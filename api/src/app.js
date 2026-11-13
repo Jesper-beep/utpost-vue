@@ -1,4 +1,3 @@
-import cors from "cors";
 import express from "express";
 import { ZodError } from "zod";
 import { config } from "./config.js";
@@ -12,8 +11,6 @@ import { photosRouter } from "./routes/photos.ts";
 import { toursRouter } from "./routes/tours.js";
 
 export const app = express();
-
-app.use(cors());
 
 app.use(yoga.graphqlEndpoint, yoga);
 

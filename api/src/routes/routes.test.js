@@ -33,6 +33,29 @@ const findUser = async (id) =>
 const countPhotos = async () =>
 	(await pool.query("select count(*)::int as n from photos")).rows[0].n;
 
+const findMember = async () =>
+	(
+		await pool.query(
+			"select id, email, role from users where role = 'member' limit 1",
+		)
+	).rows[0];
+
+const findGuide = async () =>
+	(
+		await pool.query(
+			"select id, title, region, difficulty, length_km, body_html, published from guides order by id limit 1",
+		)
+	).rows[0];
+
+const toGuideBody = (guide) => ({
+	bodyHtml: guide.body_html,
+	difficulty: guide.difficulty,
+	lengthKm: guide.length_km,
+	published: guide.published,
+	region: guide.region,
+	title: guide.title,
+});
+
 beforeAll(async () => {
 	server = app.listen(0);
 	await new Promise((resolve) => server.once("listening", resolve));
@@ -209,5 +232,82 @@ describe("Validering av indata - A10 Mishandling of Exceptional Conditions", () 
 		});
 		expect(res.status).toBe(400);
 		expect(await res.json()).toEqual({ error: "ogiltig JSON" });
+	});
+});
+
+describe("A01 Broken Access Control - guiderna", () => {
+	it("PUT /api/guides/:id utan token ger 401 och guiden ändras inte", async () => {
+		const guide = await findGuide();
+		const res = await callApi(`/api/guides/${guide.id}`, {
+			body: { ...toGuideBody(guide), title: "Ändrad utan token" },
+			method: "PUT",
+		});
+		expect(res.status).toBe(401);
+		expect((await findGuide()).title).toBe(guide.title);
+	});
+
+	it("en medlem kan inte ändra en guide (403)", async () => {
+		const guide = await findGuide();
+		const member = await findMember();
+		const res = await callApi(`/api/guides/${guide.id}`, {
+			body: { ...toGuideBody(guide), title: "Ändrad av medlem" },
+			method: "PUT",
+			token: sign(member),
+		});
+		expect(res.status).toBe(403);
+		expect((await findGuide()).title).toBe(guide.title);
+	});
+
+	it("en redaktör kan uppdatera en guide", async () => {
+		const guide = await findGuide();
+		const editor = await findUser(1);
+		const res = await callApi(`/api/guides/${guide.id}`, {
+			body: { ...toGuideBody(guide), title: "Ändrad av redaktör" },
+			method: "PUT",
+			token: sign(editor),
+		});
+		expect(res.status).toBe(200);
+		expect((await res.json()).title).toBe("Ändrad av redaktör");
+		await pool.query("update guides set title = $1 where id = $2", [
+			guide.title,
+			guide.id,
+		]);
+	});
+
+	it("ogiltig indata ger 400 med vad som var fel, och guiden ändras inte", async () => {
+		const guide = await findGuide();
+		const editor = await findUser(1);
+		const res = await callApi(`/api/guides/${guide.id}`, {
+			body: { ...toGuideBody(guide), lengthKm: -5, title: "" },
+			method: "PUT",
+			token: sign(editor),
+		});
+		expect(res.status).toBe(400);
+		const responseBody = await res.json();
+		expect(responseBody.issues.map((issue) => issue.path)).toEqual(
+			expect.arrayContaining(["title", "lengthKm"]),
+		);
+		expect((await findGuide()).title).toBe(guide.title);
+	});
+
+	it("ger 404 för en guide som inte finns", async () => {
+		const guide = await findGuide();
+		const editor = await findUser(1);
+		const res = await callApi("/api/guides/999999", {
+			body: toGuideBody(guide),
+			method: "PUT",
+			token: sign(editor),
+		});
+		expect(res.status).toBe(404);
+	});
+});
+
+describe("A02 Security Misconfiguration - CORS", () => {
+	it("svaret ger ingen access-control-allow-origin till en annan sajt", async () => {
+		const res = await fetch(`${baseUrl}/api/guides`, {
+			headers: { origin: "https://shrek-is-love.com" },
+		});
+		expect(res.status).toBe(200);
+		expect(res.headers.get("access-control-allow-origin")).toBeNull();
 	});
 });
