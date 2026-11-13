@@ -33,7 +33,7 @@ const checkMetadata = (metadata) => {
 	const { height, width } = metadata.autoOrient;
 	if (width < PHOTO_MIN_WIDTH || height < PHOTO_MIN_HEIGHT) {
 		throw new InvalidPhotoError(
-			`bilden är för liten, den måste minst vara ${PHOTO_MIN_WIDTH} × ${PHOTO_MIN_HEIGHT} px`,
+			`bilden är för liten, den måste minst vara ${PHOTO_MIN_WIDTH} x ${PHOTO_MIN_HEIGHT} px`,
 		);
 	}
 };

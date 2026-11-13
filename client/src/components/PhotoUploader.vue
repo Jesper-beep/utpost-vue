@@ -107,7 +107,7 @@ const upload = async () => {
 			Ladda upp
 		</BaseButton>
 		<p v-if="isUploading" role="status" class="photo-uploader__status">
-			Laddar upp bild…
+			Laddar upp bild...
 		</p>
 		<p
 			v-if="error"

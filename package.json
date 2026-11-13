@@ -34,6 +34,7 @@
 		"docker:seed": "docker compose exec api npm run seed",
 		"docker:up": "docker compose up --build -d",
 		"lint": "biome check --verbose --diagnostic-level=warn --max-diagnostics=none .",
+		"lint:all": "concurrently -n biome,markdown,spelling -c blue,magenta,green \"npm run lint\" \"npm run lint:md\" \"npm run lint:spelling\"",
 		"lint:fix": "biome check --write .",
 		"lint:force-fix": "biome check --write --unsafe .",
 		"lint:md": "markdownlint \"**/*.md\" --ignore \"**/node_modules/**\"",

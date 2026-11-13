@@ -34,7 +34,7 @@ const myTours = computed(() =>
 	<div v-else class="profile-article">
 		<h1>{{ session.user.display_name }}</h1>
 		<p class="profile-article__meta">
-			{{ session.user.email }} · {{ session.user.role }}
+			{{ session.user.email }} - {{ session.user.role }}
 		</p>
 		<h2>Mina turer ({{ myTours.length }})</h2>
 		<p v-if="error" aria-live="assertive">

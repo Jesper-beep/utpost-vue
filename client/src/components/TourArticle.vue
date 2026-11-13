@@ -55,7 +55,7 @@ const addUploadedPhoto = (photo: Photo) => {
 	<div v-else class="tour-article">
 		<h1>{{ tour.title }}</h1>
 		<p class="tour-article__meta">
-			{{ distance }} km · {{ tour.logs.length }} mätpunkter ·
+			{{ distance }} km - {{ tour.logs.length }} mätpunkter -
 			{{ climb }} höjdmeter
 		</p>
 		<p v-if="tour.notes">{{ tour.notes }}</p>

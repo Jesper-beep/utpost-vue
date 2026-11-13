@@ -117,7 +117,7 @@ describe("PhotoUploader", () => {
 		await chooseImage();
 		await clickUpload();
 
-		expect(await screen.findByText("Laddar upp bild…")).toBeInTheDocument();
+		expect(await screen.findByText("Laddar upp bild...")).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Ladda upp" })).toBeDisabled();
 	});
 

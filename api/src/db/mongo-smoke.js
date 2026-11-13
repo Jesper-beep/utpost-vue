@@ -14,7 +14,7 @@ const run = async () => {
 		.rows[0];
 	if (!tour)
 		throw new Error(
-			`Ingen tur med id ${tourId} i Postgres – kör npm run seed först`,
+			`Ingen tur med id ${tourId} i Postgres - kör npm run seed först`,
 		);
 	const logs = (
 		await pool.query(
@@ -49,7 +49,7 @@ const run = async () => {
 	await tours.createIndex({ tour_id: 1 }, { unique: true });
 	await tours.replaceOne({ tour_id: tour.id }, doc, { upsert: true });
 
-	// Läs tillbaka – bara de två första punkterna, resten vill vi inte ha över tråden.
+	// Läs tillbaka - bara de två första punkterna, resten vill vi inte ha över tråden.
 	const back = await tours.findOne(
 		{ tour_id: tour.id },
 		{ projection: { logs: { $slice: 2 } } },

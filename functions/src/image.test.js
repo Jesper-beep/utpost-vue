@@ -53,7 +53,7 @@ describe("Bildbearbetning", () => {
 		);
 	});
 
-	it("avvisar en bild som är mindre än 1920 × 1080", async () => {
+	it("avvisar en bild som är mindre än 1920 x 1080", async () => {
 		const smallImage = await createTestImage(1600, 900);
 
 		await expect(processPhoto(smallImage)).rejects.toThrow(
