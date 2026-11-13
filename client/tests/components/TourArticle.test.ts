@@ -1,10 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/vue";
 import type { Photo, TourDetail } from "@utpost/shared";
-import { createPinia } from "pinia";
+import { createPinia, type Pinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import TourArticle from "../../src/components/TourArticle.vue";
+import { setToken } from "../../src/lib/token.js";
+import { useAuthStore } from "../../src/stores/auth.js";
 import { bigFetch } from "../../src/utils/bigFetch.js";
 
 vi.mock("vue-router", async (importOriginal) => ({
@@ -52,32 +54,34 @@ const PhotoUploaderStub = defineComponent(
 	{ emits: ["uploaded"] },
 );
 
+let pinia: Pinia;
+
 const renderArticle = (photos: Photo[]) => {
 	mockedBigFetch.mockResolvedValue({ data: tur(photos), loading: false });
 	return render(TourArticle, {
 		global: {
-			plugins: [createPinia()],
+			plugins: [pinia],
 			stubs: { PhotoUploader: PhotoUploaderStub },
 		},
 	});
 };
 
 const loggaIn = (userId: number) => {
-	localStorage.setItem("token", "test-token");
-	localStorage.setItem(
-		"user",
-		JSON.stringify({
-			display_name: "Anna Berg",
-			email: "anna@example.com",
-			id: userId,
-			role: "member",
-		}),
-	);
+	setToken("test-token");
+	useAuthStore().user = {
+		created_at: "",
+		display_name: "Anna Berg",
+		email: "anna@example.com",
+		id: userId,
+		role: "member",
+	};
 };
 
 describe("TourArticle", () => {
 	beforeEach(() => {
-		localStorage.clear();
+		pinia = createPinia();
+		setActivePinia(pinia);
+		setToken(null);
 		vi.resetAllMocks();
 	});
 

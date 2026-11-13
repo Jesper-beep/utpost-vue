@@ -1,14 +1,14 @@
 <script setup>
 import { RouterLink, useRouter } from "vue-router";
-import { useSessionStore } from "../stores/session.js";
+import { useAuthStore } from "../stores/auth.js";
 import BaseButton from "./BaseButton.vue";
 import MainNav from "./MainNav.vue";
 
-const session = useSessionStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 const logout = () => {
-	session.logout();
+	authStore.logout();
 	router.push("/");
 };
 </script>
@@ -41,9 +41,9 @@ const logout = () => {
 			<MainNav />
 
 			<div class="topbar__actions">
-				<template v-if="session.isLoggedIn">
+				<template v-if="authStore.isLoggedIn">
 					<RouterLink to="/profil" class="topbar__user">{{
-						session.user?.display_name
+						authStore.user?.display_name
 					}}</RouterLink>
 					<BaseButton @click="logout">Logga ut</BaseButton>
 				</template>

@@ -14,6 +14,10 @@ RUN npm run build --workspace=client
 
 FROM nginxinc/nginx-unprivileged:stable-alpine-slim
 
+USER root
+RUN apk upgrade --no-cache musl musl-utils zlib
+USER nginx
+
 ENV API_UPSTREAM=api:4000
 
 COPY client/nginx/default.conf.template /etc/nginx/templates/default.conf.template

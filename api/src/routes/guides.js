@@ -1,51 +1,85 @@
 import { Router } from "express";
 import { pool } from "../db/client.js";
+import { requireRole, requireUser } from "../lib/auth.js";
+import { guideUpdateSchema, idParam, searchSchema } from "../lib/schemas.js";
+import { validate } from "../lib/validate.js";
+import { wrap } from "../lib/wrap.js";
 
 export const guidesRouter = Router();
 
-guidesRouter.get("/", async (_req, res) => {
-	const result = await pool.query(
-		"select * from guides order by updated_at desc",
-	);
-	res.json(result.rows);
-});
+guidesRouter.get(
+	"/",
+	wrap(async (_req, res) => {
+		const result = await pool.query(
+			"select * from guides order by updated_at desc",
+		);
+		res.json(result.rows);
+	}),
+);
 
-guidesRouter.get("/regions", async (_req, res) => {
-	const result = await pool.query(
-		"select distinct region from guides order by region",
-	);
-	res.json(result.rows.map((r) => r.region));
-});
+guidesRouter.get(
+	"/regions",
+	wrap(async (_req, res) => {
+		const result = await pool.query(
+			"select distinct region from guides order by region",
+		);
+		res.json(result.rows.map((r) => r.region));
+	}),
+);
 
-guidesRouter.get("/popular", async (_req, res) => {
-	const result = await pool.query(
-		"select * from guides where published = true order by id desc limit 6",
-	);
-	res.json(result.rows);
-});
+guidesRouter.get(
+	"/popular",
+	wrap(async (_req, res) => {
+		const result = await pool.query(
+			"select * from guides where published = true order by id desc limit 6",
+		);
+		res.json(result.rows);
+	}),
+);
 
-// Sök. Byggd i all hast inför lanseringen.
-guidesRouter.get("/search", async (req, res) => {
-	const q = req.query.q || "";
-	const sql = `select * from guides where title ilike '%${q}%' or region ilike '%${q}%'`;
-	const result = await pool.query(sql);
-	res.json(result.rows);
-});
+guidesRouter.get(
+	"/search",
+	validate(searchSchema, "query"),
+	wrap(async (req, res) => {
+		const { q: searchText } = req.validQuery;
+		const result = await pool.query(
+			"select * from guides where title ilike $1 or region ilike $1 order by updated_at desc",
+			[`%${searchText}%`],
+		);
+		res.json(result.rows);
+	}),
+);
 
-guidesRouter.get("/:slug", async (req, res) => {
-	const result = await pool.query("select * from guides where slug = $1", [
-		req.params.slug,
-	]);
-	if (!result.rows[0]) return res.status(404).json({ error: "hittades inte" });
-	res.json(result.rows[0]);
-});
+guidesRouter.get(
+	"/:slug",
+	wrap(async (req, res) => {
+		const result = await pool.query("select * from guides where slug = $1", [
+			req.params.slug,
+		]);
+		if (!result.rows[0])
+			return res.status(404).json({ error: "hittades inte" });
+		res.json(result.rows[0]);
+	}),
+);
 
-guidesRouter.put("/:id", async (req, res) => {
-	const { title, region, difficulty, lengthKm, bodyHtml, published } = req.body;
-	const result = await pool.query(
-		`update guides set title=$1, region=$2, difficulty=$3, length_km=$4, body_html=$5,
+guidesRouter.put(
+	"/:id",
+	requireUser,
+	requireRole("editor"),
+	validate(guideUpdateSchema),
+	wrap(async (req, res) => {
+		const parsedId = idParam.safeParse(req.params.id);
+		if (!parsedId.success)
+			return res.status(400).json({ error: "ogiltigt id" });
+		const { title, region, difficulty, lengthKm, bodyHtml, published } =
+			req.body;
+		const result = await pool.query(
+			`update guides set title=$1, region=$2, difficulty=$3, length_km=$4, body_html=$5,
      published=$6, updated_at=now() where id=$7 returning *`,
-		[title, region, difficulty, lengthKm, bodyHtml, published, req.params.id],
-	);
-	res.json(result.rows[0]);
-});
+			[title, region, difficulty, lengthKm, bodyHtml, published, parsedId.data],
+		);
+		if (!result.rows[0])
+			return res.status(404).json({ error: "hittades inte" });
+		res.json(result.rows[0]);
+	}),
+);

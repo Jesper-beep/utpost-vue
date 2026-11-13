@@ -4,13 +4,13 @@ import { computed, ref, useId, watch } from "vue";
 import { useRoute } from "vue-router";
 import { API_URL } from "../config.js";
 import { distanceKm, elevationGain } from "../lib/tours.js";
-import { useSessionStore } from "../stores/session.js";
+import { useAuthStore } from "../stores/auth.js";
 import { bigFetch } from "../utils/bigFetch.js";
 import PhotoGallery from "./PhotoGallery.vue";
 import PhotoUploader from "./PhotoUploader.vue";
 
 const route = useRoute();
-const session = useSessionStore();
+const authStore = useAuthStore();
 
 const tour = ref<TourDetail | null>(null);
 const captionId = useId();
@@ -38,10 +38,10 @@ const distance = computed(() => distanceKm(tour.value));
 const climb = computed(() => elevationGain(tour.value?.logs ?? []));
 
 const isOwner = computed(() => {
-	if (!session.isLoggedIn || !tour.value) {
+	if (!authStore.isLoggedIn || !tour.value) {
 		return false;
 	} else {
-		return session.user?.id === tour.value.user_id;
+		return authStore.user?.id === tour.value.user_id;
 	}
 });
 
@@ -55,7 +55,7 @@ const addUploadedPhoto = (photo: Photo) => {
 	<div v-else class="tour-article">
 		<h1>{{ tour.title }}</h1>
 		<p class="tour-article__meta">
-			{{ distance }} km · {{ tour.logs.length }} mätpunkter ·
+			{{ distance }} km - {{ tour.logs.length }} mätpunkter -
 			{{ climb }} höjdmeter
 		</p>
 		<p v-if="tour.notes">{{ tour.notes }}</p>

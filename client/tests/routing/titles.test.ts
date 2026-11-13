@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
+import { beforeEach, describe, expect, it } from "vitest";
 import router, { routes } from "../../router/index.js";
 
 const titles = routes.map((route) => route.meta.title);
@@ -6,6 +7,10 @@ const isUnique = (values: unknown[]) => new Set(values).size === values.length;
 const toUrl = (path: string) => path.replace(/:\w+(\(.*\))?\*?/g, "x");
 
 describe("pages", () => {
+	beforeEach(() => {
+		setActivePinia(createPinia());
+	});
+
 	it("varje sida har en sidtitel", () => {
 		const missing = routes.filter((route) => !route.meta.title);
 		expect(missing.map((route) => route.name)).toEqual([]);

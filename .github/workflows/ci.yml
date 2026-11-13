@@ -13,72 +13,142 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - name: Hämta koden
+        uses: actions/checkout@v7
+      - name: Installera Node
+        uses: actions/setup-node@v7
         with: { node-version: 24, cache: npm }
-      - run: npm ci
-      - run: npm exec -- biome ci --error-on-warnings
-      - run: npm run lint:md
-      - run: npm run lint:spelling
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm --prefix functions ci
-      - run: npm --prefix functions test
-      - run: npm run build
+      - name: Installera beroendena
+        run: npm ci
+      - name: Kontrollera kod och formatering med Biome
+        run: npm exec -- biome ci --error-on-warnings
+      - name: Kontrollera markdown i dokumenten
+        run: npm run lint:md
+      - name: Kontrollera stavning
+        run: npm run lint:spelling
+      - name: Kontrollera typer
+        run: npm run typecheck
+      - name: Kör klientens tester
+        run: npm test
+      - name: Installera bildfunktionens beroenden
+        run: npm --prefix functions ci
+      - name: Kör bildfunktionens tester
+        run: npm --prefix functions test
+      - name: Bygg klienten
+        run: npm run build
+
+  security:
+    name: Säkerhet
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: admin
+      POSTGRES_DB: utpost
+      MONGO_USER: admin
+      MONGO_DB: utpost
+    steps:
+      - name: Hämta koden
+        uses: actions/checkout@v7
+      - name: Skapa slumpade engångslösenord
+        uses: ./.github/actions/ci-secrets
+
+      - name: Kontrollera beroendena med npm audit
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Skanna repot med Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: fs
+          version: v0.76.2
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          trivyignores: .trivyignore
+
+      - name: Bygg och starta API:et, klienten och databaserna med Docker Compose
+        run: docker compose up -d --build --wait
+      - name: Vänta tills API:et svarar genom nginx
+        run: curl -fsS --retry 30 --retry-delay 2 --retry-connrefused http://localhost:3001/api/health
+      - name: Kontrollera att X-Powered-By bara är Shrek
+        run: |
+          for URL in http://localhost:3001/ http://localhost:3001/api/health; do
+            VALUES=$(curl -sI "$URL" | grep -i '^x-powered-by:' | tr -d '\r')
+            [ "$VALUES" = "X-Powered-By: Shrek" ] || { echo "Oväntad header från $URL: $VALUES"; exit 1; }
+          done
+
+      - name: Skanna API-avbildningen med Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: image
+          image-ref: utpost-api
+          version: v0.76.2
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          trivyignores: .trivyignore
+      - name: Skanna klientens avbildning med Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: image
+          image-ref: utpost-client
+          version: v0.76.2
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          trivyignores: .trivyignore
+
+      - name: Skanna sajten med ZAP
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25
+        with:
+          target: http://localhost:3001
+          rules_file_name: .zap/rules.tsv
+          fail_action: true
+          allow_issue_writing: false
 
   integration:
-    name: Integration
+    name: Integrationstester
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: utpost
-          POSTGRES_PASSWORD: utpost
-          POSTGRES_DB: utpost
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U utpost -d utpost"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-      mongo:
-        image: mongo:8.2
-        env:
-          MONGO_INITDB_ROOT_USERNAME: utpost
-          MONGO_INITDB_ROOT_PASSWORD: utpost
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
     env:
-      JWT_SECRET: ci-only-secret
-      MONGODB_URL: mongodb://utpost:utpost@localhost:27017/utpost?authSource=admin
-      POSTGRES_URL: postgres://utpost:utpost@localhost:5432/utpost
+      POSTGRES_USER: admin
+      POSTGRES_DB: utpost
+      MONGO_USER: admin
+      MONGO_DB: utpost
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - name: Hämta koden
+        uses: actions/checkout@v7
+      - name: Skapa slumpade engångslösenord
+        uses: ./.github/actions/ci-secrets
+      - name: Skapa adresser till databaserna
+        run: |
+          echo "POSTGRES_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5433/${POSTGRES_DB}" >> "$GITHUB_ENV"
+          echo "MONGODB_URL=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@localhost:27017/${MONGO_DB}?authSource=admin" >> "$GITHUB_ENV"
+      - name: Starta Postgres och MongoDB med Docker Compose
+        run: docker compose up -d --wait postgres mongo
+      - name: Installera Node
+        uses: actions/setup-node@v7
         with: { node-version: 24, cache: npm }
-      - run: npm ci
-      - run: npm run seed
-      - run: npm run migrate:logs
-      - run: npm run test:api
+      - name: Installera beroendena
+        run: npm ci
+      - name: Fyll Postgres med testdata
+        run: npm run seed
+      - name: Flytta turloggarna till MongoDB
+        run: npm run migrate:logs
+      - name: Kör API:ets integrationstester
+        run: npm run test:api
 
   image:
-    name: Image
+    name: Docker-avbildningar
     runs-on: ubuntu-latest
     needs: [quality]
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v7
-      - uses: docker/setup-buildx-action@v4
-      - uses: docker/login-action@v4
+      - name: Hämta koden
+        uses: actions/checkout@v7
+      - name: Förbered Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Logga in i GitHub Container Registry
+        uses: docker/login-action@v4
         if: github.event_name == 'push'
         with:
           registry: ghcr.io
@@ -86,13 +156,15 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - id: meta-api
+        name: Skapa taggar och etiketter för API-avbildningen
         uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}-api
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
-      - uses: docker/build-push-action@v7
+      - name: Bygg API-avbildningen
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: api/Dockerfile
@@ -104,13 +176,15 @@ jobs:
           cache-to: type=gha,mode=max,scope=api
 
       - id: meta-client
+        name: Skapa taggar och etiketter för klientens avbildning
         uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}-client
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
-      - uses: docker/build-push-action@v7
+      - name: Bygg klientens avbildning
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: client/Dockerfile
@@ -205,8 +279,10 @@ jobs:
       group: deploy-functions
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - name: Hämta koden
+        uses: actions/checkout@v7
+      - name: Installera Node
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
