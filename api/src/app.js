@@ -12,6 +12,8 @@ import { toursRouter } from "./routes/tours.js";
 
 export const app = express();
 
+app.disable("x-powered-by");
+
 app.use(yoga.graphqlEndpoint, yoga);
 
 app.use(express.json({ limit: "1mb" }));

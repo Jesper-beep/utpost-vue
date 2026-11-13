@@ -1,0 +1,12 @@
+name: Slumpade engångslösenord
+description: Skapar slumpade lösenord för CI och exporterar dem som miljövariabler
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        for NAME in POSTGRES_PASSWORD MONGO_PASSWORD JWT_SECRET; do
+          VALUE=$(openssl rand -hex 24)
+          echo "::add-mask::$VALUE"
+          echo "$NAME=$VALUE" >> "$GITHUB_ENV"
+        done

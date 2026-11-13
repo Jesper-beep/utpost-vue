@@ -23,12 +23,12 @@ flowchart LR
 CI har fem jobb i `.github/workflows/ci.yml`.
 
 - SlopChecker2000: lint, typkontroll, tester (även bildfunktionens) och bygge av klienten. Körs på ubuntu, macos och windows
-- Integration: API:ets integrationstester mot riktiga databaser. Körs på ubuntu
-- Image: bygger Docker-avbildningarna för api och client. Körs på ubuntu och väntar på SlopChecker2000
-- Deploy to Azure staging: byter avbildning på api och client i Azure Container Apps. Körs på ubuntu, bara vid push till main, och väntar på Image och Integration
+- Integrationstester: kör API:ets integrationstester mot riktiga databaser. Körs på ubuntu
+- Docker-avbildningar: bygger avbildningarna för api och client. Körs på ubuntu och väntar på SlopChecker2000
+- Deploy to Azure staging: byter avbildning på api och client i Azure Container Apps. Körs på ubuntu, bara vid push till main, och väntar på Docker-avbildningar och Integrationstester
 - Deploy to Azure Functions: bygger och publicerar bildfunktionen i Azure Functions. Körs på ubuntu, bara vid push till main, och väntar på SlopChecker2000
 
-Integration är oberoende av SlopChecker2000, så de två körs samtidigt.
+Integrationstester är oberoende av SlopChecker2000, så de två körs samtidigt.
 
 ## Steg och tider
 
@@ -121,7 +121,7 @@ Fångar N+1 i turlistan och saknat inloggningskrav för `createTour`. Se [testin
 
 ## Deploy
 
-Jobbet säger åt Container Apps att köra de avbildningar som Image redan byggt, med taggen `sha-` och commitens sju första tecken.
+Jobbet säger åt Container Apps att köra de avbildningar som jobbet Docker-avbildningar redan byggt, med taggen `sha-` och commitens sju första tecken.
 
 Fångar fel som bara syns när avbildningarna kör i Azure, till exempel en nginx-mall som inte renderas.
 
@@ -152,7 +152,7 @@ Att en riktig bild går att behandla i Azure prövas med en uppladdning efter me
 
 ## Regler på main
 
-- PR krävs, minst en godkännare och "gröna checks" från alla tre operativsystemen och från Integration
+- PR krävs, minst en godkännare och "gröna checks" från alla tre operativsystemen och från Integrationstester
 - Branchen måste vara uppdaterad mot main innan merge
 - Reglerna gäller även admins
 - Deploy to Azure staging och Deploy to Azure Functions är inte status checks. De körs efter merge, på main, och hoppas över på en PR. Blir en av dem röd är main ändå korrekt, men staging eller funktionen uppdaterades inte
