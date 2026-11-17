@@ -14,9 +14,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - name: Hämta koden
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Installera Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with: { node-version: 24, cache: npm }
       - name: Installera beroendena
         run: npm ci
@@ -29,7 +29,7 @@ jobs:
       - name: Kontrollera typer
         run: npm run typecheck
       - name: Kör klientens tester
-        run: npm test
+        run: npm run test:client
       - name: Installera bildfunktionens beroenden
         run: npm --prefix functions ci
       - name: Kör bildfunktionens tester
@@ -47,7 +47,7 @@ jobs:
       MONGO_DB: utpost
     steps:
       - name: Hämta koden
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Skapa slumpade engångslösenord
         uses: ./.github/actions/ci-secrets
 
@@ -96,7 +96,7 @@ jobs:
           exit-code: "1"
           trivyignores: .trivyignore
 
-      - name: Skanna sajten med ZAP
+      - name: Skanna webbplatsen med ZAP
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25
         with:
           target: http://localhost:3001
@@ -114,7 +114,7 @@ jobs:
       MONGO_DB: utpost
     steps:
       - name: Hämta koden
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Skapa slumpade engångslösenord
         uses: ./.github/actions/ci-secrets
       - name: Skapa adresser till databaserna
@@ -124,7 +124,7 @@ jobs:
       - name: Starta Postgres och MongoDB med Docker Compose
         run: docker compose up -d --wait postgres mongo
       - name: Installera Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with: { node-version: 24, cache: npm }
       - name: Installera beroendena
         run: npm ci
@@ -144,11 +144,11 @@ jobs:
       packages: write
     steps:
       - name: Hämta koden
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Förbered Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
       - name: Logga in i GitHub Container Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
         if: github.event_name == 'push'
         with:
           registry: ghcr.io
@@ -157,14 +157,14 @@ jobs:
 
       - id: meta-api
         name: Skapa taggar och etiketter för API-avbildningen
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302
         with:
           images: ghcr.io/${{ github.repository }}-api
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
       - name: Bygg API-avbildningen
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
         with:
           context: .
           file: api/Dockerfile
@@ -177,14 +177,14 @@ jobs:
 
       - id: meta-client
         name: Skapa taggar och etiketter för klientens avbildning
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302
         with:
           images: ghcr.io/${{ github.repository }}-client
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
       - name: Bygg klientens avbildning
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
         with:
           context: .
           file: client/Dockerfile
@@ -210,7 +210,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Logga in i Azure med GitHubs identitet (OIDC)
-        uses: azure/login@v3
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
@@ -280,9 +280,9 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Hämta koden
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Installera Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 24
           cache: npm
@@ -301,14 +301,14 @@ jobs:
           npm --prefix package ci --omit=dev
 
       - name: Logga in i Azure med GitHubs identitet (OIDC)
-        uses: azure/login@v3
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
       - name: Publicera funktionen
-        uses: Azure/functions-action@v1
+        uses: Azure/functions-action@c5060b3b8bb1ebbcb531abd00c822ecbaa8ea656
         with:
           app-name: ${{ vars.AZURE_FUNCTION_APP }}
           package: package
