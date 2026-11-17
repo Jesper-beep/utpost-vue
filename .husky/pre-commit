@@ -1,7 +1,6 @@
 set -e
 
 npm run lint
-npm run lint:md
-npm run lint:spelling
+npm run security
 npm run typecheck
 npm run test

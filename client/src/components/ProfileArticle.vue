@@ -3,7 +3,7 @@ import { useQuery } from "@urql/vue";
 import { computed } from "vue";
 import { graphql } from "../gql/index.js";
 import { ROLE_LABELS } from "../lib/roles.js";
-import { useSessionStore } from "../stores/session.js";
+import { useAuthStore } from "../stores/auth.js";
 import TourSummaryList from "./TourSummaryList.vue";
 
 const MinaTurerDocument = graphql(`
@@ -19,18 +19,18 @@ const MinaTurerDocument = graphql(`
 	}
 `);
 
-const session = useSessionStore();
+const authStore = useAuthStore();
 
 const { data, error, fetching } = useQuery({ query: MinaTurerDocument });
 
 const myTours = computed(() =>
 	(data.value?.tours ?? []).filter(
-		(tour) => String(tour.user.id) === String(session.user?.id),
+		(tour) => String(tour.user.id) === String(authStore.user?.id),
 	),
 );
 
 const firstName = computed(() => {
-	const displayName = session.user?.display_name;
+	const displayName = authStore.user?.display_name;
 	if (!displayName) {
 		return "";
 	}
@@ -43,15 +43,15 @@ const firstName = computed(() => {
 });
 
 const roleLabel = computed(() => {
-	if (!session.user) {
+	if (!authStore.user) {
 		return "";
 	}
-	return ROLE_LABELS[session.user.role];
+	return ROLE_LABELS[authStore.user.role];
 });
 </script>
 
 <template>
-	<p v-if="!session.user">Du är inte inloggad.</p>
+	<p v-if="!authStore.user">Du är inte inloggad.</p>
 	<article v-else class="profile-article">
 		<header class="profile-article__header">
 			<div class="profile-article__image">
@@ -68,12 +68,14 @@ const roleLabel = computed(() => {
 				<h1 class="profile-article__name">{{ firstName }} ({{ roleLabel }})</h1>
 				<div class="profile-article__fact">
 					<h2 class="profile-article__label">Namn</h2>
-					<p class="profile-article__value">{{ session.user.display_name }}</p>
+					<p class="profile-article__value">
+						{{ authStore.user.display_name }}
+					</p>
 				</div>
 				<div class="profile-article__fact">
 					<h2 class="profile-article__label">E-post</h2>
-					<p class="profile-article__value" :title="session.user.email">
-						{{ session.user.email }}
+					<p class="profile-article__value" :title="authStore.user.email">
+						{{ authStore.user.email }}
 					</p>
 				</div>
 				<div class="profile-article__fact">
