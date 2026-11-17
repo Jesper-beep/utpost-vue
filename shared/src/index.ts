@@ -22,7 +22,6 @@ export interface User {
 	display_name: string;
 	role: "member" | "editor";
 	created_at: string;
-	password_hash: string; // password_hash är inte ett hash, detta ska vi ändra senare (skuld)
 }
 
 export interface TourLog {

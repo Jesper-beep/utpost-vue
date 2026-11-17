@@ -9,7 +9,7 @@ export const migrateLogs = async () => {
 		await pool.query("select * from tour_logs order by tour_id, recorded_at")
 	).rows;
 	if (tours.length === 0) {
-		throw new Error("Inga turer i Postgres – kör npm run seed först");
+		throw new Error("Inga turer i Postgres - kör npm run seed först");
 	}
 
 	const logsByTour = new Map();
@@ -77,7 +77,7 @@ export const migrateLogs = async () => {
 	console.log(`Tid: ${Date.now() - started} ms`);
 	if (documents !== tours.length || points !== logs.length) {
 		throw new Error(
-			"Migreringen stämmer inte – antalet dokument eller mätpunkter avviker",
+			"Migreringen stämmer inte - antalet dokument eller mätpunkter avviker",
 		);
 	}
 	console.log("Verifierat: inget tappades på vägen.");

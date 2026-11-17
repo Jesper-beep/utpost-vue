@@ -76,9 +76,9 @@ describe("PhotoDebugInfo", () => {
 		expect(screen.getByText("Variant 1").tagName).toBe("H5");
 		expect(screen.getByText("Variant 2").tagName).toBe("H5");
 		expect(screen.getAllByText("Dimension")[0]?.tagName).toBe("H6");
-		expect(valueUnder("Dimension", 0)).toHaveTextContent("256 × 144 px");
+		expect(valueUnder("Dimension", 0)).toHaveTextContent("256 x 144 px");
 		expect(valueUnder("Storlek", 0)).toHaveTextContent("2 kB");
-		expect(valueUnder("Dimension", 1)).toHaveTextContent("1920 × 1080 px");
+		expect(valueUnder("Dimension", 1)).toHaveTextContent("1920 x 1080 px");
 		expect(valueUnder("Storlek", 1)).toHaveTextContent("960 kB");
 	});
 });

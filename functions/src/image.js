@@ -15,9 +15,11 @@ sharp.cache(false);
 
 export class InvalidPhotoError extends Error {}
 
+// Bara headern läses här, så gränsen för pixlar behövs inte.
+// checkMetadata ger det tydliga felet "bilden är för stor".
 const readMetadata = async (imageBuffer) => {
 	try {
-		return await sharp(imageBuffer).metadata();
+		return await sharp(imageBuffer, { limitInputPixels: false }).metadata();
 	} catch {
 		throw new InvalidPhotoError("ogiltig bild");
 	}
@@ -33,13 +35,14 @@ const checkMetadata = (metadata) => {
 	const { height, width } = metadata.autoOrient;
 	if (width < PHOTO_MIN_WIDTH || height < PHOTO_MIN_HEIGHT) {
 		throw new InvalidPhotoError(
-			`bilden är för liten, den måste minst vara ${PHOTO_MIN_WIDTH} × ${PHOTO_MIN_HEIGHT} px`,
+			`bilden är för liten, den måste minst vara ${PHOTO_MIN_WIDTH} x ${PHOTO_MIN_HEIGHT} px`,
 		);
 	}
 };
 
+// Sharp vägrar själv att avkoda en bild över gränsen, även om checkMetadata skulle hoppas över
 const cropToStandardSize = (imageBuffer) => {
-	return sharp(imageBuffer, { autoOrient: true })
+	return sharp(imageBuffer, { autoOrient: true, limitInputPixels: MAX_PIXELS })
 		.resize({
 			fit: "cover",
 			height: PHOTO_MIN_HEIGHT,

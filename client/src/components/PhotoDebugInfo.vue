@@ -49,7 +49,7 @@ const variants = computed<DebugVariant[]>(() =>
 		facts: [
 			{
 				label: "Dimension",
-				value: `${variant.width} × ${variant.height} px`,
+				value: `${variant.width} x ${variant.height} px`,
 			},
 			{ label: "Storlek", value: formatKilobytes(variant.sizeBytes) },
 		],
