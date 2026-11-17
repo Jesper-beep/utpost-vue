@@ -303,7 +303,7 @@ describe("A01 Broken Access Control - guiderna", () => {
 });
 
 describe("A02 Security Misconfiguration - CORS", () => {
-	it("svaret ger ingen access-control-allow-origin till en annan sajt", async () => {
+	it("svaret ger ingen access-control-allow-origin till en annan webbplats", async () => {
 		const res = await fetch(`${baseUrl}/api/guides`, {
 			headers: { origin: "https://shrek-is-love.com" },
 		});

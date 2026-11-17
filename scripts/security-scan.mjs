@@ -1,4 +1,4 @@
-// Lokal skanning med samma verktyg som jobbet Säkerhet i pipelinen: Trivy och ZAP genom Docker. Starta först sajten med npm run docker:up.
+// Lokal skanning med samma verktyg som jobbet Säkerhet i pipelinen: Trivy och ZAP genom Docker. Starta först webbplatsen med npm run docker:up.
 
 import { spawnSync } from "node:child_process";
 
