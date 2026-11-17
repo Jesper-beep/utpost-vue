@@ -46,7 +46,9 @@ describe("MainHeader", () => {
 
 		renderHeader();
 
-		expect(screen.getByRole("link", { name: "Michael Scott" })).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", { name: "Michael Scott" }),
+		).toBeInTheDocument();
 		expect(
 			screen.queryByRole("link", { name: "Logga in" }),
 		).not.toBeInTheDocument();
