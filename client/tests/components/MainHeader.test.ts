@@ -1,20 +1,26 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/vue";
-import { createPinia } from "pinia";
+import { createPinia, type Pinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import router from "../../router/index.js";
 import MainHeader from "../../src/components/MainHeader.vue";
+import { setToken } from "../../src/lib/token.js";
+import { useAuthStore } from "../../src/stores/auth.js";
+
+let pinia: Pinia;
 
 const renderHeader = () =>
 	render(MainHeader, {
 		global: {
-			plugins: [createPinia(), router],
+			plugins: [pinia, router],
 		},
 	});
 
 describe("MainHeader", () => {
 	beforeEach(async () => {
-		localStorage.clear();
+		pinia = createPinia();
+		setActivePinia(pinia);
+		setToken(null);
 		await router.push("/my-fingers-into-my-eyes");
 	});
 
@@ -33,16 +39,14 @@ describe("MainHeader", () => {
 	});
 
 	it("visar namnet och Logga ut när man är inloggad, och loggar ut", async () => {
-		localStorage.setItem("token", "test-token");
-		localStorage.setItem(
-			"user",
-			JSON.stringify({
-				display_name: "Michael Scott",
-				email: "michael.scott@michaelscottpapercompany.com",
-				id: 1,
-				role: "member",
-			}),
-		);
+		setToken("test-token");
+		useAuthStore().user = {
+			created_at: "",
+			display_name: "Michael Scott",
+			email: "michael.scott@michaelscottpapercompany.com",
+			id: 1,
+			role: "member",
+		};
 
 		renderHeader();
 
