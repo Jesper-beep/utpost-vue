@@ -28,7 +28,7 @@ watch(guide, (value) => {
 	<article v-else-if="guide" class="guide-article">
 		<h1>{{ guide.title }}</h1>
 		<p class="guide-article__meta">
-			{{ guide.region }} · {{ guide.difficulty }} · {{ guide.length_km }} km
+			{{ guide.region }} - {{ guide.difficulty }} - {{ guide.length_km }} km
 		</p>
 		<div>{{ guide.body_html.replace(/<[^>]*>/g, "") }}</div>
 	</article>

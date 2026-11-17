@@ -118,7 +118,7 @@ unset KEY
 
 Det första anropet efter pausen gjordes med en skärmbild: 20,9 s totalt, varav 19,2 s bildbehandling.
 
-Därefter gjorde vi nio anrop med ett foto på 4592 × 2584 px. Sju av dem startade en ny instans (`coldStart: true`, olika `instance`).
+Därefter gjorde vi nio anrop med ett foto på 4592 x 2584 px. Sju av dem startade en ny instans (`coldStart: true`, olika `instance`).
 
 - Total tid: 20,9 till 22,1 s
 - Bildbehandlingen: 19,2 till 19,8 s
@@ -132,7 +132,7 @@ Samma foto. Två av de nio anropen körde på instanser som redan var igång (`c
 - Bildbehandlingen: 20,4 s och 19,2 s
 - Tid utanför bildbehandlingen: 1,8 s i båda
 
-Tiden utanför bildbehandlingen var 1,6–2,6 s för de kalla anropen och 1,8 s för de varma - så skillnaden syns inte i mätningarna. Två varma anrop är för få för att säga något säkert.
+Tiden utanför bildbehandlingen var 1,6-2,6 s för de kalla anropen och 1,8 s för de varma - så skillnaden syns inte i mätningarna. Två varma anrop är för få för att säga något säkert.
 
 ### Duger kallstarten?
 

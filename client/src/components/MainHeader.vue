@@ -1,27 +1,16 @@
-<script setup lang="ts">
-import { computed } from "vue";
-import { useRouter } from "vue-router";
-import { useSessionStore } from "../stores/session.js";
+<script setup>
+import { RouterLink, useRouter } from "vue-router";
+import { useAuthStore } from "../stores/auth.js";
 import BaseButton from "./BaseButton.vue";
 import MainNav from "./MainNav.vue";
 import NavLink from "./NavLink.vue";
 
-const session = useSessionStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
-const profileLink = computed(() => {
-	if (session.isLoggedIn && session.user) {
-		return { label: session.user.display_name, to: "/profil" };
-	} else if (session.isLoggedIn) {
-		return { label: "Profil", to: "/profil" };
-	} else {
-		return { label: "Logga in", to: "/logga-in" };
-	}
-});
-
-const logout = async () => {
-	session.logout();
-	await router.push("/");
+const logout = () => {
+	authStore.logout();
+	router.push("/");
 };
 </script>
 
@@ -50,39 +39,20 @@ const logout = async () => {
 				</svg>
 				<span class="main-header__logo-text">Utpost</span>
 			</a>
+			<MainNav />
 
-			<MainNav>
-				<div class="main-header__actions">
-					<NavLink :to="profileLink.to">
-						{{ profileLink.label }}
-						<template #icon>
-							<svg
-								class="main-header__profile-icon"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								aria-hidden="true"
-							>
-								<path d="M17.925 20.056a6 6 0 0 0-11.851.001" />
-								<circle cx="12" cy="11" r="4" />
-								<circle cx="12" cy="12" r="10" />
-							</svg>
-						</template>
-					</NavLink>
-					<BaseButton
-						v-if="session.isLoggedIn"
-						class="main-header__auth-button"
-						@click="logout"
-						>Logga ut</BaseButton
-					>
-					<BaseButton v-else class="main-header__auth-button" to="/skapa-konto"
-						>Skapa konto</BaseButton
-					>
-				</div>
-			</MainNav>
+			<div class="topbar__actions">
+				<template v-if="authStore.isLoggedIn">
+					<RouterLink to="/profil" class="topbar__user">{{
+						authStore.user?.display_name
+					}}</RouterLink>
+					<BaseButton @click="logout">Logga ut</BaseButton>
+				</template>
+				<template v-else>
+					<BaseButton to="/skapa-konto" variant="text">Skapa konto</BaseButton>
+					<BaseButton to="/logga-in">Logga in</BaseButton>
+				</template>
+			</div>
 		</div>
 	</header>
 </template>

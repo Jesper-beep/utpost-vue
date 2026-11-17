@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
-import { useSessionStore } from "../stores/session.js";
+import { useRoute, useRouter } from "vue-router";
+import { getRedirectPath } from "../lib/redirect.js";
+import { useAuthStore } from "../stores/auth.js";
 import BaseButton from "./BaseButton.vue";
 import BaseInput from "./BaseInput.vue";
 
@@ -9,8 +10,9 @@ const props = defineProps<{
 	mode: "login" | "register";
 }>();
 
-const session = useSessionStore();
+const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 
 const displayName = ref("");
 const email = ref("");
@@ -21,17 +23,24 @@ const isRegister = computed(() => props.mode === "register");
 const title = computed(() => (isRegister.value ? "Skapa konto" : "Logga in"));
 
 const submit = async () => {
-	error.value = isRegister.value
-		? await session.register({
+	error.value = null;
+	try {
+		if (isRegister.value) {
+			await authStore.register({
 				displayName: displayName.value,
 				email: email.value,
 				password: password.value,
-			})
-		: await session.login({
+			});
+		} else {
+			await authStore.login({
 				email: email.value,
 				password: password.value,
 			});
-	if (!error.value) router.push("/");
+		}
+		router.push(getRedirectPath(route.query["till"]));
+	} catch (caughtError) {
+		error.value = (caughtError as Error).message;
+	}
 };
 </script>
 
