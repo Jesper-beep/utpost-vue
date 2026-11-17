@@ -5,7 +5,7 @@
 //
 // Seeden skriver ut en inloggning som passar, på formen
 // "Testinloggning: <epost> / hemligt123, tur <tur-id>".
-// Bilden ska vara minst 1920 × 1080 px och högst 10 MB.
+// Bilden ska vara minst 1920 x 1080 px och högst 10 MB.
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 import { parseArgs } from "node:util";

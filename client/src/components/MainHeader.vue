@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
-import { useSessionStore } from "../stores/session.js";
+import { useAuthStore } from "../stores/auth.js";
 import BaseButton from "./BaseButton.vue";
 import MainNav from "./MainNav.vue";
 import NavLink from "./NavLink.vue";
 
-const session = useSessionStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 const profileLink = computed(() => {
-	if (session.isLoggedIn && session.user) {
-		return { label: session.user.display_name, to: "/profil" };
-	} else if (session.isLoggedIn) {
+	if (authStore.isLoggedIn && authStore.user) {
+		return { label: authStore.user.display_name, to: "/profil" };
+	} else if (authStore.isLoggedIn) {
 		return { label: "Profil", to: "/profil" };
 	} else {
 		return { label: "Logga in", to: "/logga-in" };
@@ -20,7 +20,7 @@ const profileLink = computed(() => {
 });
 
 const logout = async () => {
-	session.logout();
+	authStore.logout();
 	await router.push("/");
 };
 </script>
@@ -73,7 +73,7 @@ const logout = async () => {
 						</template>
 					</NavLink>
 					<BaseButton
-						v-if="session.isLoggedIn"
+						v-if="authStore.isLoggedIn"
 						class="main-header__auth-button"
 						@click="logout"
 						>Logga ut</BaseButton

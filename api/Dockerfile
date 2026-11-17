@@ -8,6 +8,8 @@ COPY api/package.json api/
 COPY client/package.json client/
 RUN npm ci --workspace=api --omit=dev
 
+RUN rm -rf /usr/local/lib/node_modules/npm
+
 COPY shared/ shared/
 COPY api/ api/
 

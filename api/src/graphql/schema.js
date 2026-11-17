@@ -49,7 +49,7 @@ export const typeDefs = /* GraphQL */ `
   type Query {
     "Alla guider, senast uppdaterad först"
     guides: [Guide!]!
-    "Publicerade guider, nyast först – det startsidan kallar populärast"
+    "Publicerade guider, nyast först - det startsidan kallar populärast"
     popularGuides(limit: Int = 6): [Guide!]!
     guide(slug: String!): Guide
     regions: [String!]!

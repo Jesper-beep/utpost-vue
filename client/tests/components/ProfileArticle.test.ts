@@ -1,10 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/vue";
 import { useQuery } from "@urql/vue";
-import { createPinia } from "pinia";
+import { createPinia, type Pinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import ProfileArticle from "../../src/components/ProfileArticle.vue";
+import { setToken } from "../../src/lib/token.js";
+import { useAuthStore } from "../../src/stores/auth.js";
 
 vi.mock("@urql/vue", () => ({ useQuery: vi.fn() }));
 const mockedUseQuery = vi.mocked(useQuery);
@@ -16,28 +18,32 @@ const svar = (data: unknown, error?: Error) =>
 		fetching: ref(false),
 	}) as ReturnType<typeof useQuery>;
 
+let pinia: Pinia;
+
 const renderArticle = () =>
 	render(ProfileArticle, {
 		global: {
-			plugins: [createPinia()],
+			plugins: [pinia],
 			stubs: { RouterLink: { template: "<a><slot /></a>" } },
 		},
 	});
 
-const loggaIn = () =>
-	localStorage.setItem(
-		"user",
-		JSON.stringify({
-			display_name: "Anna Berg",
-			email: "anna@example.com",
-			id: 1,
-			role: "member",
-		}),
-	);
+const loggaIn = () => {
+	setToken("test-token");
+	useAuthStore().user = {
+		created_at: "",
+		display_name: "Anna Berg",
+		email: "anna@example.com",
+		id: 1,
+		role: "member",
+	};
+};
 
 describe("ProfileArticle", () => {
 	beforeEach(() => {
-		localStorage.clear();
+		pinia = createPinia();
+		setActivePinia(pinia);
+		setToken(null);
 	});
 
 	it("säger till när man inte är inloggad", () => {

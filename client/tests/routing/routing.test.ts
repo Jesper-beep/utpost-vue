@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { describe, expect, it } from "vitest";
 import router, { routes } from "../../router/index.js";
 
@@ -23,5 +24,12 @@ describe("routing", () => {
 	it("okända länkar leder till NotFound", async () => {
 		await router.push("/my-fingers-into-my-eyes");
 		expect(router.currentRoute.value.name).toBe("NotFound");
+	});
+
+	it("en skyddad sida skickar den som är utloggad till inloggningen och sparar adressen i ?till", async () => {
+		setActivePinia(createPinia());
+		await router.push("/profil");
+		expect(router.currentRoute.value.name).toBe("Logga in");
+		expect(router.currentRoute.value.query).toEqual({ till: "/profil" });
 	});
 });
