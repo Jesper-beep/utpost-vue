@@ -84,7 +84,7 @@ Fångar stavfel i .js, .jsx och .md.
 
 Kör först codegen, som genererar klientens typer ur `api/src/graphql/schema.js`. Fångar typfel i api och klient, och frågor som använder ett fält som inte finns i schemat.
 
-### `npm test`
+### `npm run test:client`
 
 Fångar att testerna körs (ett röktest än så länge).
 
@@ -160,11 +160,11 @@ Att en riktig bild går att behandla i Azure prövas med en uppladdning efter me
 ## Kommandon
 
 ```sh
-npm run lint
+npm run lint:code
 npm run lint:md
 npm run lint:spelling
 npm run typecheck
-npm test
+npm run test:client
 npm run build
 ```
 
