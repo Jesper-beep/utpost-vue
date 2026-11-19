@@ -16,6 +16,7 @@ FROM nginxinc/nginx-unprivileged:stable-alpine-slim
 
 USER root
 RUN apk upgrade --no-cache musl musl-utils zlib
+RUN apk add --no-cache --upgrade nginx
 USER nginx
 
 ENV API_UPSTREAM=api:4000
