@@ -1,23 +1,35 @@
-<script setup>
-import { RouterLink, useRouter } from "vue-router";
+<script setup lang="ts">
+import { computed } from "vue";
+import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth.js";
 import BaseButton from "./BaseButton.vue";
 import MainNav from "./MainNav.vue";
+import NavLink from "./NavLink.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
 
-const logout = () => {
+const profileLink = computed(() => {
+	if (authStore.isLoggedIn && authStore.user) {
+		return { label: authStore.user.display_name, to: "/profil" };
+	} else if (authStore.isLoggedIn) {
+		return { label: "Profil", to: "/profil" };
+	} else {
+		return { label: "Logga in", to: "/logga-in" };
+	}
+});
+
+const logout = async () => {
 	authStore.logout();
-	router.push("/");
+	await router.push("/");
 };
 </script>
 
 <template>
-	<header class="topbar">
-		<div class="container bar">
+	<header class="main-header">
+		<div class="container main-header__content">
 			<!-- Hård länk med flit -->
-			<a href="/" class="topbar__logo" aria-label="Startsida">
+			<a href="/" class="main-header__logo" aria-label="Startsida">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="24"
@@ -30,77 +42,108 @@ const logout = () => {
 					viewBox="0 0 24 24"
 					aria-hidden="true"
 					focusable="false"
-					class="topbar__logo-icon"
+					class="main-header__logo-icon"
 				>
 					<path
 						d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
 					/>
 				</svg>
-				<span class="topbar__logo-text">Utpost</span>
+				<span class="main-header__logo-text">Utpost</span>
 			</a>
-			<MainNav />
 
-			<div class="topbar__actions">
-				<template v-if="authStore.isLoggedIn">
-					<RouterLink to="/profil" class="topbar__user">{{
-						authStore.user?.display_name
-					}}</RouterLink>
-					<BaseButton @click="logout">Logga ut</BaseButton>
-				</template>
-				<template v-else>
-					<BaseButton to="/skapa-konto" variant="text">Skapa konto</BaseButton>
-					<BaseButton to="/logga-in">Logga in</BaseButton>
-				</template>
-			</div>
+			<MainNav>
+				<div class="main-header__actions">
+					<NavLink :to="profileLink.to">
+						{{ profileLink.label }}
+						<template #icon>
+							<svg
+								class="main-header__profile-icon"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<path d="M17.925 20.056a6 6 0 0 0-11.851.001" />
+								<circle cx="12" cy="11" r="4" />
+								<circle cx="12" cy="12" r="10" />
+							</svg>
+						</template>
+					</NavLink>
+					<BaseButton
+						v-if="authStore.isLoggedIn"
+						class="main-header__auth-button"
+						@click="logout"
+						>Logga ut</BaseButton
+					>
+					<BaseButton v-else class="main-header__auth-button" to="/skapa-konto"
+						>Skapa konto</BaseButton
+					>
+				</div>
+			</MainNav>
 		</div>
 	</header>
 </template>
 
 <style scoped>
-.topbar {
+.main-header {
 	--button-accent-color: oklch(1 0 0);
 	inline-size: 100%;
 	background-color: oklch(0.3975 0.0469 161.51);
 	border-block-end: 4px solid #d9a441;
 	overflow-anchor: none;
 }
-.bar {
+.main-header__content {
 	display: grid;
 	align-items: center;
-	gap: 1.25rem;
 	padding-block: 1rem;
 
 	@media (width >= 48rem) {
 		grid-template-columns: auto 1fr auto;
-		grid-template-areas: "logo nav login";
+		grid-template-areas: "logo nav actions";
+		gap: 1.25rem;
 	}
 
 	@media (width < 48rem) {
-		grid-template-columns: auto;
-		grid-template-areas: "logo" "nav" "login";
+		grid-template-columns: 1fr auto;
+		grid-template-areas: "logo menu-toggle" "drawer drawer";
+		column-gap: 0.75rem;
 	}
 }
-.topbar__actions {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	grid-area: login;
-	gap: 0.75rem;
-}
+.main-header__actions {
+	grid-area: actions;
 
-.topbar__user {
-	padding-inline: 0.75rem;
-	font-weight: 700;
-	color: #fff;
-	text-decoration: none;
+	@media (width >= 48rem) {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+	}
 
-	&:hover {
-		text-decoration: underline;
-		text-underline-offset: 0.25em;
+	@media (width < 48rem) {
+		display: grid;
+		border-block-start: 1px solid oklch(1 0 0 / 15%);
 	}
 }
 
-.topbar__logo {
+.main-header__auth-button {
+	@media (width >= 48rem) {
+		inline-size: fit-content;
+	}
+
+	@media (width < 48rem) {
+		inline-size: 100%;
+	}
+}
+
+.main-header__profile-icon {
+	inline-size: 1.5rem;
+	block-size: 1.5rem;
+}
+
+.main-header__logo {
 	display: grid;
 	grid-auto-flow: column;
 	align-items: center;
@@ -112,13 +155,13 @@ const logout = () => {
 	text-decoration: none;
 }
 
-.topbar__logo-icon {
+.main-header__logo-icon {
 	inline-size: 2rem;
 	block-size: auto;
 	aspect-ratio: 1;
 }
 
-.topbar__logo-text {
+.main-header__logo-text {
 	font-size: 1.5rem;
 	font-weight: 700;
 	color: inherit;
