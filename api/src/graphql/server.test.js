@@ -3,7 +3,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { pool } from "../db/client.js";
 import { mongo } from "../db/mongo.js";
-import { sign } from "../lib/auth.js";
 import { yoga } from "./server.js";
 
 const sendGraphql = async (query, { variables, token } = {}) => {
@@ -61,54 +60,6 @@ describe("GraphQL-API:et mot riktig databas", () => {
 		expect(status).toBe(200);
 		expect(data).toBeUndefined();
 		expect(errors[0].message).toContain('Cannot query field "titel"');
-	});
-
-	it("createTour utan token nekas med koden UNAUTHENTICATED", async () => {
-		const { data, errors } = await sendGraphql(`
-      mutation NyTur {
-        createTour(input: { title: "Testtur", startedAt: "2026-10-23T09:00:00Z", distanceM: 1000 }) {
-          id
-        }
-      }
-    `);
-		expect(data).toBeNull();
-		expect(errors[0].extensions.code).toBe("UNAUTHENTICATED");
-	});
-
-	it("createTour med token skapar turen i den inloggades namn", async () => {
-		const user = (
-			await pool.query(
-				"select id, email, role, display_name from users where id = 1",
-			)
-		).rows[0];
-		const token = sign(user);
-		const { data, errors } = await sendGraphql(
-			`
-        mutation NyTur($input: CreateTourInput!) {
-          createTour(input: $input) {
-            id
-            title
-            user {
-              displayName
-            }
-          }
-        }
-      `,
-			{
-				token,
-				variables: {
-					input: {
-						distanceM: 1000,
-						startedAt: "2026-10-23T09:00:00Z",
-						title: "Testtur",
-					},
-				},
-			},
-		);
-		expect(errors).toBeUndefined();
-		expect(data.createTour.title).toBe("Testtur");
-		expect(data.createTour.user.displayName).toBe(user.display_name);
-		await pool.query("delete from tours where id = $1", [data.createTour.id]);
 	});
 
 	it("mätpunkterna kommer från MongoDB och är lika många som i Postgres", async () => {

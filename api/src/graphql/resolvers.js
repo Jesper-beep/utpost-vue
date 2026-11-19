@@ -1,7 +1,5 @@
 // https://github.com/jonatanhallenberg/utpost-graphql-labb/blob/main/api/src/graphql/resolvers.js
 
-import { GraphQLError } from "graphql";
-
 const iso = (date) => new Date(date).toISOString();
 
 export const resolvers = {
@@ -18,28 +16,6 @@ export const resolvers = {
 		recordedAt: (log) => iso(log.recorded_at),
 	},
 
-	Mutation: {
-		createTour: async (_parent, { input }, { query, user }) => {
-			if (!user) {
-				throw new GraphQLError("Du måste vara inloggad", {
-					extensions: { code: "UNAUTHENTICATED" },
-				});
-			}
-			const result = await query(
-				`insert into tours (user_id, guide_id, title, started_at, distance_m, notes)
-         values ($1,$2,$3,$4,$5,$6) returning *`,
-				[
-					user.id,
-					input.guideId ?? null,
-					input.title,
-					input.startedAt,
-					input.distanceM,
-					input.notes ?? null,
-				],
-			);
-			return result.rows[0];
-		},
-	},
 	Query: {
 		guide: async (_parent, { slug }, { query }) =>
 			(await query("select * from guides where slug = $1", [slug])).rows[0] ??
