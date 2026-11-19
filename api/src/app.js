@@ -1,4 +1,5 @@
 import express from "express";
+import { rateLimit } from "express-rate-limit";
 import { ZodError } from "zod";
 import { config } from "./config.js";
 import { pool } from "./db/client.js";
@@ -9,9 +10,18 @@ import { guidesRouter } from "./routes/guides.js";
 import { photosRouter } from "./routes/photos.ts";
 import { toursRouter } from "./routes/tours.js";
 
+const restLimiter = rateLimit({
+	limit: 10,
+	message: { error: "Too many attempts, please try again later." },
+	skip: () => ["development", "test"].includes(process.env["NODE_ENV"]),
+	statusCode: 429,
+	windowMs: 15 * 60 * 1000,
+});
+
 export const app = express();
 
 app.disable("x-powered-by");
+app.set("trust proxy", 2);
 
 app.use(yoga.graphqlEndpoint, yoga);
 
@@ -36,6 +46,8 @@ app.get("/api/health", async (_req, res) => {
 		.status(ok ? 200 : 503)
 		.json({ mongodb, ok, postgres, sha: config.gitSha });
 });
+
+app.use("/api", restLimiter);
 
 app.use("/api/auth", authRouter);
 app.use("/api/guides", guidesRouter);
