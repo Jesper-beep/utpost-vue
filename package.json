@@ -1,11 +1,11 @@
 {
 	"devDependencies": {
-		"@biomejs/biome": "2.5.14",
+		"@biomejs/biome": "2.6.8",
 		"@cspell/dict-sv": "^2.3.2",
-		"concurrently": "^9.1.2",
-		"cspell": "^10.3.4",
+		"concurrently": "^10.0.7",
+		"cspell": "^10.4.1",
 		"husky": "^9.1.7",
-		"markdownlint-cli": "^0.49.1",
+		"markdownlint-cli": "^0.50.0",
 		"typescript": "~6.0.0"
 	},
 	"engines": {
@@ -14,9 +14,7 @@
 	"name": "utpost",
 	"overrides": {
 		"js-yaml": "^5.4.1",
-		"katex": "^0.18.2",
-		"shell-quote": "^1.9.0",
-		"smol-toml": "^1.9.0"
+		"katex": "^0.18.2"
 	},
 	"private": true,
 	"scripts": {
@@ -29,10 +27,11 @@
 		"docker:client:stop": "docker compose stop client",
 		"docker:db": "docker compose up -d postgres mongo",
 		"docker:down": "docker compose down",
-		"docker:migrate-logs": "docker compose exec api npm run migrate:logs",
+		"docker:migrate-logs": "docker compose exec api node src/db/migrate-logs.js",
 		"docker:reset": "docker compose down -v",
-		"docker:seed": "docker compose exec api npm run seed",
-		"docker:up": "docker compose up --build -d",
+		"docker:seed": "docker compose exec api node src/db/seed.js",
+		"docker:start": "npm run docker:up && npm run seed && npm run migrate:logs",
+		"docker:up": "docker compose up --build -d --wait",
 		"lint": "concurrently -n code,markdown,spelling -c blue,magenta,green \"npm run lint:code\" \"npm run lint:md\" \"npm run lint:spelling\"",
 		"lint:code": "biome check --verbose --diagnostic-level=warn --max-diagnostics=none .",
 		"lint:code:fix": "biome check --write .",
