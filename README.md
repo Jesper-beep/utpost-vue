@@ -69,7 +69,7 @@ npm run prepare
 cp .env.example .env
 cp api/.env.example api/.env
 cp client/.env.example client/.env
-npm run docker:db
+npm run dev:databases
 npm run seed
 npm run migrate:logs
 npm run dev
