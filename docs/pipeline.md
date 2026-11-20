@@ -1,4 +1,11 @@
-# Pipeline
+---
+title: "Pipeline"
+description: "Så går kod från pull request till staging: jobben i CI, vad varje steg fångar, deployen till Azure och reglerna på main."
+created: "2026-09-29"
+published_date: "-"
+last_modified_date: "2026-11-20"
+version: "1"
+---
 
 ## Flöde
 
@@ -118,6 +125,10 @@ Flyttar turloggarna till MongoDB och kontrollerar antalet dokument och mätpunkt
 ### `npm run test:api`
 
 Fångar N+1 i turlistan och saknat inloggningskrav för `createTour`. Se [testing.md](testing.md).
+
+#### Uppdatering 20 november 2026
+
+Vi har tagit bort mutationen `createTour` och testerna för den. `test:api` kontrollerar inte längre inloggningskravet för `createTour`.
 
 ## Deploy
 
