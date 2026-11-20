@@ -71,7 +71,7 @@ const scanWithZap = () =>
 		"run",
 		"--rm",
 		"--add-host=host.docker.internal:host-gateway",
-		...mount(`${PROJECT_DIRECTORY}/.zap`, "/zap/wrk:rw"),
+		...mount(`${PROJECT_DIRECTORY}/.zap`, "/zap/wrk:ro"),
 		ZAP_IMAGE,
 		"zap-baseline.py",
 		"-t",

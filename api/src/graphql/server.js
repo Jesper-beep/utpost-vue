@@ -1,5 +1,6 @@
 // https://github.com/jonatanhallenberg/utpost-graphql-labb/blob/main/api/src/graphql/server.js
 
+import { useRateLimiter } from "@envelop/rate-limiter";
 import { getOperationAST } from "graphql";
 import { createSchema, createYoga } from "graphql-yoga";
 import jwt from "jsonwebtoken";
@@ -38,8 +39,27 @@ const reportQueryCount = {
 	}),
 };
 
+const graphqlLimiter = useRateLimiter({
+	configByField: [
+		{
+			field: "*",
+			max: 10,
+			message: "Too many attempts, please try again later.",
+			type: "Query",
+			window: "15m",
+		},
+	],
+	identifyFn: (context) => context.ip,
+});
+
+const plugins = [reportQueryCount];
+
+if (!["development", "test"].includes(process.env["NODE_ENV"])) {
+	plugins.push(graphqlLimiter);
+}
+
 export const yoga = createYoga({
-	context: ({ request }) => {
+	context: ({ request, req }) => {
 		const stats = { queries: 0 };
 		const query = (sql, params) => {
 			stats.queries += 1;
@@ -50,6 +70,7 @@ export const yoga = createYoga({
 			return toursCollection().find(filter, { projection }).toArray();
 		};
 		return {
+			ip: req?.ip,
 			loaders: createLoaders({ findTours, query }),
 			query,
 			stats,
@@ -57,6 +78,6 @@ export const yoga = createYoga({
 		};
 	},
 	graphqlEndpoint: "/graphql",
-	plugins: [reportQueryCount],
+	plugins,
 	schema: createSchema({ resolvers, typeDefs }),
 });

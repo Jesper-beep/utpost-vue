@@ -3,7 +3,7 @@ title: "Säkerhet"
 description: "Så skyddar vi Utpost efter M8: hotbilden, autentiseringen, OWASP Top 10 (2025) risk för risk, säkerhetshålen vi fixade och testade, valideringen, headers, skanningen i pipelinen samt kända brister."
 created: "2026-11-16"
 published_date: "-"
-last_modified_date: "2026-11-17"
+last_modified_date: "2026-11-20"
 version: "1"
 ---
 
@@ -61,6 +61,10 @@ API:et kräver ingen token för inloggning, registrering och anrop med `GET`.
 - Att ta bort en tur med `DELETE /api/tours/:id`. Turen ska vara din om du inte är redaktör
 - Att lägga till ett foto med `POST /api/photos`. Turen ska vara din
 - Att ändra en guide med `PUT /api/guides/:id`. Du ska vara redaktör (rollen `editor`)
+
+#### Uppdatering 20 november 2026
+
+Vi har tagit bort mutationen `createTour`. Du skapar nu en tur bara med `POST /api/tours`.
 
 ## Genomgång av OWASP Top 10
 
@@ -367,6 +371,10 @@ Du blir utloggad när du laddar om sidan, eftersom token bara ligger i minnet. N
 - API:et kontrollerar inte indata i `/graphql` med `createTourSchema`, så `createTour` tar emot värden som `POST /api/tours` nekar
 - API:et anger ingen algoritm när det kontrollerar token i `/graphql` och har ingen gräns för hur djupa frågorna får vara
 - Kontona i testdata, till exempel `redaktor@utpost.se`, har samma kända lösenord ("hemligt123") i stagingmiljön. Stagingmiljön är åtkomlig från internet
+
+#### Uppdatering 20 november 2026
+
+Vi har tagit bort mutationen `createTour`. Då finns inte längre bristen att `createTour` tog emot värden som `POST /api/tours` nekar.
 
 ### Loggning och skanning
 

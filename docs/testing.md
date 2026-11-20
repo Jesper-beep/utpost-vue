@@ -3,7 +3,7 @@ title: "Teststrategi"
 description: "Teststrategi för Team 6 i kursen Avancerad frontend-utveckling. Del av M2-momentet. Uppdaterad i M5 med integrationstester för API:et och i M7 med tester för bilduppladdningen."
 created: "2026-10-06"
 published_date: "2026-10-06"
-last_modified_date: "2026-11-09"
+last_modified_date: "2026-11-20"
 version: 3
 ---
 
@@ -60,6 +60,10 @@ Testerna anropar `yoga.fetch` direkt. Då behövs ingen server och ingen port. F
 ### Säkerhet
 
 Planerad, men än så länge har vi bara ett test för inloggat läge: `createTour` utan token nekas. Vi vill testa mer kring inloggningen.
+
+#### Uppdatering 20 november 2026
+
+Vi har tagit bort mutationen `createTour` och testet för den. Det finns inget test för inloggat läge i GraphQL längre.
 
 ## Nuvarande tester
 
@@ -242,6 +246,10 @@ Integrationstester för GraphQL-API:et, mot riktiga Postgres och MongoDB.
 - Mätpunkterna kommer från MongoDB och är lika många som raderna i Postgres
 
 Testet som skapar en tur städar efter sig. Det raderar turen när det är klart.
+
+##### Uppdatering 20 november 2026
+
+Vi har tagit bort mutationen `createTour`. Testerna för att `createTour` nekas utan token och skapar en tur med token finns inte längre, och inte heller städningen efter dem.
 
 ##### Utdrag från koden
 

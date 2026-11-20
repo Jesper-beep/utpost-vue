@@ -3,7 +3,7 @@ title: "GraphQL"
 description: "Beslut om huruvida GraphQL ersätter eller kompletterar REST, med uppmätta siffror för startsidan. Del av M4-momentet."
 created: "2026-10-19"
 published_date: "-"
-last_modified_date: "2026-10-20"
+last_modified_date: "2026-11-20"
 version: "1"
 ---
 
@@ -12,6 +12,10 @@ version: "1"
 GraphQL kompletterar REST. Läsningar som idag kräver flera anrop, som startsidan, går via `/graphql`. Inloggning, bilduppladdning och allt som ändrar eller raderar stannar i REST. REST-rutterna svarar som förut.
 
 Undantaget är `createTour`. Det finns både som `POST /api/tours` i REST och som mutation i GraphQL. Klienten skapar inga turer än. När den gör det väljer vi en av dem.
+
+### Uppdatering 20 november 2026
+
+Vi har tagit bort mutationen `createTour`. Vi skapar nu turer bara via REST, med `POST /api/tours`.
 
 ### Varför
 

@@ -58,16 +58,4 @@ export const typeDefs = /* GraphQL */ `
     tour(id: ID!): Tour
   }
 
-  input CreateTourInput {
-    title: String!
-    guideId: ID
-    startedAt: String!
-    distanceM: Int!
-    notes: String
-  }
-
-  type Mutation {
-    "Kräver inloggning: Authorization: Bearer <token>"
-    createTour(input: CreateTourInput!): Tour!
-  }
 `;
