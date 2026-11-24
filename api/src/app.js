@@ -8,6 +8,7 @@ import { yoga } from "./graphql/server.js";
 import { authRouter } from "./routes/auth.js";
 import { cmsRouter } from "./routes/cms.js";
 import { guidesRouter } from "./routes/guides.js";
+import { noticesRouter } from "./routes/notices.js";
 import { photosRouter } from "./routes/photos.ts";
 import { toursRouter } from "./routes/tours.js";
 
@@ -55,6 +56,7 @@ app.use("/api", restLimiter);
 
 app.use("/api/auth", authRouter);
 app.use("/api/guides", guidesRouter);
+app.use("/api/notices", noticesRouter);
 app.use("/api/tours", toursRouter);
 app.use("/api/photos", photosRouter);
 app.use("/uploads", express.static(config.uploadDir));
