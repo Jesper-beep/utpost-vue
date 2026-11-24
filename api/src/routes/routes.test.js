@@ -1,5 +1,7 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { app } from "../app.js";
+import { clearCmsCache, publishedNotices } from "../cms/contentful.js";
+import { config } from "../config.js";
 import { pool } from "../db/client.js";
 import { mongo } from "../db/mongo.js";
 import { sign } from "../lib/auth.js";
@@ -309,5 +311,93 @@ describe("A02 Security Misconfiguration - CORS", () => {
 		});
 		expect(res.status).toBe(200);
 		expect(res.headers.get("access-control-allow-origin")).toBeNull();
+	});
+});
+
+// Adressen är publik, så testerna gäller två saker: att ingen kommer in utan hemligheten,
+// och att rätt anrop tömmer cachen.
+describe("POST /api/cms/webhook", () => {
+	const WEBHOOK_SECRET = "en-lang-webhook-hemlighet-for-testerna";
+	const callWebhook = (headers = {}) =>
+		fetch(`${baseUrl}/api/cms/webhook`, { headers, method: "POST" });
+
+	it("utan hemlighet, med fel hemlighet eller när ingen är satt på servern: 401", async () => {
+		config.cmsWebhookSecret = WEBHOOK_SECRET;
+		expect((await callWebhook()).status).toBe(401);
+		expect(
+			(await callWebhook({ "X-Utpost-Webhook-Secret": "fel" })).status,
+		).toBe(401);
+		config.cmsWebhookSecret = "";
+		const emptySecretResponse = await callWebhook({
+			"X-Utpost-Webhook-Secret": "",
+		});
+		expect(emptySecretResponse.status).toBe(401);
+	});
+
+	it("med rätt hemlighet töms cachen och nästa fråga hämtar från CMS:et igen", async () => {
+		Object.assign(config, {
+			cmsDeliveryToken: "nyckel",
+			cmsSpaceId: "space1",
+			cmsWebhookSecret: WEBHOOK_SECRET,
+		});
+		clearCmsCache();
+		const realFetch = globalThis.fetch;
+		// Bara anropen till Contentful byts ut. Testets egna anrop till API:et går som vanligt.
+		const contentful = vi.fn(async () => ({
+			json: async () => ({ items: [] }),
+			ok: true,
+			status: 200,
+		}));
+		vi.stubGlobal("fetch", (requestUrl, options) => {
+			if (String(requestUrl).includes("contentful.com")) {
+				return contentful(requestUrl, options);
+			}
+			return realFetch(requestUrl, options);
+		});
+		vi.spyOn(console, "log").mockImplementation(() => {});
+
+		await publishedNotices();
+		await publishedNotices();
+		expect(contentful).toHaveBeenCalledTimes(1);
+
+		const response = await callWebhook({
+			"X-Contentful-Topic": "ContentManagement.Entry.publish",
+			"X-Utpost-Webhook-Secret": WEBHOOK_SECRET,
+		});
+		expect(response.status).toBe(204);
+
+		await publishedNotices();
+		expect(contentful).toHaveBeenCalledTimes(2);
+
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
+		Object.assign(config, {
+			cmsDeliveryToken: "",
+			cmsSpaceId: "",
+			cmsWebhookSecret: "",
+		});
+		clearCmsCache();
+	});
+});
+
+// I testerna är CMS:et avstängt, så texten och notiserna är tomma. Svaret ska ändå ha rätt form.
+describe("Guidernas text ur CMS:et", () => {
+	it("guidesidan svarar utan body_html och med tom text och inga notiser", async () => {
+		const guide = (
+			await pool.query("select slug from guides order by id limit 1")
+		).rows[0];
+		const response = await fetch(`${baseUrl}/api/guides/${guide.slug}`);
+		const body = await response.json();
+		expect(response.status).toBe(200);
+		expect(body.body).toEqual([]);
+		expect(body.notices).toEqual([]);
+		expect(body).not.toHaveProperty("body_html");
+	});
+
+	it("listan har ett utdrag i stället för body_html", async () => {
+		const response = await fetch(`${baseUrl}/api/guides`);
+		const guides = await response.json();
+		expect(guides[0]).toHaveProperty("excerpt", "");
+		expect(guides[0]).not.toHaveProperty("body_html");
 	});
 });

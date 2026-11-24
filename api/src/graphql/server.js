@@ -4,6 +4,11 @@ import { useRateLimiter } from "@envelop/rate-limiter";
 import { getOperationAST } from "graphql";
 import { createSchema, createYoga } from "graphql-yoga";
 import jwt from "jsonwebtoken";
+import {
+	guideExcerpt,
+	previewNotices,
+	publishedNotices,
+} from "../cms/contentful.js";
 import { config } from "../config.js";
 import { pool } from "../db/client.js";
 import { toursCollection } from "../db/mongo.js";
@@ -70,6 +75,7 @@ export const yoga = createYoga({
 			return toursCollection().find(filter, { projection }).toArray();
 		};
 		return {
+			cms: { guideExcerpt, notices: publishedNotices, previewNotices },
 			ip: req?.ip,
 			loaders: createLoaders({ findTours, query }),
 			query,

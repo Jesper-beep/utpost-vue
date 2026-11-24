@@ -3,6 +3,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { pool } from "../db/client.js";
 import { mongo } from "../db/mongo.js";
+import { sign } from "../lib/auth.js";
 import { yoga } from "./server.js";
 
 const sendGraphql = async (query, { variables, token } = {}) => {
@@ -79,5 +80,29 @@ describe("GraphQL-API:et mot riktig databas", () => {
 		expect(errors).toBeUndefined();
 		expect(data.tour.logs).toHaveLength(rows[0].n);
 		expect(extensions.databasfragor).toBe(2);
+	});
+
+	// I testerna är CMS:et avstängt, eftersom pipelinen saknar nycklar. Listan är tom, men frågan ska fungera
+	// och rollkontrollen ska gälla ändå.
+	it("notices fungerar utan CMS, och utkast kräver rollen editor", async () => {
+		const withoutCms = await sendGraphql(
+			"{ notices { title } guides { slug notices { title } } }",
+		);
+		expect(withoutCms.errors).toBeUndefined();
+		expect(withoutCms.data.notices).toEqual([]);
+		expect(withoutCms.data.guides[0].notices).toEqual([]);
+
+		const anonymous = await sendGraphql("{ notices(preview: true) { title } }");
+		expect(anonymous.errors[0].extensions.code).toBe("FORBIDDEN");
+
+		const memberToken = sign({
+			email: "medlem@utpost.se",
+			id: 2,
+			role: "member",
+		});
+		const asMember = await sendGraphql("{ notices(preview: true) { title } }", {
+			token: memberToken,
+		});
+		expect(asMember.errors[0].extensions.code).toBe("FORBIDDEN");
 	});
 });

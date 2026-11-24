@@ -6,6 +6,7 @@ import { pool } from "./db/client.js";
 import { mongo } from "./db/mongo.js";
 import { yoga } from "./graphql/server.js";
 import { authRouter } from "./routes/auth.js";
+import { cmsRouter } from "./routes/cms.js";
 import { guidesRouter } from "./routes/guides.js";
 import { photosRouter } from "./routes/photos.ts";
 import { toursRouter } from "./routes/tours.js";
@@ -46,6 +47,9 @@ app.get("/api/health", async (_req, res) => {
 		.status(ok ? 200 : 503)
 		.json({ mongodb, ok, postgres, sha: config.gitSha });
 });
+
+// Monteras före hastighetsbegränsningen. Annars stoppas Contentful efter tio anrop på 15 minuter.
+app.use("/api/cms", cmsRouter);
 
 app.use("/api", restLimiter);
 

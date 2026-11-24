@@ -1,12 +1,17 @@
 // https://github.com/jonatanhallenberg/utpost-graphql-labb/blob/main/api/src/graphql/resolvers.js
 
+import { GraphQLError } from "graphql";
+
 const iso = (date) => new Date(date).toISOString();
 
 export const resolvers = {
 	Guide: {
-		bodyHtml: (guide) => guide.body_html,
+		excerpt: (guide, _args, { cms }) => cms.guideExcerpt(guide.id),
 		heroImage: (guide) => guide.hero_image,
 		lengthKm: (guide) => guide.length_km,
+		// Guiden bor i Postgres och notisen i CMS:et. Fältet guideSlug på notisen kopplar ihop dem.
+		notices: async (guide, _args, { cms }) =>
+			(await cms.notices()).filter((notice) => notice.guideSlug === guide.slug),
 		updatedAt: (guide) => iso(guide.updated_at),
 	},
 
@@ -22,6 +27,18 @@ export const resolvers = {
 			null,
 		guides: async (_parent, _args, { query }) =>
 			(await query("select * from guides order by updated_at desc")).rows,
+		// Utkast får bara redaktionen se. Rollen kontrolleras här, på servern, som också håller preview-nyckeln.
+		notices: async (_parent, { preview }, { cms, user }) => {
+			if (!preview) {
+				return cms.notices();
+			}
+			if (user?.role !== "editor") {
+				throw new GraphQLError("Förhandsgranskningen kräver rollen editor", {
+					extensions: { code: "FORBIDDEN" },
+				});
+			}
+			return cms.previewNotices();
+		},
 		popularGuides: async (_parent, { limit }, { query }) =>
 			(
 				await query(

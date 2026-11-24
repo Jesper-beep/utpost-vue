@@ -6,6 +6,7 @@
 		"cspell": "^10.4.1",
 		"husky": "^9.1.7",
 		"markdownlint-cli": "^0.50.0",
+		"parse5": "^8.1.1",
 		"typescript": "~6.0.0"
 	},
 	"engines": {
@@ -19,6 +20,8 @@
 	"private": true,
 	"scripts": {
 		"build": "npm run build --workspace=client",
+		"cms:migrate-guides": "node --env-file-if-exists=.env --env-file-if-exists=api/.env scripts/cms-migrate-guides.mjs",
+		"cms:setup": "node --env-file-if-exists=.env scripts/cms-setup.mjs",
 		"db:nuke:postgres": "node scripts/nuke-postgres.mjs",
 		"dev": "npm run dev:databases && concurrently -n api,client -c blue,magenta \"npm run dev --workspace=api\" \"npm run dev --workspace=client\"",
 		"dev:api": "npm run dev --workspace=api",

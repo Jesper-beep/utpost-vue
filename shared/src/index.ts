@@ -78,8 +78,9 @@ export interface Tour {
 }
 
 export interface GuideSummary
-	extends Pick<Guide, "body_html" | "length_km" | "region" | "slug" | "title"> {
+	extends Pick<Guide, "length_km" | "region" | "slug" | "title"> {
 	difficulty: string;
+	excerpt: string;
 	id: number | string;
 }
 

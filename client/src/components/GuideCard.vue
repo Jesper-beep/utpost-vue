@@ -14,9 +14,7 @@ defineProps<{
 				{{ guide.title }}
 			</RouterLink>
 		</h2>
-		<p class="guide-card__excerpt">
-			{{ guide.body_html.replace(/<[^>]*>/g, " ").slice(0, 180) }}
-		</p>
+		<p class="guide-card__excerpt">{{ guide.excerpt }}</p>
 		<ul class="guide-card__facts">
 			<li class="guide-card__fact">
 				<svg
