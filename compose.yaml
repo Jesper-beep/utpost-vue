@@ -51,6 +51,11 @@ services:
       SEED_ON_START: "1"
       IMAGE_FUNCTION_URL: http://host.docker.internal:7071/api/process-image
       IMAGE_FUNCTION_KEY: ${IMAGE_FUNCTION_KEY:-}
+      CONTENTFUL_SPACE_ID: ${CONTENTFUL_SPACE_ID:-}
+      CONTENTFUL_DELIVERY_TOKEN: ${CONTENTFUL_DELIVERY_TOKEN:-}
+      CONTENTFUL_PREVIEW_TOKEN: ${CONTENTFUL_PREVIEW_TOKEN:-}
+      CMS_CACHE_SECONDS: ${CMS_CACHE_SECONDS:-60}
+      CMS_WEBHOOK_SECRET: ${CMS_WEBHOOK_SECRET:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
