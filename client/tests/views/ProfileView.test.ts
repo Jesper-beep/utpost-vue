@@ -47,10 +47,12 @@ describe("ProfileView", () => {
 	it("visar bara den inloggades egna turer", () => {
 		setToken("test-token");
 		useAuthStore().user = {
-			created_at: "",
-			display_name: "Anna Berg",
-			email: "anna@example.com",
+			createdAt: "",
+			displayName: "shopgirl",
+			email: "Shopgirl@AOL.com",
+			firstName: "Kathleen",
 			id: 1,
+			lastName: "Kelly",
 			role: "member",
 		};
 		mockTours([
@@ -60,7 +62,7 @@ describe("ProfileView", () => {
 
 		renderView();
 
-		expect(screen.getByText("Anna Berg")).toBeInTheDocument();
+		expect(screen.getByText("Kathleen Kelly")).toBeInTheDocument();
 		expect(screen.getByText("Mina turer (1)")).toBeInTheDocument();
 		expect(screen.getByText("Kvällstur")).toBeInTheDocument();
 		expect(screen.queryByText("Någon annans")).not.toBeInTheDocument();

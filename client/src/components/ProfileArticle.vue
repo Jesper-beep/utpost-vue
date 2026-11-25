@@ -11,7 +11,7 @@ const MinaTurerDocument = graphql(`
 		tours(limit: 200) {
 			id
 			title
-			distance_m: distanceM
+			distanceM
 			user {
 				id
 			}
@@ -30,16 +30,10 @@ const myTours = computed(() =>
 );
 
 const firstName = computed(() => {
-	const displayName = authStore.user?.display_name;
-	if (!displayName) {
+	if (!authStore.user) {
 		return "";
 	}
-	const [namePart] = displayName.split(" ");
-	if (namePart) {
-		return namePart;
-	} else {
-		return displayName;
-	}
+	return authStore.user.firstName;
 });
 
 const roleLabel = computed(() => {
@@ -69,7 +63,7 @@ const roleLabel = computed(() => {
 				<div class="profile-article__fact">
 					<h2 class="profile-article__label">Namn</h2>
 					<p class="profile-article__value">
-						{{ authStore.user.display_name }}
+						{{ authStore.user.firstName }} {{ authStore.user.lastName }}
 					</p>
 				</div>
 				<div class="profile-article__fact">

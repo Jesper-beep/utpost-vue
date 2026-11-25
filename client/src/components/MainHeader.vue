@@ -11,7 +11,7 @@ const router = useRouter();
 
 const profileLink = computed(() => {
 	if (authStore.isLoggedIn && authStore.user) {
-		return { label: authStore.user.display_name, to: "/profil" };
+		return { label: authStore.user.displayName, to: "/profil" };
 	} else if (authStore.isLoggedIn) {
 		return { label: "Profil", to: "/profil" };
 	} else {

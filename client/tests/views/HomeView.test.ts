@@ -38,10 +38,12 @@ const renderView = () =>
 const logInAs = (role: "editor" | "member") => {
 	setToken("test-token");
 	useAuthStore().user = {
-		created_at: "",
-		display_name: "Anna Berg",
-		email: "anna@example.com",
+		createdAt: "",
+		displayName: "ny152",
+		email: "NNY152@AOL.com",
+		firstName: "Joe",
 		id: 1,
+		lastName: "Fox",
 		role,
 	};
 };
@@ -50,7 +52,7 @@ const guide = {
 	difficulty: "svår",
 	excerpt: "En lång fjällvandring",
 	id: "1",
-	length_km: 18,
+	lengthKm: 18,
 	region: "Lappland",
 	slug: "kebnekaise",
 	title: "Kebnekaise",
@@ -85,7 +87,7 @@ describe("HomeView", () => {
 				guides: [guide],
 				popularGuides: [guide],
 				regions: ["Lappland", "Småland"],
-				tours: [{ distance_m: 8400, id: "7", title: "Kvällstur" }],
+				tours: [{ distanceM: 8400, id: "7", title: "Kvällstur" }],
 			},
 		});
 

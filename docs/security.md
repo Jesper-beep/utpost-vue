@@ -3,13 +3,24 @@ title: "Säkerhet"
 description: "Så skyddar vi Utpost efter M8: hotbilden, autentiseringen, OWASP Top 10 (2025) risk för risk, säkerhetshålen vi fixade och testade, valideringen, headers, skanningen i pipelinen samt kända brister."
 created: "2026-11-16"
 published_date: "-"
-last_modified_date: "2026-11-20"
+last_modified_date: "2026-11-25"
 version: "1"
 ---
 
 Efter M8 kontrollerar API:et i Utpost vem du är och vad du skickar in. Här går vi igenom säkerheten risk för risk enligt [OWASP Top 10](https://top10.owasp.org/2025/) från 2025.
 
 OWASP (Open Worldwide Application Security Project) är en ideell organisation. Deras Top 10 listar de tio allvarligaste säkerhetsriskerna i webbappar.
+
+## Uppdatering 25 november 2026
+
+Backenden är omarbetad, se [dokumentet om backenden](backend.md). Texten nedan beskriver koden som den var i M8, och filerna som den länkar till har bytt namn eller är borttagna.
+
+- Lösenorden hashas nu med Argon2id i stället för scrypt, i formatet `argon2id:<salt>:<nyckel>`. Varje inloggningsförsök kostar 19 MiB minne i stället för 128 MiB
+- GraphQL kontrollerar token med samma `verifyToken` som REST och godtar bara HS256. Det lagar fyndet under [A08](#a08-software-or-data-integrity-failures) och den del av bristen under [Åtkomst och indata](#åtkomst-och-indata) som gäller algoritmen. Gränsen för hur djupa frågorna får vara saknas fortfarande, men vi ska lägga till `@envelop/depth-limit`, se [begränsa frågornas djup](backend.md#begränsa-frågornas-djup)
+- Indata valideras med `schema.parse(...)` direkt i rutterna, och `validate.js` är borttaget. Avstånd och längd måste vara tal, så `null` och tomma strängar blir inte 0
+- Inloggning och registrering har en gräns på tio försök per 15 minuter och IP-adress, se [hastighetsbegränsning](backend.md#hastighetsbegränsning-på-inloggning-och-registrering). Det lagar fyndet under [A06](#a06-insecure-design) och den del av bristen under [Inloggning och token](#inloggning-och-token) som gäller antalet försök. Gränsen är avstängd i utvecklings- och testmiljön, och kontona spärras fortfarande inte
+- Express 5 skickar fel från asynkrona handlers vidare till felhanteraren i `middleware/error-handler.ts`, så `wrap` under [A10](#a10-mishandling-of-exceptional-conditions) behövs inte längre
+- Lösenordet ska ha 16 till 64 tecken (Unicode-kodpunkter) i stället för minst åtta, och normaliseras med NFKC. Vid inloggning kontrolleras bara att det har 1 till 64 tecken
 
 ## Hotbilden
 

@@ -37,7 +37,7 @@ export const useAuthStore = defineStore("auth", () => {
 		authenticate("/auth/login", credentials);
 
 	const register = (details: RegisterRequest) =>
-		authenticate("/auth/register", details);
+		authenticate("/auth/signup", details);
 
 	const logout = () => {
 		setToken(null);

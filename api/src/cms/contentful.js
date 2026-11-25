@@ -1,4 +1,4 @@
-import { config } from "../config.js";
+import { config } from "../config/env.ts";
 
 const HOSTS = {
 	preview: "https://preview.contentful.com",

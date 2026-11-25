@@ -41,17 +41,19 @@ describe("MainHeader", () => {
 	it("visar namnet och Logga ut när man är inloggad, och loggar ut", async () => {
 		setToken("test-token");
 		useAuthStore().user = {
-			created_at: "",
-			display_name: "Michael Scott",
+			createdAt: "",
+			displayName: "michaelscarn",
 			email: "michael.scott@michaelscottpapercompany.com",
+			firstName: "Michael",
 			id: 1,
+			lastName: "Scott",
 			role: "member",
 		};
 
 		renderHeader();
 
 		expect(
-			screen.getByRole("link", { name: "Michael Scott" }),
+			screen.getByRole("link", { name: "michaelscarn" }),
 		).toBeInTheDocument();
 		expect(
 			screen.queryByRole("link", { name: "Logga in" }),

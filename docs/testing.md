@@ -3,13 +3,21 @@ title: "Teststrategi"
 description: "Teststrategi för Team 6 i kursen Avancerad frontend-utveckling. Del av M2-momentet. Uppdaterad i M5 med integrationstester för API:et och i M7 med tester för bilduppladdningen."
 created: "2026-10-06"
 published_date: "2026-10-06"
-last_modified_date: "2026-11-20"
+last_modified_date: "2026-11-25"
 version: 3
 ---
 
 Utöver rena "funktionstester" som kontrollerar komponenter, datahämtningar (fetch) och liknande, vill vi även testa sådant som vi tror att många missar, exempelvis: har varje sida en titel och är den unik? Hygienfaktorer med andra ord.
 
 I dagsläget skrapar vi endast på ytan, men kommer under projektets gång addera tester med exempelvis "mock API" samt testa säkerheten kring inloggat läge.
+
+## Uppdatering 25 november 2026
+
+Backenden är omarbetad, se [dokumentet om backenden](backend.md). Resten av det här dokumentet beskriver API:ets tester som de var före omarbetningen.
+
+- API:ets tester ligger nu bara i `api/tests`, i samma mappstruktur som `api/src`. GraphQL-testet ligger i `tests/graphql/server.test.ts`, och `tests/photos.test.ts` är flyttat till `tests/routes/photos/index.test.ts`, där det körs mot den riktiga databasen med bara bildfunktionen ersatt
+- Testet för `handleUnhandledRejection` är borttaget, eftersom `lib/unhandledRejection.js` är borttaget
+- Nya tester täcker hastighetsbegränsningen (HTTP-statuskod 429), ett avstånd som inte är ett tal och ett svar från bildfunktionen med fel form
 
 ## Så testar du
 

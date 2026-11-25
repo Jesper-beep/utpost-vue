@@ -3,7 +3,7 @@ title: "Serverless"
 description: "Beslut om att flytta bildbehandlingen från API:et till en Azure Function, med uppmätta siffror, bortvalt alternativ och vad som låser oss till Azure. Del av M7-momentet."
 created: "2026-11-09"
 published_date: "-"
-last_modified_date: "2026-11-10"
+last_modified_date: "2026-11-25"
 version: "1"
 ---
 
@@ -22,6 +22,10 @@ Funktionen stängs av helt mellan anropen, när ingen använder den. Första anr
 - En bild som är för stor kraschar funktionen. API:et fortsätter svara på inloggning och turer
 - Funktionen är avstängd när ingen laddar upp en bild
 - Vi behåller `sharp`, så bilderna blir likadana som förut
+
+## Uppdatering 25 november 2026
+
+Backenden är omarbetad, se [dokumentet om backenden](../backend.md). Uppladdningen ligger nu i `api/src/routes/photos/index.ts` och `api/src/services/photos.ts`, i stället för `api/src/routes/photos.ts`.
 
 ## Bakgrund
 

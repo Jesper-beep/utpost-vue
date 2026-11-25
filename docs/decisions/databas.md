@@ -3,7 +3,7 @@ title: "Databas"
 description: "Beslut om databas för turer, med uppmätta siffror (storlek på /api/tours-svaret, antal rader i tour_logs och största turen). Del av M3-momentet. Uppdaterad i M5 med migreringen av turloggarna."
 created: "2026-10-12"
 published_date: "2026-10-12"
-last_modified_date: "2026-10-26"
+last_modified_date: "2026-11-25"
 version: 3
 ---
 
@@ -44,6 +44,14 @@ M5 kräver att turloggarna ligger i MongoDB, så vi flyttade dem enligt [dokumen
 - Det verifierar också att antal punkter i dokumenten är lika med antal rader i `tour_logs`
 - Stämmer det inte avslutas skriptet med felkod 1
 - `seed` nollställer Postgres men inte MongoDB. Kör därför `migrate:logs` efter varje seed
+
+## Uppdatering 25 november 2026
+
+Backenden är omarbetad, se [dokumentet om backenden](../backend.md). Beslutet gäller fortfarande, men kommandona och siffrorna nedan hör till koden före omarbetningen.
+
+- Migreringar från Drizzle Kit i `api/drizzle/` skapar tabellerna, i stället för `schema.js`. Kolumnerna är fortfarande snake_case i Postgres, men API:et skickar camelCase
+- Skripten `mongo:smoke` och `mongo-smoke.js` är borttagna. `migrate:logs` flyttar mätpunkterna till MongoDB och kontrollerar att inget tappades
+- `tour_logs`, `photos` och `tours` har fått främmande nycklar och index, bland annat på `(tour_id, recorded_at)` i `tour_logs`
 
 ## Nuläge och bakgrund
 

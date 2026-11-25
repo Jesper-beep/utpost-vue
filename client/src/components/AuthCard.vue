@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import {
+	DISPLAY_NAME_MAX_LENGTH,
+	FIRST_NAME_MAX_LENGTH,
+	LAST_NAME_MAX_LENGTH,
+} from "@utpost/shared";
 import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getRedirectPath } from "../lib/redirect.js";
@@ -14,6 +19,8 @@ const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
+const firstName = ref("");
+const lastName = ref("");
 const displayName = ref("");
 const email = ref("");
 const password = ref("");
@@ -29,6 +36,8 @@ const submit = async () => {
 			await authStore.register({
 				displayName: displayName.value,
 				email: email.value,
+				firstName: firstName.value,
+				lastName: lastName.value,
 				password: password.value,
 			});
 		} else {
@@ -48,17 +57,48 @@ const submit = async () => {
 	<div class="auth-card">
 		<h1>{{ title }}</h1>
 		<form class="auth-card__form" @submit.prevent="submit">
-			<div v-if="isRegister" class="auth-card__field">
-				<label class="auth-card__label" for="auth-name">Namn</label>
-				<BaseInput
-					id="auth-name"
-					v-model="displayName"
-					type="text"
-					name="name"
-					autocomplete="name"
-					required
-				/>
-			</div>
+			<template v-if="isRegister">
+				<div class="auth-card__field">
+					<label class="auth-card__label" for="auth-first-name">Förnamn</label>
+					<BaseInput
+						id="auth-first-name"
+						v-model="firstName"
+						type="text"
+						name="firstName"
+						autocomplete="given-name"
+						:maxlength="FIRST_NAME_MAX_LENGTH"
+						required
+					/>
+				</div>
+
+				<div class="auth-card__field">
+					<label class="auth-card__label" for="auth-last-name">Efternamn</label>
+					<BaseInput
+						id="auth-last-name"
+						v-model="lastName"
+						type="text"
+						name="lastName"
+						autocomplete="family-name"
+						:maxlength="LAST_NAME_MAX_LENGTH"
+						required
+					/>
+				</div>
+
+				<div class="auth-card__field">
+					<label class="auth-card__label" for="auth-display-name">
+						Användarnamn
+					</label>
+					<BaseInput
+						id="auth-display-name"
+						v-model="displayName"
+						type="text"
+						name="displayName"
+						autocomplete="nickname"
+						:maxlength="DISPLAY_NAME_MAX_LENGTH"
+						required
+					/>
+				</div>
+			</template>
 
 			<div class="auth-card__field">
 				<label class="auth-card__label" for="auth-email">E-post</label>

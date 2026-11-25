@@ -10,7 +10,7 @@
 		"typescript": "~6.0.0"
 	},
 	"engines": {
-		"node": ">=24.0.0"
+		"node": ">=24.7.0"
 	},
 	"name": "utpost",
 	"overrides": {
@@ -22,7 +22,10 @@
 		"build": "npm run build --workspace=client",
 		"cms:migrate-guides": "node --env-file-if-exists=.env --env-file-if-exists=api/.env scripts/cms-migrate-guides.mjs",
 		"cms:setup": "node --env-file-if-exists=.env scripts/cms-setup.mjs",
+		"db:generate": "npm run db:generate --workspace=api",
+		"db:migrate": "npm run db:migrate --workspace=api",
 		"db:nuke:postgres": "node scripts/nuke-postgres.mjs",
+		"db:push": "npm run db:push --workspace=api",
 		"dev": "npm run dev:databases && concurrently -n api,client -c blue,magenta \"npm run dev --workspace=api\" \"npm run dev --workspace=client\"",
 		"dev:api": "npm run dev --workspace=api",
 		"dev:client": "npm run dev --workspace=client",
@@ -30,9 +33,9 @@
 		"docker:client:start": "docker compose start client",
 		"docker:client:stop": "docker compose stop client",
 		"docker:down": "docker compose down",
-		"docker:migrate-logs": "docker compose exec api node src/db/migrate-logs.js",
+		"docker:migrate-logs": "docker compose exec api node src/db/migrate-logs.ts",
 		"docker:reset": "docker compose down -v",
-		"docker:seed": "docker compose exec api node src/db/seed.js",
+		"docker:seed": "docker compose exec api node src/db/seed.ts",
 		"docker:start": "npm run docker:up && npm run seed && npm run migrate:logs",
 		"docker:up": "docker compose up --build -d --wait",
 		"lint": "concurrently -n code,markdown,spelling -c blue,magenta,green \"npm run lint:code\" \"npm run lint:md\" \"npm run lint:spelling\"",
@@ -43,7 +46,6 @@
 		"lint:md:fix": "markdownlint \"**/*.md\" --ignore \"**/node_modules/**\" --fix",
 		"lint:spelling": "cspell \"**/*.{js,jsx,md,ts,vue}\"",
 		"migrate:logs": "npm run migrate:logs --workspace=api",
-		"mongo:smoke": "npm run mongo:smoke --workspace=api",
 		"prepare": "husky",
 		"security": "concurrently -n audit,trivy,zap -c blue,magenta,green \"npm run security:audit\" \"npm run security:trivy\" \"npm run security:zap\"",
 		"security:audit": "npm audit --omit=dev --audit-level=high",

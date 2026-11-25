@@ -30,7 +30,7 @@ watch(guide, (value) => {
 	<article v-else-if="guide" class="guide-article">
 		<h1>{{ guide.title }}</h1>
 		<p class="guide-article__meta">
-			{{ guide.region }} - {{ guide.difficulty }} - {{ guide.length_km }} km
+			{{ guide.region }} - {{ guide.difficulty }} - {{ guide.lengthKm }} km
 		</p>
 		<NoticeList :notices="guide.notices" />
 		<div v-if="guide.body.length > 0" class="guide-article__body">

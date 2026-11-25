@@ -1,4 +1,13 @@
-# Tekniska problem
+---
+title: "Tekniska problem"
+description: "Buggar och problem i Utpost som vi har identifierat och arbetar med under projektets gång, med plats, orsak och allvar."
+created: "2026-09-21"
+published_date: "2026-09-21"
+last_modified_date: "2026-11-25"
+version: "1"
+---
+
+Platserna nedan pekar på koden som den var när vi skrev dokumentet. Backenden har sedan dess fått en ny mappstruktur, se [dokumentet om backenden](backend.md), så filerna heter något annat nu.
 
 Tabellen är ett kort index. Detaljerna finns längre ner.
 

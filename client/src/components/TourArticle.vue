@@ -41,7 +41,7 @@ const isOwner = computed(() => {
 	if (!authStore.isLoggedIn || !tour.value) {
 		return false;
 	} else {
-		return authStore.user?.id === tour.value.user_id;
+		return authStore.user?.id === tour.value.userId;
 	}
 });
 
@@ -92,10 +92,10 @@ const addUploadedPhoto = (photo: Photo) => {
 					>
 						<td class="tour-article__cell">{{ index + 1 }}</td>
 						<td class="tour-article__cell">
-							{{ new Date(log.recorded_at).toLocaleTimeString("sv-SE") }}
+							{{ new Date(log.recordedAt).toLocaleTimeString("sv-SE") }}
 						</td>
-						<td class="tour-article__cell">{{ log.elevation_m }}</td>
-						<td class="tour-article__cell">{{ log.heart_rate }}</td>
+						<td class="tour-article__cell">{{ log.elevationM }}</td>
+						<td class="tour-article__cell">{{ log.heartRate }}</td>
 					</tr>
 				</tbody>
 			</table>

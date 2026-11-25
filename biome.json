@@ -16,7 +16,7 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["**", "!client/src/gql", "!**/*.md"]
+		"includes": ["**", "!client/src/gql", "!**/*.md", "!**/drizzle"]
 	},
 	"formatter": {
 		"enabled": true,

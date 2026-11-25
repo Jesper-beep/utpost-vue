@@ -33,7 +33,7 @@ const StartsidanDocument = graphql(`
 			region
 			difficulty
 			excerpt
-			length_km: lengthKm
+			lengthKm
 		}
 		popularGuides(limit: 6) {
 			id
@@ -42,13 +42,13 @@ const StartsidanDocument = graphql(`
 			region
 			difficulty
 			excerpt
-			length_km: lengthKm
+			lengthKm
 		}
 		regions
 		tours(limit: 5) {
 			id
 			title
-			distance_m: distanceM
+			distanceM
 		}
 	}
 `);

@@ -51,10 +51,12 @@ describe("LoginView", () => {
 		mockedPost.mockResolvedValue({
 			token: "jwt-from-api",
 			user: {
-				created_at: "",
-				display_name: "Anna",
-				email: "anna@example.com",
+				createdAt: "",
+				displayName: "scotty",
+				email: "Scott.Thomas@Scottymail.com",
+				firstName: "Scott",
 				id: 1,
+				lastName: "Thomas",
 				role: "member",
 			},
 		});
@@ -67,7 +69,7 @@ describe("LoginView", () => {
 			password: "hemligt123",
 		});
 		expect(getToken()).toBe("jwt-from-api");
-		expect(useAuthStore().user?.display_name).toBe("Anna");
+		expect(useAuthStore().user?.displayName).toBe("scotty");
 		expect(localStorage.length).toBe(0);
 		expect(push).toHaveBeenCalledWith("/turer/1/bild");
 	});
