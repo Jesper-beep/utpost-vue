@@ -3,7 +3,7 @@ title: "GraphQL"
 description: "Beslut om huruvida GraphQL ersätter eller kompletterar REST, med uppmätta siffror för startsidan. Del av M4-momentet."
 created: "2026-10-19"
 published_date: "-"
-last_modified_date: "2026-11-20"
+last_modified_date: "2026-11-25"
 version: "1"
 ---
 
@@ -16,6 +16,12 @@ Undantaget är `createTour`. Det finns både som `POST /api/tours` i REST och so
 ### Uppdatering 20 november 2026
 
 Vi har tagit bort mutationen `createTour`. Vi skapar nu turer bara via REST, med `POST /api/tours`.
+
+### Uppdatering 25 november 2026
+
+Backenden är omarbetad, se [dokumentet om backenden](../backend.md). Siffrorna nedan gäller koden före omarbetningen.
+
+`GET /api/tours` gjorde över 200 frågor för 50 turer. Nu hämtar en enda fråga turerna med användare, guide, bilder och mätpunkter. GraphQL var redan lagat med DataLoader i M5.
 
 ### Varför
 
@@ -238,7 +244,7 @@ graphql Startsidan: N databasfrågor
 
 ## Schema
 
-Schemat finns i [schema.js](../../api/src/graphql/schema.js). Det är kontraktet mot klienten, med de namn klienten vill ha (`bodyHtml`) och inte Postgres kolumner (`body_html`).
+Schemat finns i [schema.ts](../../api/src/graphql/schema.ts). Det är kontraktet mot klienten, med de namn klienten vill ha (`bodyHtml`) och inte Postgres kolumner (`body_html`).
 
 - `User` har bara `id` och `displayName`. `password_hash` finns inte i schemat och kan därför inte läsas ut
 - `!` lovar att fältet aldrig är null. `Tour.guide` och `guide(slug)` saknar `!`, eftersom en tur inte behöver ha en guide och en slug kan saknas

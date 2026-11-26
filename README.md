@@ -56,7 +56,6 @@ Eftersom båda "tjänsterna" använder port `3001`, måste den ena stoppas innan
 - Databasfrågorna för varje GraphQL-fråga loggas av API:et: `docker logs utpost-api | grep graphql`
 - Stoppa med `npm run docker:down`
 - Stoppa och ta bort databasen med `npm run docker:reset`, kör sedan `npm run docker:up`. Databasen seedas och migreras av sig själv vid start
-- Får du `504` från API:et har databasen inte seedats. Kör `npm run docker:seed`
 - Turernas mätpunkter läses ur MongoDB i GraphQL. Kör `npm run docker:migrate-logs` efter varje `npm run docker:seed`, annars blir mätpunkterna tomma
 
 ### Bara databasen i Docker
@@ -143,7 +142,7 @@ Observera att "före" är avbildningen från `af6c6c1`, innan nginx lades till.
 
 ### Publicering
 
-Jobbet ImageCity i pipelinen bygger Docker-avbildningarna. Vid  en PR byggs dom bara, och vid en push till main publiceras de.
+Jobbet Docker-avbildningar i pipelinen bygger avbildningarna. Vid  en PR byggs dom bara, och vid en push till main publiceras de.
 
 Pusha aldrig avbildningar från din egen dator.
 
@@ -186,6 +185,21 @@ Användare, lösenord och databasnamn för MongoDB
 - Nyckeln till bildfunktionen, för API-containern
 - Valfri, tom som standard
 
+#### `CONTENTFUL_SPACE_ID`, `CONTENTFUL_DELIVERY_TOKEN` och `CONTENTFUL_PREVIEW_TOKEN`
+
+- Samma sak som i `api/.env`, men för API-containern
+- Valfria, tomma som standard
+
+#### `CMS_CACHE_SECONDS` och `CMS_WEBHOOK_SECRET`
+
+- Samma sak som i `api/.env`, men för API-containern
+- Valfria, standard `60` respektive tom
+
+#### `CONTENTFUL_MANAGEMENT_TOKEN`
+
+- Nyckeln som `npm run cms:setup` och `npm run cms:migrate-guides` använder för att skriva till Contentful
+- Krävs av skripten, men API:et läser den inte
+
 Kör du API:et utanför Docker måste miljövariablerna för Postgres och MongoDB stämma med `POSTGRES_URL` och `MONGODB_URL` i `api/.env`.
 
 Kör du allt i Docker behöver du inte tänka på det. Då bygger Compose båda adresserna åt dig, med `postgres` och `mongo` som värdnamn.
@@ -214,6 +228,14 @@ Anslutning till MongoDB
 
 - Valfri, standard `4000`
 
+#### `NODE_ENV`
+
+Hastighetsbegränsningen (en gräns för hur många anrop en klient får göra under en viss tid) är på som standard.
+
+- Valfri, standard `production`
+- `development` och `test` stänger av hastighetsbegränsningen
+- `api/.env.example` sätter den till `development`. Compose sätter den inte, så begränsningen är på i containern
+
 #### `UPLOAD_DIR`
 
 - Valfri, standard `./uploads`
@@ -231,9 +253,43 @@ Anslutning till MongoDB
 - Valfri, standard tom
 - Skickas i headern `x-functions-key`. I Azure är den en secret
 
+#### `CONTENTFUL_SPACE_ID`
+
+Contentful (ett CMS, där redaktörerna skriver innehåll) levererar notiser och guidetexter till API:et.
+
+- Valfri, standard tom
+- Utan den och `CONTENTFUL_DELIVERY_TOKEN` är CMS:et avstängt, och API:et svarar med tomma listor
+
+#### `CONTENTFUL_DELIVERY_TOKEN`
+
+- Valfri, standard tom
+- Nyckeln för publicerat innehåll
+
+#### `CONTENTFUL_PREVIEW_TOKEN`
+
+- Valfri, standard tom
+- Nyckeln för utkast, som redaktörer ser när dom förhandsgranskar notiser
+
+#### `CONTENTFUL_ENVIRONMENT`
+
+- Valfri, standard `master`
+- Miljön i Contentful som API:et hämtar innehållet från
+- Compose skickar inte vidare den, så i Docker är den alltid `master`
+
+#### `CMS_CACHE_SECONDS`
+
+- Valfri, standard `60`
+- API:et hämtar innehållet högst så ofta och svarar ur minnet mellan hämtningarna, eftersom Contentfuls gratisnivå har ett tak för antalet anrop per månad
+
+#### `CMS_WEBHOOK_SECRET`
+
+- Valfri, standard tom
+- Contentful skickar den i headern `x-utpost-webhook-secret` när en post publiceras, och då töms cachen
+- Är den tom svarar webhooken alltid med statuskod 401
+
 #### `SEED_ON_START`
 
-- Valfri, `1` seedar en tom databas vid start (`src/boot.js`)
+- Valfri, `1` seedar en tom databas vid start (`src/db/prepare.ts`)
 - Compose sätter den till `1`
 
 #### `GIT_SHA`
@@ -361,6 +417,8 @@ API lyssnar på http://localhost:4000
 
 Loggen hämtas med `az containerapp logs show --container api --tail 30`. Postgres behövde några sekunder på sig, och api:et väntade in den.
 
+Loggen är från före omarbetningen av backenden. Raderna börjar nu med `prepare:` i stället för `boot:`.
+
 ## Bildfunktionen i molnet (M7)
 
 Bildbehandlingen körs i en Azure Function (`utpost-vue-fn`, Flex Consumption). Den stängs av när ingen använder den, så första uppladdningen efter en paus är en kallstart.
@@ -408,7 +466,7 @@ CI bygger en image för `api` och `client` när kontrollerna är gröna.
 ## Tester
 
 - Klientens tester ligger i `client/tests` och körs med `npm test`
-- API:ets tester ligger i `api/tests` och `api/src/graphql` och körs med `npm run test:api`. De kräver att databaserna är igång, seedade och migrerade
+- API:ets tester ligger i `api/tests` och körs med `npm run test:api`. De kräver att databaserna är igång, seedade och migrerade
 - Bildfunktionens tester ligger i `functions/src` och körs med `npm --prefix functions test`
 - Alla tester ska vara gröna innan en PR mergas
 - Buggfixar ska ha ett test, om det går
@@ -518,7 +576,7 @@ Frågorna skrivs i `graphql(...)`. Codegen skriver typerna ur schemat till `clie
 
 ### Borttaget fält stoppar `npm run typecheck`
 
-`npm run typecheck` kör `codegen` först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.js` på en branch. Kommandot stoppade:
+`npm run typecheck` kör `codegen` först. Vi tog bort `lengthKm` ur `type Guide` i `api/src/graphql/schema.ts` på en branch. Kommandot stoppade:
 
 ```text
 GraphQL Document Validation failed with 2 errors;

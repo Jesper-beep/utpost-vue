@@ -7,13 +7,13 @@ import PhotoDebugInfo from "../../src/components/PhotoDebugInfo.vue";
 const svar = (coldStart: boolean): PhotoUploadResponse => ({
 	apiMs: 5300,
 	coldStart,
-	created_at: "2026-11-09T10:00:00.000Z",
+	createdAt: "2026-11-09T10:00:00.000Z",
 	filename: "0123456789abcdef0123456789abcdef",
 	height: 1080,
 	id: 1,
 	instance: "funktion-1",
 	processingMs: 5185,
-	tour_id: 7,
+	tourId: 7,
 	variants: [
 		{ height: 144, sizeBytes: 2048, width: 256 },
 		{ height: 1080, sizeBytes: 983040, width: 1920 },

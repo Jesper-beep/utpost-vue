@@ -3,7 +3,7 @@ title: "Pipeline"
 description: "Så går kod från pull request till staging: jobben i CI, vad varje steg fångar, deployen till Azure och reglerna på main."
 created: "2026-09-29"
 published_date: "-"
-last_modified_date: "2026-11-20"
+last_modified_date: "2026-11-25"
 version: "1"
 ---
 
@@ -27,15 +27,16 @@ flowchart LR
 
 ## Jobb
 
-CI har fem jobb i `.github/workflows/ci.yml`.
+CI har sex jobb i `.github/workflows/ci.yml`.
 
 - SlopChecker2000: lint, typkontroll, tester (även bildfunktionens) och bygge av klienten. Körs på ubuntu, macos och windows
+- Säkerhet: kör `npm audit`, Trivy och ZAP mot repot, avbildningarna och webbplatsen medan den kör. Körs på ubuntu, se [säkerhetsdokumentet](security.md#skanning-i-pipelinen)
 - Integrationstester: kör API:ets integrationstester mot riktiga databaser. Körs på ubuntu
 - Docker-avbildningar: bygger avbildningarna för api och client. Körs på ubuntu och väntar på SlopChecker2000
 - Deploy to Azure staging: byter avbildning på api och client i Azure Container Apps. Körs på ubuntu, bara vid push till main, och väntar på Docker-avbildningar och Integrationstester
 - Deploy to Azure Functions: bygger och publicerar bildfunktionen i Azure Functions. Körs på ubuntu, bara vid push till main, och väntar på SlopChecker2000
 
-Integrationstester är oberoende av SlopChecker2000, så de två körs samtidigt.
+Säkerhet och Integrationstester är oberoende av SlopChecker2000, så de tre körs samtidigt.
 
 ## Steg och tider
 
@@ -89,7 +90,7 @@ Fångar stavfel i .js, .jsx och .md.
 
 ### `npm run typecheck`
 
-Kör först codegen, som genererar klientens typer ur `api/src/graphql/schema.js`. Fångar typfel i api och klient, och frågor som använder ett fält som inte finns i schemat.
+Kör först codegen, som genererar klientens typer ur `api/src/graphql/schema.ts`. Fångar typfel i api och klient, och frågor som använder ett fält som inte finns i schemat.
 
 ### `npm run test:client`
 

@@ -6,7 +6,7 @@ import MainHero from "../components/MainHero.vue";
 import NoticeList from "../components/NoticeList.vue";
 import TourSummaryList from "../components/TourSummaryList.vue";
 import { graphql } from "../gql/index.js";
-import { useAuthStore } from "../stores/auth.js";
+import { useAuthStore } from "../stores/authentication.js";
 
 const StartsidanDocument = graphql(`
 	query Startsidan($preview: Boolean) {
@@ -33,7 +33,7 @@ const StartsidanDocument = graphql(`
 			region
 			difficulty
 			excerpt
-			length_km: lengthKm
+			lengthKm
 		}
 		popularGuides(limit: 6) {
 			id
@@ -42,13 +42,13 @@ const StartsidanDocument = graphql(`
 			region
 			difficulty
 			excerpt
-			length_km: lengthKm
+			lengthKm
 		}
 		regions
 		tours(limit: 5) {
 			id
 			title
-			distance_m: distanceM
+			distanceM
 		}
 	}
 `);

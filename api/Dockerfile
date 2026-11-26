@@ -25,4 +25,4 @@ ENV GIT_SHA=$GIT_SHA
 WORKDIR /app/api
 USER node
 EXPOSE 4000
-CMD ["node", "src/boot.js"]
+CMD ["node", "src/server.ts"]

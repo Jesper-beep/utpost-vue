@@ -14,7 +14,7 @@ defineProps<{
 				{{ tour.title }}
 			</RouterLink>
 			<span class="tour-summary-list__distance">
-				({{ Math.round(tour.distance_m / 100) / 10 }}
+				({{ Math.round(tour.distanceM / 100) / 10 }}
 				km)
 			</span>
 		</li>

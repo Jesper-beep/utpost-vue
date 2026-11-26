@@ -9,7 +9,7 @@ const config: CodegenConfig = {
 			presetConfig: { fragmentMasking: false },
 		},
 	},
-	schema: "../api/src/graphql/schema.js",
+	schema: "../api/src/graphql/schema.ts",
 };
 
 export default config;

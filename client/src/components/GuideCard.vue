@@ -70,7 +70,7 @@ defineProps<{
 					<title>Sträcka</title>
 					<path d="m18 8 4 4-4 4M2 12h20M6 8l-4 4 4 4" />
 				</svg>
-				<span class="guide-card__value">{{ guide.length_km }} km</span>
+				<span class="guide-card__value">{{ guide.lengthKm }} km</span>
 			</li>
 		</ul>
 	</article>

@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import TourArticle from "../../src/components/TourArticle.vue";
 import { setToken } from "../../src/lib/token.js";
-import { useAuthStore } from "../../src/stores/auth.js";
+import { useAuthStore } from "../../src/stores/authentication.js";
 import { bigFetch } from "../../src/utils/bigFetch.js";
 
 vi.mock("vue-router", async (importOriginal) => ({
@@ -20,24 +20,24 @@ const OWNER_ID = 1;
 const OTHER_USER_ID = 2;
 
 const foto = (id: number): Photo => ({
-	created_at: "2026-11-09T10:00:00.000Z",
+	createdAt: "2026-11-09T10:00:00.000Z",
 	filename: `nyckel${id}`,
 	height: 1080,
 	id,
-	tour_id: 7,
+	tourId: 7,
 	width: 1920,
 });
 
 const tur = (photos: Photo[]): TourDetail => ({
-	distance_m: 8400,
-	guide_id: null,
+	distanceM: 8400,
+	guideId: null,
 	id: 7,
 	logs: [],
 	notes: null,
 	photos,
-	started_at: "2026-11-01T10:00:00.000Z",
+	startedAt: "2026-11-01T10:00:00.000Z",
 	title: "Morgontur",
-	user_id: OWNER_ID,
+	userId: OWNER_ID,
 });
 
 const uppladdadFoto = foto(3);
@@ -69,10 +69,12 @@ const renderArticle = (photos: Photo[]) => {
 const loggaIn = (userId: number) => {
 	setToken("test-token");
 	useAuthStore().user = {
-		created_at: "",
-		display_name: "Anna Berg",
+		createdAt: "",
+		displayName: "anna",
 		email: "anna@example.com",
+		firstName: "Anna",
 		id: userId,
+		lastName: "Berg",
 		role: "member",
 	};
 };

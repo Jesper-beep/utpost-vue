@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import ProfileArticle from "../../src/components/ProfileArticle.vue";
 import { setToken } from "../../src/lib/token.js";
-import { useAuthStore } from "../../src/stores/auth.js";
+import { useAuthStore } from "../../src/stores/authentication.js";
 
 vi.mock("@urql/vue", () => ({ useQuery: vi.fn() }));
 const mockedUseQuery = vi.mocked(useQuery);
@@ -31,10 +31,12 @@ const renderArticle = () =>
 const loggaIn = () => {
 	setToken("test-token");
 	useAuthStore().user = {
-		created_at: "",
-		display_name: "Anna Berg",
-		email: "anna@example.com",
+		createdAt: "",
+		displayName: "mieke",
+		email: "mieke_schmidt@deutchnet.com",
+		firstName: "Mieke",
 		id: 1,
+		lastName: "Schmidt",
 		role: "member",
 	};
 };
@@ -58,9 +60,9 @@ describe("ProfileArticle", () => {
 		mockedUseQuery.mockReturnValue(
 			svar({
 				tours: [
-					{ distance_m: 8400, id: "7", title: "Kvällstur", user: { id: "1" } },
+					{ distanceM: 8400, id: "7", title: "Kvällstur", user: { id: "1" } },
 					{
-						distance_m: 5000,
+						distanceM: 5000,
 						id: "8",
 						title: "Någon annans",
 						user: { id: "2" },
@@ -70,7 +72,7 @@ describe("ProfileArticle", () => {
 		);
 		renderArticle();
 
-		expect(screen.getByText("Anna Berg")).toBeInTheDocument();
+		expect(screen.getByText("Mieke Schmidt")).toBeInTheDocument();
 		expect(screen.getByText("Mina turer (1)")).toBeInTheDocument();
 		expect(screen.getByText("Kvällstur")).toBeInTheDocument();
 		expect(screen.queryByText("Någon annans")).not.toBeInTheDocument();

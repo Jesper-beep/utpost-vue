@@ -1,6 +1,13 @@
 // https://github.com/jonatanhallenberg/utpost-ts-labb/blob/main/shared/src/index.ts
 
-export type Difficulty = "lätt" | "medel" | "svår";
+export * from "./messages/authentication.ts";
+export * from "./schemas/authentication.ts";
+
+export const DIFFICULTIES = ["lätt", "medel", "svår"] as const;
+export type Difficulty = (typeof DIFFICULTIES)[number];
+
+export const USER_ROLES = ["member", "editor"] as const;
+export type UserRole = (typeof USER_ROLES)[number];
 
 export interface Guide {
 	id: number;
@@ -8,30 +15,32 @@ export interface Guide {
 	title: string;
 	region: string;
 	difficulty: Difficulty;
-	length_km: number;
-	body_html: string;
-	hero_image: string | null;
+	lengthKm: number;
+	bodyHtml: string;
+	heroImage: string | null;
 	published: boolean;
-	author_id: number | null;
-	updated_at: string;
+	authorId: number | null;
+	updatedAt: string;
 }
 
 export interface User {
 	id: number;
 	email: string;
-	display_name: string;
-	role: "member" | "editor";
-	created_at: string;
+	firstName: string;
+	lastName: string;
+	displayName: string;
+	role: UserRole;
+	createdAt: string;
 }
 
 export interface TourLog {
 	id: number;
-	tour_id: number;
-	recorded_at: string;
+	tourId: number;
+	recordedAt: string;
 	lat: number;
 	lon: number;
-	elevation_m: number | null;
-	heart_rate: number | null;
+	elevationM: number | null;
+	heartRate: number | null;
 	note: string | null;
 }
 
@@ -46,11 +55,11 @@ export const getPhotoFilename = (photoKey: string, width: number): string => {
 
 export interface Photo {
 	id: number;
-	tour_id: number;
+	tourId: number;
 	filename: string;
 	width: number;
 	height: number;
-	created_at: string;
+	createdAt: string;
 }
 
 export interface PhotoVariant {
@@ -69,22 +78,22 @@ export interface PhotoUploadResponse extends Photo {
 
 export interface Tour {
 	id: number;
-	user_id: number;
-	guide_id: number | null;
+	userId: number;
+	guideId: number | null;
 	title: string;
-	started_at: string;
-	distance_m: number;
+	startedAt: string;
+	distanceM: number;
 	notes: string | null;
 }
 
 export interface GuideSummary
-	extends Pick<Guide, "length_km" | "region" | "slug" | "title"> {
+	extends Pick<Guide, "lengthKm" | "region" | "slug" | "title"> {
 	difficulty: string;
 	excerpt: string;
 	id: number | string;
 }
 
-export interface TourSummary extends Pick<Tour, "distance_m" | "title"> {
+export interface TourSummary extends Pick<Tour, "distanceM" | "title"> {
 	id: number | string;
 }
 
@@ -105,20 +114,17 @@ export interface GuideDetail {
 	photos: Photo[];
 }
 
-export interface LoginRequest {
-	email: string;
-	password: string;
-}
-
 export interface LoginResponse {
 	token: string;
 	user: User;
 }
 
-export interface ApiError {
-	error: string;
+export interface ApiIssue {
+	message: string;
+	path: string;
 }
 
-export interface RegisterRequest extends LoginRequest {
-	displayName: string;
+export interface ApiError {
+	error: string;
+	issues?: ApiIssue[];
 }
