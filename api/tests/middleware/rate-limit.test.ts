@@ -1,6 +1,13 @@
+import { AUTHENTICATION_MESSAGES } from "@utpost/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { config } from "../../src/config/env.ts";
-import { callApi, startTestServer, stopTestServer } from "../helpers/api.ts";
+import {
+	callApi,
+	errorSchema,
+	readJson,
+	startTestServer,
+	stopTestServer,
+} from "../helpers/api.ts";
 
 const MAX_ATTEMPTS = 10;
 const wasRateLimitEnabled = config.isRateLimitEnabled;
@@ -31,5 +38,8 @@ describe("A07 Authentication Failures - hastighetsbegränsningen", () => {
 			method: "POST",
 		});
 		expect(blockedResponse.status).toBe(429);
+		expect(await readJson(blockedResponse, errorSchema)).toEqual({
+			error: AUTHENTICATION_MESSAGES.form.tooManyAttempts,
+		});
 	});
 });

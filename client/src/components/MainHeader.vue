@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from "../stores/auth.js";
+import { useAuthStore } from "../stores/authentication.js";
 import BaseButton from "./BaseButton.vue";
 import MainNav from "./MainNav.vue";
 import NavLink from "./NavLink.vue";

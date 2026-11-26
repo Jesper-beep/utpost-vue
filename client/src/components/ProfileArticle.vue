@@ -3,7 +3,7 @@ import { useQuery } from "@urql/vue";
 import { computed } from "vue";
 import { graphql } from "../gql/index.js";
 import { ROLE_LABELS } from "../lib/roles.js";
-import { useAuthStore } from "../stores/auth.js";
+import { useAuthStore } from "../stores/authentication.js";
 import TourSummaryList from "./TourSummaryList.vue";
 
 const MinaTurerDocument = graphql(`

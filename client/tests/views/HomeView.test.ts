@@ -7,7 +7,7 @@ import { createPinia, type Pinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { setToken } from "../../src/lib/token.js";
-import { useAuthStore } from "../../src/stores/auth.js";
+import { useAuthStore } from "../../src/stores/authentication.js";
 import HomeView from "../../src/views/HomeView.vue";
 
 vi.mock("@urql/vue", () => ({ useQuery: vi.fn() }));

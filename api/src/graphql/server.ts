@@ -12,7 +12,7 @@ import {
 import { config } from "../config/env.ts";
 import { runWithQueryStats } from "../lib/query-stats.ts";
 import { readBearerToken, verifyToken } from "../lib/token.ts";
-import type { TokenUser } from "../types/auth.ts";
+import type { TokenUser } from "../types/authentication.ts";
 import type { GraphQLContext } from "../types/graphql.ts";
 import { createLoaders } from "./loaders.ts";
 import { resolvers } from "./resolvers.ts";

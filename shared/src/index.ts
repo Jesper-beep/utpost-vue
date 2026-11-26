@@ -1,6 +1,7 @@
 // https://github.com/jonatanhallenberg/utpost-ts-labb/blob/main/shared/src/index.ts
 
-export * from "./schemas/auth.ts";
+export * from "./messages/authentication.ts";
+export * from "./schemas/authentication.ts";
 
 export const DIFFICULTIES = ["lätt", "medel", "svår"] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
@@ -118,6 +119,12 @@ export interface LoginResponse {
 	user: User;
 }
 
+export interface ApiIssue {
+	message: string;
+	path: string;
+}
+
 export interface ApiError {
 	error: string;
+	issues?: ApiIssue[];
 }

@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { requireRole, requireUser } from "../../middleware/authentication.ts";
+import { requireUser } from "../../middleware/authentication.ts";
+import { requireRole } from "../../middleware/authorization.ts";
 import { idSchema } from "../../schemas/common.ts";
 import { guideUpdateSchema, searchSchema } from "../../schemas/guides.ts";
 import {

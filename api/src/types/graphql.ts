@@ -6,7 +6,7 @@ import type {
 } from "../cms/contentful.js";
 import type { PhotoRow } from "../db/schema/photos/index.ts";
 import type { UserRow } from "../db/schema/users/index.ts";
-import type { TokenUser } from "./auth.ts";
+import type { TokenUser } from "./authentication.ts";
 import type { GuideListRow } from "./guides.ts";
 import type { LogPointDocument } from "./tour-logs.ts";
 

@@ -1,4 +1,4 @@
-import { registerSchema } from "@utpost/shared";
+import { AUTHENTICATION_MESSAGES, registerSchema } from "@utpost/shared";
 import { Router } from "express";
 import { hashPassword } from "../../lib/password.ts";
 import { publicUser } from "../../lib/public-user.ts";
@@ -21,9 +21,22 @@ signupRouter.post("/", authRateLimiter, async (request, response) => {
 	});
 	if (result.status === "conflict") {
 		if (result.field === "email") {
-			response.status(409).json({ error: "e-posten används redan" });
+			const { after, before, linkText } =
+				AUTHENTICATION_MESSAGES.conflict.email;
+			response.status(409).json({
+				error: "e-posten används redan",
+				issues: [{ message: `${before}${linkText}${after}`, path: "email" }],
+			});
 		} else {
-			response.status(409).json({ error: "användarnamnet används redan" });
+			response.status(409).json({
+				error: "användarnamnet används redan",
+				issues: [
+					{
+						message: AUTHENTICATION_MESSAGES.conflict.displayName,
+						path: "displayName",
+					},
+				],
+			});
 		}
 		return;
 	}

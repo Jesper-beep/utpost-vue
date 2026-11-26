@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { previewNotices, publishedNotices } from "../../cms/contentful.js";
-import { requireRole, requireUser } from "../../middleware/authentication.ts";
+import { requireUser } from "../../middleware/authentication.ts";
+import { requireRole } from "../../middleware/authorization.ts";
 
 export const noticesRouter = Router();
 

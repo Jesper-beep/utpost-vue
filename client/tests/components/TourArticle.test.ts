@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import TourArticle from "../../src/components/TourArticle.vue";
 import { setToken } from "../../src/lib/token.js";
-import { useAuthStore } from "../../src/stores/auth.js";
+import { useAuthStore } from "../../src/stores/authentication.js";
 import { bigFetch } from "../../src/utils/bigFetch.js";
 
 vi.mock("vue-router", async (importOriginal) => ({

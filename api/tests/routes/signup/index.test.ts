@@ -1,10 +1,10 @@
+import { AUTHENTICATION_MESSAGES, PASSWORD_MIN_LENGTH } from "@utpost/shared";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "../../../src/db/postgres.ts";
 import { users } from "../../../src/db/schema/index.ts";
 import {
 	callApi,
-	errorSchema,
 	issuesSchema,
 	readJson,
 	startTestServer,
@@ -30,6 +30,9 @@ describe("A07 Authentication Failures - registreringen", () => {
 		const responseBody = await readJson(response, issuesSchema);
 		expect(responseBody.error).toBe("ogiltig indata");
 		expect(responseBody.issues[0]?.path).toBe("password");
+		expect(responseBody.issues[0]?.message).toBe(
+			AUTHENTICATION_MESSAGES.password.tooShort(PASSWORD_MIN_LENGTH),
+		);
 	});
 
 	it("registrering skapar kontot, och e-post eller användarnamn som redan finns ger 409", async () => {
@@ -53,18 +56,18 @@ describe("A07 Authentication Failures - registreringen", () => {
 				method: "POST",
 			});
 			expect(sameEmail.status).toBe(409);
-			expect((await readJson(sameEmail, errorSchema)).error).toBe(
-				"e-posten används redan",
-			);
+			const sameEmailBody = await readJson(sameEmail, issuesSchema);
+			expect(sameEmailBody.error).toBe("e-posten används redan");
+			expect(sameEmailBody.issues[0]?.path).toBe("email");
 
 			const sameDisplayName = await callApi("/api/auth/signup", {
-				body: { ...newAccount, email: "annan@example.com" },
+				body: { ...newAccount, email: "anna.pyttipanna@example.com" },
 				method: "POST",
 			});
 			expect(sameDisplayName.status).toBe(409);
-			expect((await readJson(sameDisplayName, errorSchema)).error).toBe(
-				"användarnamnet används redan",
-			);
+			const sameDisplayNameBody = await readJson(sameDisplayName, issuesSchema);
+			expect(sameDisplayNameBody.error).toBe("användarnamnet används redan");
+			expect(sameDisplayNameBody.issues[0]?.path).toBe("displayName");
 		} finally {
 			await db.delete(users).where(eq(users.email, newAccount.email));
 		}

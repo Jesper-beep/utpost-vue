@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { config } from "../config/env.ts";
-import { tokenPayloadSchema } from "../schemas/auth.ts";
-import type { TokenUser } from "../types/auth.ts";
+import { tokenPayloadSchema } from "../schemas/authentication.ts";
+import type { TokenUser } from "../types/authentication.ts";
 
 const BEARER_PREFIX = "Bearer ";
 

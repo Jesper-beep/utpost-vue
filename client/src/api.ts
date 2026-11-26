@@ -16,11 +16,19 @@ export const get = async <T>(path: string): Promise<T> => {
 	return response.json();
 };
 
-export const post = async <T>(path: string, body: unknown): Promise<T> => {
+export interface PostResponse<T> {
+	body: T;
+	status: number;
+}
+
+export const post = async <T>(
+	path: string,
+	body: unknown,
+): Promise<PostResponse<T>> => {
 	const response = await fetch(`${API_URL}${path}`, {
 		body: JSON.stringify(body),
 		headers: buildHeaders({ "Content-Type": "application/json" }),
 		method: "POST",
 	});
-	return response.json();
+	return { body: await response.json(), status: response.status };
 };

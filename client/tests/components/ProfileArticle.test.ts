@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import ProfileArticle from "../../src/components/ProfileArticle.vue";
 import { setToken } from "../../src/lib/token.js";
-import { useAuthStore } from "../../src/stores/auth.js";
+import { useAuthStore } from "../../src/stores/authentication.js";
 
 vi.mock("@urql/vue", () => ({ useQuery: vi.fn() }));
 const mockedUseQuery = vi.mocked(useQuery);

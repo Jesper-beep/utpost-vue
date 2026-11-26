@@ -12,7 +12,7 @@ import { getForeignKeyViolationConstraint } from "../lib/database-errors.ts";
 import { removePhoto } from "../lib/photos.ts";
 import { publicUser } from "../lib/public-user.ts";
 import type { CreateTourInput } from "../schemas/tours.ts";
-import type { TokenUser } from "../types/auth.ts";
+import type { TokenUser } from "../types/authentication.ts";
 import type {
 	CreateTourResult,
 	DeleteTourResult,

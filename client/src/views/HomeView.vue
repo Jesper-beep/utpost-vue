@@ -6,7 +6,7 @@ import MainHero from "../components/MainHero.vue";
 import NoticeList from "../components/NoticeList.vue";
 import TourSummaryList from "../components/TourSummaryList.vue";
 import { graphql } from "../gql/index.js";
-import { useAuthStore } from "../stores/auth.js";
+import { useAuthStore } from "../stores/authentication.js";
 
 const StartsidanDocument = graphql(`
 	query Startsidan($preview: Boolean) {

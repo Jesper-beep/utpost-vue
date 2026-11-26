@@ -7,7 +7,8 @@ import type {
 } from "@utpost/shared";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { post } from "../api.js";
+import { type PostResponse, post } from "../api.js";
+import { AuthenticationError } from "../lib/authentication-error.js";
 import { getToken, setToken } from "../lib/token.js";
 
 // Här sparas vem som är inloggad.
@@ -16,21 +17,26 @@ export const useAuthStore = defineStore("auth", () => {
 	const user = ref<User | null>(null);
 	const isLoggedIn = computed(() => user.value !== null && getToken() !== null);
 
-	// Vid fel uppgifter svarar API:et 401 med { error }.
-	// Vi kastar felet så att vyn kan visa texten, och ingen token sparas.
+	// Vid fel svarar API:et med { error } och en statuskod, till exempel 401 vid fel uppgifter.
+	// Vi kastar ett AuthenticationError så att vyn kan välja text, och ingen token sparas.
 	const authenticate = async (
 		path: string,
 		body: LoginRequest | RegisterRequest,
 	) => {
-		let response: LoginResponse | ApiError;
+		let response: PostResponse<LoginResponse | ApiError>;
 		try {
 			response = await post<LoginResponse | ApiError>(path, body);
 		} catch {
-			throw new Error("Något gick fel. Försök igen senare.");
+			throw new AuthenticationError(0);
 		}
-		if ("error" in response) throw new Error(response.error);
-		setToken(response.token);
-		user.value = response.user;
+		if ("error" in response.body) {
+			throw new AuthenticationError(response.status, response.body.issues);
+		}
+		if (response.status >= 400) {
+			throw new AuthenticationError(response.status);
+		}
+		setToken(response.body.token);
+		user.value = response.body.user;
 	};
 
 	const login = (credentials: LoginRequest) =>

@@ -4,7 +4,7 @@ import { computed, ref, useId, watch } from "vue";
 import { useRoute } from "vue-router";
 import { API_URL } from "../config.js";
 import { distanceKm, elevationGain } from "../lib/tours.js";
-import { useAuthStore } from "../stores/auth.js";
+import { useAuthStore } from "../stores/authentication.js";
 import { bigFetch } from "../utils/bigFetch.js";
 import PhotoGallery from "./PhotoGallery.vue";
 import PhotoUploader from "./PhotoUploader.vue";

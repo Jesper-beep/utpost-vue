@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AUTHENTICATION_MESSAGES } from "../messages/authentication.ts";
 
 export const EMAIL_MAX_LENGTH = 254;
 export const EMAIL_LOCAL_PART_MAX_LENGTH = 64;
@@ -28,10 +29,11 @@ const emailSchema = z
 	.toLowerCase()
 	.pipe(
 		z
-			.email()
-			.max(EMAIL_MAX_LENGTH)
+			.email({ error: AUTHENTICATION_MESSAGES.email.invalid })
+			.max(EMAIL_MAX_LENGTH, { error: AUTHENTICATION_MESSAGES.email.invalid })
 			.refine(
 				(email) => getLocalPart(email).length <= EMAIL_LOCAL_PART_MAX_LENGTH,
+				{ error: AUTHENTICATION_MESSAGES.email.invalid },
 			),
 	);
 
@@ -40,36 +42,52 @@ const displayNameSchema = z
 	.string()
 	.trim()
 	.toLowerCase()
-	.min(1)
-	.max(DISPLAY_NAME_MAX_LENGTH)
-	.regex(DISPLAY_NAME_PATTERN);
+	.min(1, { error: AUTHENTICATION_MESSAGES.displayName.required })
+	.max(DISPLAY_NAME_MAX_LENGTH, {
+		error: AUTHENTICATION_MESSAGES.displayName.tooLong(DISPLAY_NAME_MAX_LENGTH),
+	})
+	.regex(DISPLAY_NAME_PATTERN, {
+		error: AUTHENTICATION_MESSAGES.displayName.invalid,
+	});
 
 const firstNameSchema = z
 	.string()
 	.trim()
-	.min(1)
-	.max(FIRST_NAME_MAX_LENGTH)
-	.regex(NAME_PATTERN);
+	.min(1, { error: AUTHENTICATION_MESSAGES.firstName.required })
+	.max(FIRST_NAME_MAX_LENGTH, {
+		error: AUTHENTICATION_MESSAGES.firstName.tooLong(FIRST_NAME_MAX_LENGTH),
+	})
+	.regex(NAME_PATTERN, { error: AUTHENTICATION_MESSAGES.firstName.invalid });
 
 const lastNameSchema = z
 	.string()
 	.trim()
-	.min(1)
-	.max(LAST_NAME_MAX_LENGTH)
-	.regex(NAME_PATTERN);
+	.min(1, { error: AUTHENTICATION_MESSAGES.lastName.required })
+	.max(LAST_NAME_MAX_LENGTH, {
+		error: AUTHENTICATION_MESSAGES.lastName.tooLong(LAST_NAME_MAX_LENGTH),
+	})
+	.regex(NAME_PATTERN, { error: AUTHENTICATION_MESSAGES.lastName.invalid });
 
 // Normaliseringen NFKC ger samma hashvärde för samma synliga lösenord.
 const passwordBaseSchema = z.string().normalize("NFKC");
 
-// Vid inloggning kontrolleras bara taket, så att ett äldre och kortare lösenord fortfarande fungerar.
+// Vid inloggning kontrolleras endast maxlängden, så att ett äldre och kortare lösenord fortfarande fungerar.
 const loginPasswordSchema = passwordBaseSchema
-	.min(1)
-	.refine((password) => countCharacters(password) <= PASSWORD_MAX_LENGTH);
+	.min(1, { error: AUTHENTICATION_MESSAGES.password.required })
+	.refine((password) => countCharacters(password) <= PASSWORD_MAX_LENGTH, {
+		error: AUTHENTICATION_MESSAGES.password.tooLong(PASSWORD_MAX_LENGTH),
+	});
 
 const registerPasswordSchema = passwordBaseSchema
-	.regex(CONTROL_CHARACTERS_PATTERN)
-	.refine((password) => countCharacters(password) >= PASSWORD_MIN_LENGTH)
-	.refine((password) => countCharacters(password) <= PASSWORD_MAX_LENGTH);
+	.regex(CONTROL_CHARACTERS_PATTERN, {
+		error: AUTHENTICATION_MESSAGES.password.invalid,
+	})
+	.refine((password) => countCharacters(password) >= PASSWORD_MIN_LENGTH, {
+		error: AUTHENTICATION_MESSAGES.password.tooShort(PASSWORD_MIN_LENGTH),
+	})
+	.refine((password) => countCharacters(password) <= PASSWORD_MAX_LENGTH, {
+		error: AUTHENTICATION_MESSAGES.password.tooLong(PASSWORD_MAX_LENGTH),
+	});
 
 export const loginSchema = z.object({
 	email: emailSchema,
