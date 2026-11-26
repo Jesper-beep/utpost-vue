@@ -19,7 +19,10 @@ vi.mock("vue-router", async (importOriginal) => ({
 const mockedPost = vi.mocked(post);
 
 const fillAndSubmit = async (user: ReturnType<typeof userEvent.setup>) => {
-	await user.type(screen.getByLabelText("E-post"), "anna.pyttipanna@example.com");
+	await user.type(
+		screen.getByLabelText("E-post"),
+		"anna.pyttipanna@example.com",
+	);
 	await user.type(screen.getByLabelText("Lösenord"), "hemligt123");
 	await user.click(screen.getByRole("button", { name: "Logga in" }));
 };
